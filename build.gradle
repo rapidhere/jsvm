@@ -1,0 +1,39 @@
+// ~~~ basic
+group 'ranttu.rapid.jsvm'
+version '0.0.1'
+
+apply plugin: 'java'
+
+// ~~~ dependencies
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+// ~~~ java source configuration
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/java']
+        resources.srcDirs = ['src/resources']
+    }
+
+    test {
+        java.srcDirs = ['test']
+        resources.srcDirs = ['test/testres']
+    }
+}
+
+// artifacts
+jar {
+    manifest {
+        attributes('Main-Class': 'ranttu.rapid.jsvm.Main')
+    }
+}
