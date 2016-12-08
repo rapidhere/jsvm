@@ -34,7 +34,7 @@ public class AcornJSCompiler implements JSCompiler {
     @Override
     public AbstractSyntaxTree parse(InputStream inputStream) {
         JSONObject esTreeAst = new JSONObject(getESTreeString(inputStream));
-        return ESTreeTransformUtil.transform(esTreeAst);
+        return AbstractSyntaxTree.fromJson(esTreeAst);
     }
 
     /**

@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.jscomp.ast.asttype;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
 
 /**
+ * Abstract Syntax Node according to es tree standard
+ *
  * @author rapidhere@gmail.com
  * @version $id: Node.java, v0.1 2016/12/8 dongwei.dq Exp $
  */

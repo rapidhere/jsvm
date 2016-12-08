@@ -5,7 +5,9 @@
  */
 package ranttu.rapid.jsvm.jscomp.ast;
 
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
+import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 /**
  * The root of the ast tree
@@ -15,13 +17,16 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
  */
 public class AbstractSyntaxTree {
     /** the root of the ast*/
-    private BaseAstNode root;
+    private Node root;
 
-    public BaseAstNode getRoot() {
+    public Node getRoot() {
         return root;
     }
 
-    public void setRoot(BaseAstNode root) {
-        this.root = root;
+    public static AbstractSyntaxTree fromJson(JSONObject jsonObject) {
+        AbstractSyntaxTree tree = new AbstractSyntaxTree();
+        tree.root = Program.fromJson(jsonObject);
+
+        return tree;
     }
 }
