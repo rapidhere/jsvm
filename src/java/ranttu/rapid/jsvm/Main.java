@@ -5,8 +5,8 @@
  */
 package ranttu.rapid.jsvm;
 
-import ranttu.rapid.jsvm.jscomp.parser.AcornJSCompiler;
 import ranttu.rapid.jsvm.jscomp.parser.JSCompiler;
+import ranttu.rapid.jsvm.jscomp.parser.acorn.AcornJSCompiler;
 
 /**
  * @author rapidhere@gmail.com

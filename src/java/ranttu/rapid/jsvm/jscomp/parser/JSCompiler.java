@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.parser;
 
-import ranttu.rapid.jsvm.jscomp.ast.AstRoot;
+import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -27,7 +27,7 @@ public interface JSCompiler {
      * @return parsed ast root
      * @throws FileNotFoundException
      */
-    default AstRoot parse(File f) throws FileNotFoundException {
+    default AbstractSyntaxTree parse(File f) throws FileNotFoundException {
         return parse(new FileInputStream(f));
     }
 
@@ -37,7 +37,7 @@ public interface JSCompiler {
      * @param content the content to compile
      * @return parsed ast root
      */
-    default AstRoot parse(String content) {
+    default AbstractSyntaxTree parse(String content) {
         return parse(new ByteArrayInputStream(content.getBytes()));
     }
 
@@ -48,5 +48,5 @@ public interface JSCompiler {
      * @param inputStream the input stream
      * @return parsed ast root
      */
-    AstRoot parse(InputStream inputStream);
+    AbstractSyntaxTree parse(InputStream inputStream);
 }

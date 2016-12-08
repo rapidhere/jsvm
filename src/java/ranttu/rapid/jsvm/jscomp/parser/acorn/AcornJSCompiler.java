@@ -3,13 +3,14 @@
  * Copyright (c) 1995-2016 All Rights Reserved.
  * ===> GLORY TO THE FIRST BORN! <===
  */
-package ranttu.rapid.jsvm.jscomp.parser;
+package ranttu.rapid.jsvm.jscomp.parser.acorn;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.CompileFailed;
 import ranttu.rapid.jsvm.exp.CompileInterrupted;
-import ranttu.rapid.jsvm.jscomp.ast.AstRoot;
+import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
+import ranttu.rapid.jsvm.jscomp.parser.JSCompiler;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,13 +32,14 @@ public class AcornJSCompiler implements JSCompiler {
      * @see JSCompiler#parse(InputStream)
      */
     @Override
-    public AstRoot parse(InputStream inputStream) {
-        JSONObject jsonAst = new JSONObject(getESTreeString(inputStream));
-        return null;
+    public AbstractSyntaxTree parse(InputStream inputStream) {
+        JSONObject esTreeAst = new JSONObject(getESTreeString(inputStream));
+        return ESTreeTransformUtil.transform(esTreeAst);
     }
 
     /**
      * get a ast string valid to es tree
+     * see <a href="https://github.com/estree/estree">es tree</a>
      */
     private String getESTreeString(InputStream inputStream) {
         try {
@@ -67,7 +69,7 @@ public class AcornJSCompiler implements JSCompiler {
      */
     private String generateCompileScript() {
         return String.format(
-            "try { JSON.stringify(require('./%s').parse(require('fs').readFileSync('%s'))) } "
+            "try { JSON.stringify(require('./%s').parse(require('fs').readFileSync('%s'), {locations: true})) } "
                     + "catch(err) {console.error(err.message);process.exit(1);}",
             ACORN_SCRIPT_FILE_NAME, SOURCE_FILE_NAME);
     }
