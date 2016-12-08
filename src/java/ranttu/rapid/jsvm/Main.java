@@ -5,12 +5,16 @@
  */
 package ranttu.rapid.jsvm;
 
+import ranttu.rapid.jsvm.jscomp.parser.AcornJSCompiler;
+import ranttu.rapid.jsvm.jscomp.parser.JSCompiler;
+
 /**
  * @author rapidhere@gmail.com
  * @version $id: Main.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public class Main {
     public static void main(String args[]) {
-        System.out.println("Hello world");
+        JSCompiler compiler = new AcornJSCompiler();
+        compiler.parse("var a = 1;");
     }
 }
