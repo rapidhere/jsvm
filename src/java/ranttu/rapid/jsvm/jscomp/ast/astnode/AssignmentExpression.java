@@ -10,10 +10,6 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
-import java.util.Optional;
-
-import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
-
 /**
  * a assignment expression
  *
@@ -22,32 +18,18 @@ import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
  */
 public class AssignmentExpression extends BaseAstNode implements Expression {
     private AssignmentOperator operator;
-
-    private Optional<Pattern> patternLeft = Optional.empty();
-    private Optional<Expression> expressionLeft = Optional.empty();
-
+    private Pattern left;
     private Expression right;
 
     public AssignmentExpression(JSONObject jsonObject) {
         super(jsonObject);
         operator = AssignmentOperator.of(jsonObject.getString("operator"));
-
-        Node left = Node.of(jsonObject, "left");
-        if(left instanceof Pattern) {
-            patternLeft = Optional.of(cast(left));
-        } else {
-            expressionLeft = Optional.of(cast(left));
-        }
-
+        left = Node.of(jsonObject, "left");
         right = Node.of(jsonObject, "right");
     }
 
-    public Optional<Expression> getExpressionLeft() {
-        return expressionLeft;
-    }
-
-    public Optional<Pattern> getPatternLeft() {
-        return patternLeft;
+    public Pattern getLeft() {
+        return left;
     }
 
     public AssignmentOperator getOperator() {

@@ -8,28 +8,25 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.TopLevelNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Program node
+ * Top Level Script
  * @author rapidhere@gmail.com
- * @version $id: Program.java, v0.1 2016/12/8 dongwei.dq Exp $
+ * @version $id: Script.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class Program extends BaseAstNode {
+public class Script extends BaseAstNode implements TopLevelNode {
     /** the body of the program */
     private List<Statement> body = new ArrayList<>();
 
-    public Program(JSONObject jsonObject) {
+    public Script(JSONObject jsonObject) {
         super(jsonObject);
 
         jsonObject.getJSONArray("body").forEach((child) ->
             body.add(Node.of((JSONObject) child)));
-    }
-
-    public void addStatement(Statement node) {
-        body.add(node);
     }
 
     public List<Statement> getBody() {

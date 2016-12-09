@@ -24,6 +24,7 @@ public class Function extends BaseAstNode {
     private Optional<Identifier> id;
     private List<Pattern> params = new ArrayList<>();
     private BlockStatement body;
+    private boolean generator;
 
     public Function(JSONObject jsonObject) {
         super(jsonObject);
@@ -32,6 +33,7 @@ public class Function extends BaseAstNode {
         body = new BlockStatement(jsonObject.getJSONObject("body"));
         jsonObject.getJSONArray("params").forEach((child) ->
             params.add(Node.of((JSONObject) child)));
+        generator = jsonObject.getBoolean("generator");
     }
 
     public Optional<Identifier> getIdOptional() {
@@ -44,5 +46,9 @@ public class Function extends BaseAstNode {
 
     public BlockStatement getBody() {
         return body;
+    }
+
+    public boolean isGenerator() {
+        return generator;
     }
 }

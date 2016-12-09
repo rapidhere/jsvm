@@ -40,7 +40,7 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
      * declartion type enum
      */
     public enum DeclarationType {
-        VAR, LET
+        VAR, LET, CONST
 
         ;
 

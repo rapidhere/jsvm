@@ -22,6 +22,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.DoWhileStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.EmptyStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ForInStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ForOfStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ForStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
@@ -32,10 +33,10 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.SequenceExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.SuperExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchCase;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
@@ -108,7 +109,7 @@ public interface Node {
 
             switch (type) {
                 case ES_TYPE_PROGRAM:
-                    ret = new Program(jsonObject);
+                    ret = TopLevelNode.of(jsonObject);
                     break;
                 case ES_TYPE_IDENTIFIER:
                     ret = new Identifier(jsonObject);
@@ -220,6 +221,12 @@ public interface Node {
                 case ES_TYPE_SEQ_EXP:
                     ret = new SequenceExpression(jsonObject);
                     break;
+                case ES_TYPE_FOR_OF_STM:
+                    ret = new ForOfStatement(jsonObject);
+                    break;
+                case ES_TYPE_SUPER:
+                    ret = new SuperExpression(jsonObject);
+                    break;
 
                 default:
                     throw new ESTreeLoadFailed("unknown type: " + type);
@@ -275,5 +282,7 @@ public interface Node {
         ES_TYPE_CALL_EXP = "CallExpression",
         ES_TYPE_NEW_EXP = "NewExpression",
         ES_TYPE_SEQ_EXP = "SequenceExpression",
+        ES_TYPE_FOR_OF_STM = "ForOfStatement",
+        ES_TYPE_SUPER = "Super",
         ES_TYPE_LITERAL = "Literal";
 }

@@ -6,9 +6,10 @@
 package ranttu.rapid.jsvm.jscomp.ast.asttype;
 
 /**
- * javascript statement
+ * a item in module
+ *
  * @author rapidhere@gmail.com
- * @version $id: Statement.java, v0.1 2016/12/8 dongwei.dq Exp $
+ * @version $id: ModuleItem.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public interface Statement extends ModuleItem {
+public interface ModuleItem extends Node {
 }
