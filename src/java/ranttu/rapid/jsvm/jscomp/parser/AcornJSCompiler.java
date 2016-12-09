@@ -3,14 +3,13 @@
  * Copyright (c) 1995-2016 All Rights Reserved.
  * ===> GLORY TO THE FIRST BORN! <===
  */
-package ranttu.rapid.jsvm.jscomp.parser.acorn;
+package ranttu.rapid.jsvm.jscomp.parser;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.CompileFailed;
 import ranttu.rapid.jsvm.exp.CompileInterrupted;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
-import ranttu.rapid.jsvm.jscomp.parser.JSCompiler;
 
 import java.io.File;
 import java.io.IOException;

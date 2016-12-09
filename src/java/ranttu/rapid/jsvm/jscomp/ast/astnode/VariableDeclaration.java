@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
+import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 
 import java.util.ArrayList;
@@ -19,8 +20,12 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
 
     private List<VariableDeclarator> declarations = new ArrayList<>();
 
-    public void addDeclaration(VariableDeclarator variableDeclarator) {
-        declarations.add(variableDeclarator);
+    public VariableDeclaration(JSONObject jsonObject) {
+        super(jsonObject);
+        kind = DeclarationType.of(jsonObject.getString("kind"));
+
+        jsonObject.getJSONArray("declarations").forEach(
+            (child) -> declarations.add(new VariableDeclarator((JSONObject) child)));
     }
 
     public List<VariableDeclarator> getDeclarations() {
@@ -31,10 +36,9 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
         return kind;
     }
 
-    public void setKind(DeclarationType kind) {
-        this.kind = kind;
-    }
-
+    /**
+     * declartion type enum
+     */
     public enum DeclarationType {
         VAR, LET
 

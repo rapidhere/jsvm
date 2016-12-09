@@ -13,8 +13,21 @@ package ranttu.rapid.jsvm.jscomp.ast;
  */
 public class Location {
     /** line number, index from 1 */
-    public int line;
+    private int line;
 
     /** column, index from 0 */
-    public int column;
+    private int column;
+
+    public Location(int line, int column) {
+        this.line = line;
+        this.column = column;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public int getColumn() {
+        return column;
+    }
 }

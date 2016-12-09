@@ -5,7 +5,12 @@
  */
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
+import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
+
+import java.util.Optional;
 
 /**
  * a variable declarator
@@ -13,13 +18,21 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
  * @version $id: VariableDeclarator.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public class VariableDeclarator extends BaseAstNode {
-    Pattern id;
+    private Pattern              id;
+    private Optional<Expression> initExpression;
 
-    public Pattern get() {
+    public VariableDeclarator(JSONObject jsonObject) {
+        super(jsonObject);
+
+        id = Node.of(jsonObject, "id");
+        initExpression = Node.ofNullable(jsonObject, "init");
+    }
+
+    public Pattern getId() {
         return id;
     }
 
-    public void setId(Pattern id) {
-        this.id = id;
+    public Optional<Expression> getInitExpression() {
+        return initExpression;
     }
 }

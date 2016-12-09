@@ -5,7 +5,51 @@
  */
 package ranttu.rapid.jsvm.jscomp.ast.asttype;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ArrayExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BreakStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.CatchClause;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ConditionalExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ContinueStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.DoWhileStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.EmptyStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ForInStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ForStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.LabeledStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.SequenceExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchCase;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ThrowStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.TryStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.UnaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.WhileStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.WithStatement;
+
+import java.util.Optional;
+
+import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
 
 /**
  * Abstract Syntax Node according to es tree standard
@@ -14,7 +58,222 @@ import ranttu.rapid.jsvm.jscomp.ast.Location;
  * @version $id: Node.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public interface Node {
+    /**
+     * get the start location of the abstract node
+     */
     Location getStartLocation();
 
+    /**
+     * get the end location of the abstract node
+     */
     Location getEndLocation();
+
+    /**
+     * get a ast tree from es-tree node's child, which can be null
+     *
+     * @param jsonObject es-tree node
+     * @param key child key
+     * @return optional
+     */
+    static <T extends Node> Optional<T> ofNullable(JSONObject jsonObject, String key) {
+        if (jsonObject.isNull(key)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(of(jsonObject, key));
+    }
+
+    /**
+     * get a ast tree from es-tree node's child
+     *
+     * @param jsonObject es-tree node
+     * @param key child key
+     * @return ast tree
+     */
+    static <T extends Node> T of(JSONObject jsonObject, String key) {
+        return of(jsonObject.getJSONObject(key));
+    }
+
+    /**
+     * get a ast tree from es-tree json object
+     *
+     * @param jsonObject es-tree json object
+     * @return the node
+     */
+    static <T extends Node> T of(JSONObject jsonObject) {
+        Node ret;
+
+        try {
+            String type = jsonObject.getString("type");
+
+            switch (type) {
+                case ES_TYPE_PROGRAM:
+                    ret = new Program(jsonObject);
+                    break;
+                case ES_TYPE_IDENTIFIER:
+                    ret = new Identifier(jsonObject);
+                    break;
+                case ES_TYPE_VAR_DEC:
+                    ret = new VariableDeclaration(jsonObject);
+                    break;
+                case ES_TYPE_VAR_DECT:
+                    ret = new VariableDeclarator(jsonObject);
+                    break;
+                case ES_TYPE_LITERAL:
+                    ret = Literal.of(jsonObject);
+                    break;
+                case ES_TYPE_EXP_STM:
+                    ret = new ExpressionStatement(jsonObject);
+                    break;
+                case ES_TYPE_BLOCK_STM:
+                    ret = new BlockStatement(jsonObject);
+                    break;
+                case ES_TYPE_EMPTY_STM:
+                    ret = new EmptyStatement(jsonObject);
+                    break;
+                case ES_TYPE_WITH_STM:
+                    ret = new WithStatement(jsonObject);
+                    break;
+                case ES_TYPE_RETURN_STM:
+                    ret = new ReturnStatement(jsonObject);
+                    break;
+                case ES_TYPE_LABELED_STM:
+                    ret = new LabeledStatement(jsonObject);
+                    break;
+                case ES_TYPE_BREAK_STM:
+                    ret = new BreakStatement(jsonObject);
+                    break;
+                case ES_TYPE_CONTINUE_STM:
+                    ret = new ContinueStatement(jsonObject);
+                    break;
+                case ES_TYPE_IF_STM:
+                    ret = new IfStatement(jsonObject);
+                    break;
+                case ES_TYPE_SWITCH_STM:
+                    ret = new SwitchStatement(jsonObject);
+                    break;
+                case ES_TYPE_SWITCH_CASE:
+                    ret = new SwitchCase(jsonObject);
+                    break;
+                case ES_TYPE_THROW_STM:
+                    ret = new ThrowStatement(jsonObject);
+                    break;
+                case ES_TYPE_TRY_STM:
+                    ret = new TryStatement(jsonObject);
+                    break;
+                case ES_TYPE_CATCH_CLAUSE:
+                    ret = new CatchClause(jsonObject);
+                    break;
+                case ES_TYPE_WHILE_STM:
+                    ret = new WhileStatement(jsonObject);
+                    break;
+                case ES_TYPE_DO_WHILE_STM:
+                    ret = new DoWhileStatement(jsonObject);
+                    break;
+                case ES_TYPE_FOR_STM:
+                    ret = new ForStatement(jsonObject);
+                    break;
+                case ES_TYPE_FOR_IN_STM:
+                    ret = new ForInStatement(jsonObject);
+                    break;
+                case ES_TYPE_FUNCTION_DEC:
+                    ret = new FunctionDeclaration(jsonObject);
+                    break;
+                case ES_TYPE_THIS_EXP:
+                    ret = new ThisExpression(jsonObject);
+                    break;
+                case ES_TYPE_OBJECT_EXP:
+                    ret = new ObjectExpression(jsonObject);
+                    break;
+                case ES_TYPE_PROPERTY:
+                    ret = new Property(jsonObject);
+                    break;
+                case ES_TYPE_ARRAY_EXP:
+                    ret = new ArrayExpression(jsonObject);
+                    break;
+                case ES_TYPE_FUNCTION_EXP:
+                    ret = new FunctionExpression(jsonObject);
+                    break;
+                case ES_TYPE_UNARY_EXP:
+                case ES_TYPE_UPDATE_EXP:
+                    ret = new UnaryExpression(jsonObject);
+                    break;
+                case ES_TYPE_BINARY_EXP:
+                case ES_TYPE_LOGICAL_EXP:
+                    ret = new BinaryExpression(jsonObject);
+                    break;
+                case ES_TYPE_ASSIGNMENT_EXP:
+                    ret = new AssignmentExpression(jsonObject);
+                    break;
+                case ES_TYPE_MEMBER_EXP:
+                    ret = new MemberExpression(jsonObject);
+                    break;
+                case ES_TYPE_COND_EXP:
+                    ret = new ConditionalExpression(jsonObject);
+                    break;
+                case ES_TYPE_CALL_EXP:
+                    ret = new CallExpression(jsonObject);
+                    break;
+                case ES_TYPE_NEW_EXP:
+                    ret = new NewExpression(jsonObject);
+                    break;
+                case ES_TYPE_SEQ_EXP:
+                    ret = new SequenceExpression(jsonObject);
+                    break;
+
+                default:
+                    throw new ESTreeLoadFailed("unknown type: " + type);
+            }
+        } catch (JSONException e) {
+            throw new ESTreeLoadFailed("invalid es tree", e);
+        }
+
+        try {
+            return cast(ret);
+        } catch (ClassCastException e) {
+            throw new ESTreeLoadFailed("invalid type", e);
+        }
+    }
+
+    // ~~~ es tree types
+    String
+        ES_TYPE_PROGRAM = "Program",
+        ES_TYPE_IDENTIFIER = "Identifier",
+        ES_TYPE_VAR_DEC = "VariableDeclaration",
+        ES_TYPE_VAR_DECT = "VariableDeclarator",
+        ES_TYPE_EXP_STM = "ExpressionStatement",
+        ES_TYPE_EMPTY_STM = "EmptyStatement",
+        ES_TYPE_BLOCK_STM = "BlockStatement",
+        ES_TYPE_WITH_STM = "WithStatement",
+        ES_TYPE_RETURN_STM = "ReturnStatement",
+        ES_TYPE_LABELED_STM = "LabeledStatement",
+        ES_TYPE_BREAK_STM = "BreakStatement",
+        ES_TYPE_CONTINUE_STM = "ContinueStatement",
+        ES_TYPE_IF_STM = "IfStatement",
+        ES_TYPE_SWITCH_STM = "SwitchStatement",
+        ES_TYPE_SWITCH_CASE = "SwitchCase",
+        ES_TYPE_THROW_STM = "ThrowStatement",
+        ES_TYPE_TRY_STM = "TryStatement",
+        ES_TYPE_CATCH_CLAUSE = "CatchClause",
+        ES_TYPE_WHILE_STM = "WhileStatement",
+        ES_TYPE_DO_WHILE_STM = "DoWhileStatement",
+        ES_TYPE_FOR_STM = "ForStatement",
+        ES_TYPE_FOR_IN_STM = "ForInStatement",
+        ES_TYPE_FUNCTION_DEC = "FunctionDeclaration",
+        ES_TYPE_THIS_EXP = "ThisExpression",
+        ES_TYPE_ARRAY_EXP = "ArrayExpression",
+        ES_TYPE_OBJECT_EXP = "ObjectExpression",
+        ES_TYPE_PROPERTY = "Property",
+        ES_TYPE_FUNCTION_EXP = "FunctionExpression",
+        ES_TYPE_UNARY_EXP = "UnaryExpression",
+        ES_TYPE_UPDATE_EXP = "UpdateExpression",
+        ES_TYPE_BINARY_EXP = "BinaryExpression",
+        ES_TYPE_LOGICAL_EXP = "LogicalExpression",
+        ES_TYPE_ASSIGNMENT_EXP = "AssignmentExpression",
+        ES_TYPE_MEMBER_EXP = "MemberExpression",
+        ES_TYPE_COND_EXP = "ConditionalExpression",
+        ES_TYPE_CALL_EXP = "CallExpression",
+        ES_TYPE_NEW_EXP = "NewExpression",
+        ES_TYPE_SEQ_EXP = "SequenceExpression",
+        ES_TYPE_LITERAL = "Literal";
 }

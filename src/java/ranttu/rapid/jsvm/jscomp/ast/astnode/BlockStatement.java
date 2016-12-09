@@ -13,23 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Program node
+ * a block of statement
+ *
  * @author rapidhere@gmail.com
- * @version $id: Program.java, v0.1 2016/12/8 dongwei.dq Exp $
+ * @version $id: BlockStatement.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public class Program extends BaseAstNode {
-    /** the body of the program */
+public class BlockStatement extends BaseAstNode implements Statement {
     private List<Statement> body = new ArrayList<>();
 
-    public Program(JSONObject jsonObject) {
+    public BlockStatement(JSONObject jsonObject) {
         super(jsonObject);
 
         jsonObject.getJSONArray("body").forEach((child) ->
             body.add(Node.of((JSONObject) child)));
-    }
-
-    public void addStatement(Statement node) {
-        body.add(node);
     }
 
     public List<Statement> getBody() {

@@ -5,8 +5,9 @@
  */
 package ranttu.rapid.jsvm;
 
+import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
+import ranttu.rapid.jsvm.jscomp.parser.AcornJSCompiler;
 import ranttu.rapid.jsvm.jscomp.parser.JSCompiler;
-import ranttu.rapid.jsvm.jscomp.parser.acorn.AcornJSCompiler;
 
 /**
  * @author rapidhere@gmail.com
@@ -15,6 +16,7 @@ import ranttu.rapid.jsvm.jscomp.parser.acorn.AcornJSCompiler;
 public class Main {
     public static void main(String args[]) {
         JSCompiler compiler = new AcornJSCompiler();
-        compiler.parse("var a = 1;");
+        AbstractSyntaxTree ast = compiler.parse("var a;");
+        System.out.println(ast);
     }
 }
