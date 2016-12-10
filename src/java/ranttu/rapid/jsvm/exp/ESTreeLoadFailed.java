@@ -11,7 +11,7 @@ package ranttu.rapid.jsvm.exp;
  * @author rapidhere@gmail.com
  * @version $id: ESTreeLoadFailed.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public class ESTreeLoadFailed extends CompileFailed {
+public class ESTreeLoadFailed extends CompileError {
     public ESTreeLoadFailed(String message) {
         super(message);
     }

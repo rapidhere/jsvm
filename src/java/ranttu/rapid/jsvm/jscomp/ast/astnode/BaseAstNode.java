@@ -27,6 +27,9 @@ abstract public class BaseAstNode implements Node {
         endLocation = parseLocation(jsonObject.getJSONObject("loc").getJSONObject("end"));
     }
 
+    protected BaseAstNode() {
+    }
+
     @Override
     public Location getStartLocation() {
         return startLocation;

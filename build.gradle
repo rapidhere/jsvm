@@ -39,6 +39,6 @@ sourceSets {
 // artifacts
 jar {
     manifest {
-        attributes('Main-Class': 'ranttu.rapid.jsvm.Main')
+        attributes('CompileMain-Class': 'ranttu.rapid.jsvm.CompileMain')
     }
 }

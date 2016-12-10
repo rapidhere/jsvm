@@ -8,11 +8,14 @@ package ranttu.rapid.jsvm.jscomp.ast.asttype;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
 
 /**
  * abstract function
@@ -30,7 +33,14 @@ public class Function extends BaseAstNode {
         super(jsonObject);
 
         id = Node.ofNullable(jsonObject, "id");
-        body = new BlockStatement(jsonObject.getJSONObject("body"));
+        Node _body = Node.of(jsonObject, "body");
+        if(_body instanceof BlockStatement) {
+            body = cast(_body);
+        } else {
+            body = new BlockStatement();
+            body.getBody().add(new ExpressionStatement((Expression) _body));
+        }
+
         jsonObject.getJSONArray("params").forEach((child) ->
             params.add(Node.of((JSONObject) child)));
         generator = jsonObject.getBoolean("generator");

@@ -7,7 +7,7 @@ package ranttu.rapid.jsvm.jscomp.parser;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
-import ranttu.rapid.jsvm.exp.CompileFailed;
+import ranttu.rapid.jsvm.exp.CompileError;
 import ranttu.rapid.jsvm.exp.CompileInterrupted;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 
@@ -20,15 +20,15 @@ import java.nio.file.Files;
  * a js compiler use javascript's acorn lib, require Node.js installed
  *
  * @author rapidhere@gmail.com
- * @version $id: AcornJSCompiler.java, v0.1 2016/12/8 dongwei.dq Exp $
+ * @version $id: AcornJSParser.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class AcornJSCompiler implements JSCompiler {
+public class AcornJSParser implements Parser {
     private static final String ACORN_SCRIPT_FILE_NAME = "_$acorn.js";
 
     private static final String SOURCE_FILE_NAME       = "_$source.js";
 
     /**
-     * @see JSCompiler#parse(InputStream)
+     * @see Parser#parse(InputStream)
      */
     @Override
     public AbstractSyntaxTree parse(InputStream inputStream) {
@@ -50,12 +50,12 @@ public class AcornJSCompiler implements JSCompiler {
 
             // exit failed
             if (process.waitFor() != 0) {
-                throw new CompileFailed(IOUtils.toString(process.getErrorStream(), "utf-8").trim());
+                throw new CompileError(IOUtils.toString(process.getErrorStream(), "utf-8").trim());
             }
 
             return IOUtils.toString(process.getInputStream(), "utf-8");
         } catch (IOException e) {
-            throw new CompileFailed("wrong with acorn compile env", e);
+            throw new CompileError("wrong with acorn compile env", e);
         } catch (InterruptedException e) {
             throw new CompileInterrupted(e);
         } finally {

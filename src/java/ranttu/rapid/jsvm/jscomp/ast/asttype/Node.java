@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.jscomp.ast.asttype;
 import org.json.JSONException;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
+import ranttu.rapid.jsvm.jscomp.ast.AstVisitor;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ArrayExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
@@ -33,6 +35,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.SequenceExpression;
@@ -68,6 +71,16 @@ public interface Node {
      * get the end location of the abstract node
      */
     Location getEndLocation();
+
+    /**
+     * visit the node
+     */
+    default void visit(AstVisitor visitor) {
+        @SuppressWarnings("unused")
+        AstVisitor v = visitor;
+
+        throw new NotSupportedYet(this);
+    }
 
     /**
      * get a ast tree from es-tree node's child, which can be null
@@ -109,7 +122,7 @@ public interface Node {
 
             switch (type) {
                 case ES_TYPE_PROGRAM:
-                    ret = TopLevelNode.of(jsonObject);
+                    ret = new Program(jsonObject);
                     break;
                 case ES_TYPE_IDENTIFIER:
                     ret = new Identifier(jsonObject);

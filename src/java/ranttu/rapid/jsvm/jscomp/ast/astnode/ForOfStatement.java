@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 
 /**
+ * es6 for of statement
+ *
  * @author rapidhere@gmail.com
  * @version $id: ForOfStatement.java, v0.1 2016/12/9 dongwei.dq Exp $
  */

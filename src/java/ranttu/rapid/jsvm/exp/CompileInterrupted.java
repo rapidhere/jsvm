@@ -11,7 +11,7 @@ package ranttu.rapid.jsvm.exp;
  * @author rapidhere@gmail.com
  * @version $id: CompileInterrupted.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class CompileInterrupted extends CompileFailed {
+public class CompileInterrupted extends CompileError {
     public CompileInterrupted() {
         super("compile is interrupted");
     }

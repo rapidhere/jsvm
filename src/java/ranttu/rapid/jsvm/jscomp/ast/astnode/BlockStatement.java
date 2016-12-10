@@ -21,6 +21,10 @@ import java.util.List;
 public class BlockStatement extends BaseAstNode implements Statement {
     private List<Statement> body = new ArrayList<>();
 
+    public BlockStatement() {
+
+    }
+
     public BlockStatement(JSONObject jsonObject) {
         super(jsonObject);
 

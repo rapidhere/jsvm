@@ -17,9 +17,9 @@ import java.io.InputStream;
  * Javascript Compiler
  *
  * @author rapidhere@gmail.com
- * @version $id: JSCompiler.java, v0.1 2016/12/8 dongwei.dq Exp $
+ * @version $id: Parser.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public interface JSCompiler {
+public interface Parser {
     /**
      * parse the file to a js ast root
      *

@@ -9,10 +9,6 @@ import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
-import java.util.Optional;
-
-import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
-
 /**
  * object property
  *
@@ -20,32 +16,20 @@ import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
  * @version $id: Property.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
 public class Property extends BaseAstNode {
-    private Optional<Literal> literalKey = Optional.empty();
-    private Optional<Identifier> identifierKey = Optional.empty();
-
+    private Expression key;
     private Expression value;
     private PropertyType kind;
 
     public Property(JSONObject jsonObject) {
         super(jsonObject);
 
-        Node key = Node.of(jsonObject, "key");
-        if(key instanceof Literal) {
-            literalKey = Optional.of(cast(key));
-        } else {
-            identifierKey = Optional.of(cast(key));
-        }
-
+        key = Node.of(jsonObject, "key");
         value = Node.of(jsonObject, "value");
         kind = PropertyType.of(jsonObject.getString("kind"));
     }
 
-    public Optional<Identifier> getIdentifierKey() {
-        return identifierKey;
-    }
-
-    public Optional<Literal> getLiteralKey() {
-        return literalKey;
+    public Expression getKey() {
+        return key;
     }
 
     public Expression getValue() {
