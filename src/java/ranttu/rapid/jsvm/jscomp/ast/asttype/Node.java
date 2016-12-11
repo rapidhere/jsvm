@@ -73,12 +73,11 @@ public interface Node {
     Location getEndLocation();
 
     /**
-     * visit the node
+     * visit the ast
+     *
+     * @param visitor visitor
      */
     default void visit(AstVisitor visitor) {
-        @SuppressWarnings("unused")
-        AstVisitor v = visitor;
-
         throw new NotSupportedYet(this);
     }
 

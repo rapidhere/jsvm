@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.AstVisitor;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 
 import java.util.ArrayList;
@@ -36,8 +37,15 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
         return kind;
     }
 
+    @Override
+    public void visit(AstVisitor visitor) {
+        if (visitor.on(this)) {
+            getDeclarations().forEach((variableDeclarator -> variableDeclarator.visit(visitor)));
+        }
+    }
+
     /**
-     * declartion type enum
+     * declaration type enum
      */
     public enum DeclarationType {
         VAR, LET, CONST
