@@ -23,8 +23,8 @@ public class BinaryExpression extends BaseAstNode implements Expression {
     public BinaryExpression(JSONObject jsonObject) {
         super(jsonObject);
         operator = BinaryOperator.of(jsonObject.getString("operator"));
-        left = Node.of(jsonObject, "left");
-        right = Node.of(jsonObject, "right");
+        left = Node.of(this, jsonObject, "left");
+        right = Node.of(this, jsonObject, "right");
     }
 
     public Expression getLeft() {

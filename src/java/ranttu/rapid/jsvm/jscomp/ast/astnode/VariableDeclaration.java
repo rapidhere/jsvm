@@ -6,8 +6,8 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
-import ranttu.rapid.jsvm.jscomp.ast.AstVisitor;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
         kind = DeclarationType.of(jsonObject.getString("kind"));
 
         jsonObject.getJSONArray("declarations").forEach(
-            (child) -> declarations.add(new VariableDeclarator((JSONObject) child)));
+            (child) -> declarations.add(Node.of(this, (JSONObject) child)));
     }
 
     public List<VariableDeclarator> getDeclarations() {
@@ -35,13 +35,6 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
 
     public DeclarationType getKind() {
         return kind;
-    }
-
-    @Override
-    public void visit(AstVisitor visitor) {
-        if (visitor.on(this)) {
-            getDeclarations().forEach((variableDeclarator -> variableDeclarator.visit(visitor)));
-        }
     }
 
     /**

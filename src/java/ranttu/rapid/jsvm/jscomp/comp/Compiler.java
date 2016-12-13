@@ -48,11 +48,6 @@ public class Compiler {
      * @param pass the pass
      */
     private void invokePass(CompilePass pass) {
-        try {
-            pass.beforePass();
-            ast.getRoot().visit(pass);
-        } finally {
-            pass.afterPass();
-        }
+        pass.process(ast.getRoot());
     }
 }

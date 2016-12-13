@@ -26,9 +26,9 @@ public class SwitchCase extends BaseAstNode {
 
     public SwitchCase(JSONObject jsonObject) {
         super(jsonObject);
-        test = Node.ofNullable(jsonObject, "test");
+        test = Node.ofNullable(this, jsonObject, "test");
         jsonObject.getJSONArray("consequent").forEach((child) ->
-            consequent.add(Node.of((JSONObject) child)));
+            consequent.add(Node.of(this, (JSONObject) child)));
     }
 
     public Optional<Expression> getTest() {

@@ -30,15 +30,15 @@ public class ForInStatement extends BaseAstNode implements Statement {
     public ForInStatement(JSONObject jsonObject) {
         super(jsonObject);
 
-        Node left = Node.of(jsonObject, "left");
+        Node left = Node.of(this, jsonObject, "left");
         if (left instanceof VariableDeclaration) {
             declarationLeft = Optional.of(cast(left));
         } else {
             patternLeft = Optional.of(cast(left));
         }
 
-        right = Node.of(jsonObject, "right");
-        body = Node.of(jsonObject, "body");
+        right = Node.of(this, jsonObject, "right");
+        body = Node.of(this, jsonObject, "body");
     }
 
     public Optional<VariableDeclaration> getDeclarationLeft() {

@@ -5,11 +5,12 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import ranttu.rapid.jsvm.exp.CompileError;
 import ranttu.rapid.jsvm.exp.DuplicateName;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * the naming environment
@@ -18,40 +19,39 @@ import java.util.Stack;
  * @version $id: NamingEnvironment.java, v0.1 2016/12/11 dongwei.dq Exp $
  */
 public class NamingEnvironment {
-    private Stack<Set<String>> scopeStack = new Stack<>();
+    private Map<Node, Map<String, Name>> scopes = new HashMap<>();
 
     /**
-     * enter a new scope
+     * add a binding to the last scope
+     * @param name the binding name
      */
-    public void enter() {
-        scopeStack.push(new HashSet<>());
-    }
+    public void addBinding(Node node, Name name) {
+        Map<String, Name> scope;
+        Node origNode = node;
 
-    /**
-     * leave a scope
-     */
-    public void leave() {
-        scopeStack.pop();
-    }
+        // find last scope
+        while(true) {
+            if ((scope = scopes.get(node)) != null) {
+                break;
+            }
 
-    /**
-     * add a binding
-     * @param id the binding id
-     */
-    public void addBinding(String id) {
-        if (!currentHasBinding(id)) {
-            scopeStack.peek().add(id);
+            if(node.hasParent()) {
+                node = node.getParent();
+            } else {
+                break;
+            }
+        }
+
+        // no scope exist, this should never happen
+        if(scope == null) {
+            throw new CompileError(origNode, "cannot find a scope");
+        }
+
+        if (! scope.containsKey(name.getId())) {
+            scope.put(name.getId(), name);
         } else {
             // TODO
-            throw new DuplicateName(id);
+            throw new DuplicateName(node, name.getId());
         }
-    }
-
-    /**
-     * test if current binding have the id
-     * @param id the binding id
-     */
-    public boolean currentHasBinding(String id) {
-        return !scopeStack.empty() && scopeStack.peek().contains(id);
     }
 }

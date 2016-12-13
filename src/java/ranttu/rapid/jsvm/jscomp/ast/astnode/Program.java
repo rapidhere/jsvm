@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
-import ranttu.rapid.jsvm.jscomp.ast.AstVisitor;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
 
@@ -27,7 +26,8 @@ public class Program extends BaseAstNode {
     public Program(JSONObject jsonObject) {
         super(jsonObject);
 
-        jsonObject.getJSONArray("body").forEach((child) -> body.add(Node.of((JSONObject) child)));
+        jsonObject.getJSONArray("body").forEach(
+            (child) -> body.add(Node.of(this, (JSONObject) child)));
         sourceType = SourceType.of(jsonObject.getString("sourceType"));
     }
 
@@ -39,11 +39,13 @@ public class Program extends BaseAstNode {
         return sourceType;
     }
 
+    /**
+     * program's parent is itself
+     * @return program itself
+     */
     @Override
-    public void visit(AstVisitor visitor) {
-        if (visitor.on(this)) {
-            getBody().forEach(statement -> statement.visit(visitor));
-        }
+    public Node getParent() {
+        return this;
     }
 
     public enum SourceType {

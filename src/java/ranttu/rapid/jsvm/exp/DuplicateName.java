@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.exp;
 
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
+
 /**
  * name is duplicated
  *
@@ -12,7 +14,7 @@ package ranttu.rapid.jsvm.exp;
  * @version $id: DuplicateName.java, v0.1 2016/12/11 dongwei.dq Exp $
  */
 public class DuplicateName extends CompileError {
-    public DuplicateName(String message) {
-        super(message);
+    public DuplicateName(Node node, String id) {
+        super(node, "duplicate name in: " + id);
     }
 }

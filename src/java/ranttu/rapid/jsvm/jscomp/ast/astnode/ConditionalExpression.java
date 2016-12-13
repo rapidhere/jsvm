@@ -22,9 +22,9 @@ public class ConditionalExpression extends BaseAstNode implements Expression {
 
     public ConditionalExpression(JSONObject jsonObject) {
         super(jsonObject);
-        test = Node.of(jsonObject, "test");
-        alternate = Node.of(jsonObject, "alternate");
-        consequent = Node.of(jsonObject, "consequent");
+        test = Node.of(this, jsonObject, "test");
+        alternate = Node.of(this, jsonObject, "alternate");
+        consequent = Node.of(this, jsonObject, "consequent");
     }
 
     public Expression getConsequent() {

@@ -24,7 +24,7 @@ public class SequenceExpression extends BaseAstNode implements Expression {
     public SequenceExpression(JSONObject jsonObject) {
         super(jsonObject);
         jsonObject.getJSONArray("expressions").forEach((child) ->
-            expressions.add(Node.of((JSONObject) child)));
+            expressions.add(Node.of(this, (JSONObject) child)));
     }
 
     public List<Expression> getExpressions() {

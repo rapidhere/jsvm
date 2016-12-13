@@ -23,6 +23,6 @@ public class ArrayExpression extends BaseAstNode implements Expression {
     public ArrayExpression(JSONObject jsonObject) {
         super(jsonObject);
         jsonObject.getJSONArray("elements").forEach((child) ->
-            elements.add(Node.of((JSONObject) child)));
+            elements.add(Node.of(this, (JSONObject) child)));
     }
 }

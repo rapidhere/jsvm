@@ -8,11 +8,10 @@ package ranttu.rapid.jsvm.jscomp.ast.asttype;
 import org.json.JSONException;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
-import ranttu.rapid.jsvm.exp.NotSupportedYet;
-import ranttu.rapid.jsvm.jscomp.ast.AstVisitor;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ArrayExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BreakStatement;
@@ -51,6 +50,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.WhileStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.WithStatement;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
@@ -73,48 +73,54 @@ public interface Node {
     Location getEndLocation();
 
     /**
-     * visit the ast
+     * get the parent of the node
      *
-     * @param visitor visitor
+     * if has no parent, return the node itself
      */
-    default void visit(AstVisitor visitor) {
-        throw new NotSupportedYet(this);
-    }
+    Node getParent();
+
+    /**
+     * indicate if node has parent
+     */
+    boolean hasParent();
 
     /**
      * get a ast tree from es-tree node's child, which can be null
      *
+     * @param parent parent node
      * @param jsonObject es-tree node
      * @param key child key
      * @return optional
      */
-    static <T extends Node> Optional<T> ofNullable(JSONObject jsonObject, String key) {
+    static <T extends Node> Optional<T> ofNullable(Node parent, JSONObject jsonObject, String key) {
         if (jsonObject.isNull(key)) {
             return Optional.empty();
         }
 
-        return Optional.of(of(jsonObject, key));
+        return Optional.of(of(parent, jsonObject, key));
     }
 
     /**
      * get a ast tree from es-tree node's child
      *
+     * @param parent parent node
      * @param jsonObject es-tree node
      * @param key child key
      * @return ast tree
      */
-    static <T extends Node> T of(JSONObject jsonObject, String key) {
-        return of(jsonObject.getJSONObject(key));
+    static <T extends Node> T of(Node parent, JSONObject jsonObject, String key) {
+        return of(parent, jsonObject.getJSONObject(key));
     }
 
     /**
      * get a ast tree from es-tree json object
      *
+     * @param parent parent node, if parent is null, indicate has no parent
      * @param jsonObject es-tree json object
      * @return the node
      */
-    static <T extends Node> T of(JSONObject jsonObject) {
-        Node ret;
+    static <T extends Node> T of(@Nullable Node parent, JSONObject jsonObject) {
+        BaseAstNode ret;
 
         try {
             String type = jsonObject.getString("type");
@@ -248,10 +254,24 @@ public interface Node {
         }
 
         try {
+            ret.setParent(parent);
             return cast(ret);
         } catch (ClassCastException e) {
             throw new ESTreeLoadFailed("invalid type", e);
         }
+    }
+
+    // ~~~ type helpers
+    default boolean isProgram() {
+        return this instanceof Program;
+    }
+
+    default boolean isVariableDeclaration() {
+        return this instanceof VariableDeclaration;
+    }
+
+    default boolean isIdentifier() {
+        return this instanceof Identifier;
     }
 
     // ~~~ es tree types

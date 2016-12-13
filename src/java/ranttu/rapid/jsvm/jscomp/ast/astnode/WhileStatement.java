@@ -22,8 +22,8 @@ public class WhileStatement extends BaseAstNode implements Statement {
 
     public WhileStatement(JSONObject jsonObject) {
         super(jsonObject);
-        test = Node.of(jsonObject, "test");
-        body = Node.of(jsonObject, "body");
+        test = Node.of(this, jsonObject, "test");
+        body = Node.of(this, jsonObject, "body");
     }
 
     public Expression getTest() {

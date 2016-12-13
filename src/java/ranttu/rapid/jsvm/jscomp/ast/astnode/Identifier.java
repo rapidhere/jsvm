@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 /**
  * a identifier
+ *
  * @author rapidhere@gmail.com
  * @version $id: Identifier.java, v0.1 2016/12/8 dongwei.dq Exp $
  */

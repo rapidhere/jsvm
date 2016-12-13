@@ -32,8 +32,8 @@ public class Function extends BaseAstNode {
     public Function(JSONObject jsonObject) {
         super(jsonObject);
 
-        id = Node.ofNullable(jsonObject, "id");
-        Node _body = Node.of(jsonObject, "body");
+        id = Node.ofNullable(this, jsonObject, "id");
+        Node _body = Node.of(this, jsonObject, "body");
         if(_body instanceof BlockStatement) {
             body = cast(_body);
         } else {
@@ -42,7 +42,7 @@ public class Function extends BaseAstNode {
         }
 
         jsonObject.getJSONArray("params").forEach((child) ->
-            params.add(Node.of((JSONObject) child)));
+            params.add(Node.of(this, (JSONObject) child)));
         generator = jsonObject.getBoolean("generator");
     }
 

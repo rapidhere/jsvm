@@ -32,7 +32,7 @@ public class AbstractSyntaxTree {
      */
     public static AbstractSyntaxTree fromJson(JSONObject jsonObject) {
         AbstractSyntaxTree tree = new AbstractSyntaxTree();
-        tree.root = Node.of(jsonObject);
+        tree.root = Node.of(null, jsonObject);
 
         return tree;
     }

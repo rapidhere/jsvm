@@ -24,9 +24,9 @@ public class CallExpression extends BaseAstNode implements Expression {
 
     public CallExpression(JSONObject jsonObject) {
         super(jsonObject);
-        callee = Node.of(jsonObject, "callee");
+        callee = Node.of(this, jsonObject, "callee");
         jsonObject.getJSONArray("arguments").forEach((child) ->
-            arguments.add(Node.of((JSONObject) child)));
+            arguments.add(Node.of(this, (JSONObject) child)));
     }
 
     public Expression getCallee() {

@@ -21,7 +21,7 @@ public class CatchClause extends BaseAstNode {
 
     public CatchClause(JSONObject jsonObject) {
         super(jsonObject);
-        param = Node.of(jsonObject, "param");
+        param = Node.of(this, jsonObject, "param");
         body = new BlockStatement(jsonObject.getJSONObject("body"));
     }
 

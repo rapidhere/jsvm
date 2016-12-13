@@ -23,7 +23,7 @@ public class ReturnStatement extends BaseAstNode implements Statement {
 
     public ReturnStatement(JSONObject jsonObject) {
         super(jsonObject);
-        argument = Node.ofNullable(jsonObject, "argument");
+        argument = Node.ofNullable(this, jsonObject, "argument");
     }
 
     public Optional<Expression> getArgument() {

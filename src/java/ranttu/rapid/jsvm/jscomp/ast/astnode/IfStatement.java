@@ -23,9 +23,9 @@ public class IfStatement extends BaseAstNode implements Statement {
 
     public IfStatement(JSONObject jsonObject) {
         super(jsonObject);
-        test = Node.of(jsonObject, "test");
-        consequent = Node.of(jsonObject, "consequent");
-        alternate = Node.ofNullable(jsonObject, "alternate");
+        test = Node.of(this, jsonObject, "test");
+        consequent = Node.of(this, jsonObject, "consequent");
+        alternate = Node.ofNullable(this, jsonObject, "alternate");
     }
 
     public Expression getTest() {

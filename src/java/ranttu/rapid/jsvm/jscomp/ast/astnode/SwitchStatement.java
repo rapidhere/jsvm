@@ -23,9 +23,9 @@ public class SwitchStatement extends BaseAstNode implements Statement {
 
     public SwitchStatement(JSONObject jsonObject) {
         super(jsonObject);
-        discriminant = Node.of(jsonObject, "discriminant");
+        discriminant = Node.of(this, jsonObject, "discriminant");
         jsonObject.getJSONArray("cases").forEach((child) ->
-            cases.add(new SwitchStatement((JSONObject) child)));
+            cases.add(Node.of(this, (JSONObject) child)));
     }
 
     public Expression getDiscriminant() {

@@ -30,7 +30,7 @@ public class ForStatement extends BaseAstNode implements Statement {
     public ForStatement(JSONObject jsonObject) {
         super(jsonObject);
 
-        Optional<Node> init = Node.ofNullable(jsonObject, "init");
+        Optional<Node> init = Node.ofNullable(this, jsonObject, "init");
         if (init.isPresent()) {
             Node initNode = init.get();
             if (initNode instanceof VariableDeclaration) {
@@ -40,8 +40,8 @@ public class ForStatement extends BaseAstNode implements Statement {
             }
         }
 
-        test = Node.ofNullable(jsonObject, "test");
-        update = Node.ofNullable(jsonObject, "update");
+        test = Node.ofNullable(this, jsonObject, "test");
+        update = Node.ofNullable(this, jsonObject, "update");
     }
 
 

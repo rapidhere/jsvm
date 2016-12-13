@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ public class ObjectExpression extends BaseAstNode implements Expression {
     public ObjectExpression(JSONObject jsonObject) {
         super(jsonObject);
         jsonObject.getJSONArray("properties").forEach((child) ->
-            properties.add(new Property((JSONObject) child)));
+            properties.add(Node.of(this, (JSONObject) child)));
     }
 
     public List<Property> getProperties() {

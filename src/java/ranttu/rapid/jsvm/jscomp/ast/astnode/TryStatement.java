@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
 
 /**
@@ -21,9 +22,9 @@ public class TryStatement extends BaseAstNode implements Statement {
 
     public TryStatement(JSONObject jsonObject) {
         super(jsonObject);
-        block = new BlockStatement(jsonObject.getJSONObject("block"));
-        handler = new CatchClause(jsonObject.getJSONObject("handler"));
-        finalizer = new BlockStatement(jsonObject.getJSONObject("finalizer"));
+        block = Node.of(this, jsonObject.getJSONObject("block"));
+        handler = Node.of(this, jsonObject.getJSONObject("handler"));
+        finalizer = Node.of(this, jsonObject.getJSONObject("finalizer"));
     }
 
     public BlockStatement getBlock() {

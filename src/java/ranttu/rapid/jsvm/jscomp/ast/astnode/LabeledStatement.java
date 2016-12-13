@@ -22,7 +22,7 @@ public class LabeledStatement extends BaseAstNode implements Statement {
     public LabeledStatement(JSONObject jsonObject) {
         super(jsonObject);
         label = new Identifier(jsonObject.getJSONObject("label"));
-        body = Node.of(jsonObject, "body");
+        body = Node.of(this, jsonObject, "body");
     }
 
     public Statement getBody() {

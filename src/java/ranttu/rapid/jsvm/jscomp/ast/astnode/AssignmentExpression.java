@@ -24,8 +24,8 @@ public class AssignmentExpression extends BaseAstNode implements Expression {
     public AssignmentExpression(JSONObject jsonObject) {
         super(jsonObject);
         operator = AssignmentOperator.of(jsonObject.getString("operator"));
-        left = Node.of(jsonObject, "left");
-        right = Node.of(jsonObject, "right");
+        left = Node.of(this, jsonObject, "left");
+        right = Node.of(this, jsonObject, "right");
     }
 
     public Pattern getLeft() {

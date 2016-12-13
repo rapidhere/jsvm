@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.ast.asttype;
 
+
 /**
  * a destructing pattern
  * @author rapidhere@gmail.com

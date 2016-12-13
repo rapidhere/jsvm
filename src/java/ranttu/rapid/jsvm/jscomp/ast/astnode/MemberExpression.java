@@ -21,8 +21,8 @@ public class MemberExpression extends BaseAstNode implements Expression, Pattern
 
     public MemberExpression(JSONObject jsonObject) {
         super(jsonObject);
-        object = Node.of(jsonObject, "object");
-        property = Node.of(jsonObject, "property");
+        object = Node.of(this, jsonObject, "object");
+        property = Node.of(this, jsonObject, "property");
         computed = jsonObject.getBoolean("computed");
     }
 

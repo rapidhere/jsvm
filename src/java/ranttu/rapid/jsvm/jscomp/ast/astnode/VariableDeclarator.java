@@ -14,6 +14,8 @@ import java.util.Optional;
 
 /**
  * a variable declarator
+ * variable declarator only use as a property
+ *
  * @author rapidhere@gmail.com
  * @version $id: VariableDeclarator.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
@@ -24,8 +26,8 @@ public class VariableDeclarator extends BaseAstNode {
     public VariableDeclarator(JSONObject jsonObject) {
         super(jsonObject);
 
-        id = Node.of(jsonObject, "id");
-        initExpression = Node.ofNullable(jsonObject, "init");
+        id = Node.of(this, jsonObject, "id");
+        initExpression = Node.ofNullable(this, jsonObject, "init");
     }
 
     public Pattern getId() {

@@ -21,8 +21,8 @@ public class DoWhileStatement extends BaseAstNode implements Statement {
 
     public DoWhileStatement(JSONObject jsonObject) {
         super(jsonObject);
-        test = Node.of(jsonObject, "test");
-        body = Node.of(jsonObject, "body");
+        test = Node.of(this, jsonObject, "test");
+        body = Node.of(this, jsonObject, "body");
     }
 
     public Statement getBody() {

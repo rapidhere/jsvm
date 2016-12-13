@@ -23,7 +23,7 @@ public class YieldExpression extends BaseAstNode implements Expression {
 
     public YieldExpression(JSONObject jsonObject) {
         super(jsonObject);
-        argument = Node.ofNullable(jsonObject, "argument");
+        argument = Node.ofNullable(this, jsonObject, "argument");
         delegate = jsonObject.getBoolean("delegate");
     }
 

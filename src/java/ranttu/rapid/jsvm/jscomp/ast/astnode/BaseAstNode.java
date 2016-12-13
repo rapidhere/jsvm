@@ -22,12 +22,26 @@ abstract public class BaseAstNode implements Node {
     /** end location */
     private Location endLocation;
 
+    /** the parent of the node */
+    private Node   parent;
+
     public BaseAstNode(JSONObject jsonObject) {
         startLocation = parseLocation(jsonObject.getJSONObject("loc").getJSONObject("start"));
         endLocation = parseLocation(jsonObject.getJSONObject("loc").getJSONObject("end"));
     }
 
     protected BaseAstNode() {
+    }
+
+    @Override
+    public boolean hasParent() {
+        // if node is not program, it must have a parent
+        return ! isProgram();
+    }
+
+    @Override
+    public Node getParent() {
+        return parent;
     }
 
     @Override
@@ -42,5 +56,10 @@ abstract public class BaseAstNode implements Node {
 
     private static Location parseLocation(JSONObject locationObject) {
         return new Location(locationObject.getInt("line"), locationObject.getInt("column"));
+    }
+
+    // only use in Node.of
+    final public void setParent(Node parent) {
+        this.parent = parent;
     }
 }

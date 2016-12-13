@@ -20,7 +20,7 @@ public class ThrowStatement extends BaseAstNode implements Statement {
 
     public ThrowStatement(JSONObject jsonObject) {
         super(jsonObject);
-        argument = Node.of(jsonObject, "argument");
+        argument = Node.of(this, jsonObject, "argument");
     }
 
     public Expression getArgument() {

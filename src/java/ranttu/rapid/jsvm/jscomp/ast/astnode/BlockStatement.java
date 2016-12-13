@@ -29,7 +29,7 @@ public class BlockStatement extends BaseAstNode implements Statement {
         super(jsonObject);
 
         jsonObject.getJSONArray("body").forEach((child) ->
-            body.add(Node.of((JSONObject) child)));
+            body.add(Node.of(this, (JSONObject) child)));
     }
 
     public List<Statement> getBody() {

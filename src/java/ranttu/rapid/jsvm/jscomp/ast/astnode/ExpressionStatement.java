@@ -21,7 +21,7 @@ public class ExpressionStatement extends BaseAstNode implements Statement {
 
     public ExpressionStatement(JSONObject jsonObject) {
         super(jsonObject);
-        expression = Node.of(jsonObject, "expression");
+        expression = Node.of(this, jsonObject, "expression");
     }
 
     public ExpressionStatement(Expression expression) {

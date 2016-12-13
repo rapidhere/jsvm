@@ -22,8 +22,8 @@ public class WithStatement extends BaseAstNode implements Statement {
 
     public WithStatement(JSONObject jsonObject) {
         super(jsonObject);
-        object = Node.of(jsonObject, "object");
-        body = Node.of(jsonObject, "body");
+        object = Node.of(this, jsonObject, "object");
+        body = Node.of(this, jsonObject, "body");
     }
 
     public Expression getObject() {

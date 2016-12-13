@@ -22,7 +22,7 @@ public class BreakStatement extends BaseAstNode implements Statement {
 
     public BreakStatement(JSONObject jsonObject) {
         super(jsonObject);
-        label = Node.ofNullable(jsonObject, "label");
+        label = Node.ofNullable(this, jsonObject, "label");
     }
 
     public Optional<Identifier> getLabel() {

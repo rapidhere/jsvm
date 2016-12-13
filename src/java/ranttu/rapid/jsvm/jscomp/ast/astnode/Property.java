@@ -23,8 +23,8 @@ public class Property extends BaseAstNode {
     public Property(JSONObject jsonObject) {
         super(jsonObject);
 
-        key = Node.of(jsonObject, "key");
-        value = Node.of(jsonObject, "value");
+        key = Node.of(this, jsonObject, "key");
+        value = Node.of(this, jsonObject, "value");
         kind = PropertyType.of(jsonObject.getString("kind"));
     }
 
