@@ -53,7 +53,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.WithStatement;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
+import static ranttu.rapid.jsvm.common.$.cast;
 
 /**
  * Abstract Syntax Node according to es tree standard
@@ -262,59 +262,30 @@ public interface Node {
     }
 
     // ~~~ type helpers
-    default boolean isProgram() {
-        return this instanceof Program;
-    }
-
-    default boolean isVariableDeclaration() {
-        return this instanceof VariableDeclaration;
-    }
-
-    default boolean isIdentifier() {
-        return this instanceof Identifier;
+    default boolean is(Class<? extends Node> clazz) {
+        return clazz.isAssignableFrom(getClass());
     }
 
     // ~~~ es tree types
-    String
-        ES_TYPE_PROGRAM = "Program",
-        ES_TYPE_IDENTIFIER = "Identifier",
-        ES_TYPE_VAR_DEC = "VariableDeclaration",
-        ES_TYPE_VAR_DECT = "VariableDeclarator",
-        ES_TYPE_EXP_STM = "ExpressionStatement",
-        ES_TYPE_EMPTY_STM = "EmptyStatement",
-        ES_TYPE_BLOCK_STM = "BlockStatement",
-        ES_TYPE_WITH_STM = "WithStatement",
-        ES_TYPE_RETURN_STM = "ReturnStatement",
-        ES_TYPE_LABELED_STM = "LabeledStatement",
-        ES_TYPE_BREAK_STM = "BreakStatement",
-        ES_TYPE_CONTINUE_STM = "ContinueStatement",
-        ES_TYPE_IF_STM = "IfStatement",
-        ES_TYPE_SWITCH_STM = "SwitchStatement",
-        ES_TYPE_SWITCH_CASE = "SwitchCase",
-        ES_TYPE_THROW_STM = "ThrowStatement",
-        ES_TYPE_TRY_STM = "TryStatement",
-        ES_TYPE_CATCH_CLAUSE = "CatchClause",
-        ES_TYPE_WHILE_STM = "WhileStatement",
-        ES_TYPE_DO_WHILE_STM = "DoWhileStatement",
-        ES_TYPE_FOR_STM = "ForStatement",
-        ES_TYPE_FOR_IN_STM = "ForInStatement",
-        ES_TYPE_FUNCTION_DEC = "FunctionDeclaration",
-        ES_TYPE_THIS_EXP = "ThisExpression",
-        ES_TYPE_ARRAY_EXP = "ArrayExpression",
-        ES_TYPE_OBJECT_EXP = "ObjectExpression",
-        ES_TYPE_PROPERTY = "Property",
-        ES_TYPE_FUNCTION_EXP = "FunctionExpression",
-        ES_TYPE_UNARY_EXP = "UnaryExpression",
-        ES_TYPE_UPDATE_EXP = "UpdateExpression",
-        ES_TYPE_BINARY_EXP = "BinaryExpression",
-        ES_TYPE_LOGICAL_EXP = "LogicalExpression",
-        ES_TYPE_ASSIGNMENT_EXP = "AssignmentExpression",
-        ES_TYPE_MEMBER_EXP = "MemberExpression",
-        ES_TYPE_COND_EXP = "ConditionalExpression",
-        ES_TYPE_CALL_EXP = "CallExpression",
-        ES_TYPE_NEW_EXP = "NewExpression",
-        ES_TYPE_SEQ_EXP = "SequenceExpression",
-        ES_TYPE_FOR_OF_STM = "ForOfStatement",
-        ES_TYPE_SUPER = "Super",
-        ES_TYPE_LITERAL = "Literal";
+    String ES_TYPE_PROGRAM = "Program", ES_TYPE_IDENTIFIER = "Identifier",
+            ES_TYPE_VAR_DEC = "VariableDeclaration", ES_TYPE_VAR_DECT = "VariableDeclarator",
+            ES_TYPE_EXP_STM = "ExpressionStatement", ES_TYPE_EMPTY_STM = "EmptyStatement",
+            ES_TYPE_BLOCK_STM = "BlockStatement", ES_TYPE_WITH_STM = "WithStatement",
+            ES_TYPE_RETURN_STM = "ReturnStatement", ES_TYPE_LABELED_STM = "LabeledStatement",
+            ES_TYPE_BREAK_STM = "BreakStatement", ES_TYPE_CONTINUE_STM = "ContinueStatement",
+            ES_TYPE_IF_STM = "IfStatement", ES_TYPE_SWITCH_STM = "SwitchStatement",
+            ES_TYPE_SWITCH_CASE = "SwitchCase", ES_TYPE_THROW_STM = "ThrowStatement",
+            ES_TYPE_TRY_STM = "TryStatement", ES_TYPE_CATCH_CLAUSE = "CatchClause",
+            ES_TYPE_WHILE_STM = "WhileStatement", ES_TYPE_DO_WHILE_STM = "DoWhileStatement",
+            ES_TYPE_FOR_STM = "ForStatement", ES_TYPE_FOR_IN_STM = "ForInStatement",
+            ES_TYPE_FUNCTION_DEC = "FunctionDeclaration", ES_TYPE_THIS_EXP = "ThisExpression",
+            ES_TYPE_ARRAY_EXP = "ArrayExpression", ES_TYPE_OBJECT_EXP = "ObjectExpression",
+            ES_TYPE_PROPERTY = "Property", ES_TYPE_FUNCTION_EXP = "FunctionExpression",
+            ES_TYPE_UNARY_EXP = "UnaryExpression", ES_TYPE_UPDATE_EXP = "UpdateExpression",
+            ES_TYPE_BINARY_EXP = "BinaryExpression", ES_TYPE_LOGICAL_EXP = "LogicalExpression",
+            ES_TYPE_ASSIGNMENT_EXP = "AssignmentExpression",
+            ES_TYPE_MEMBER_EXP = "MemberExpression", ES_TYPE_COND_EXP = "ConditionalExpression",
+            ES_TYPE_CALL_EXP = "CallExpression", ES_TYPE_NEW_EXP = "NewExpression",
+            ES_TYPE_SEQ_EXP = "SequenceExpression", ES_TYPE_FOR_OF_STM = "ForOfStatement",
+            ES_TYPE_SUPER = "Super", ES_TYPE_LITERAL = "Literal";
 }

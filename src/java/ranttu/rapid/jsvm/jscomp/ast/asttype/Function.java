@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
+import static ranttu.rapid.jsvm.common.$.cast;
 
 /**
  * abstract function

@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
 import ranttu.rapid.jsvm.jscomp.parser.Parser;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * the compile entry
@@ -19,7 +20,7 @@ import java.io.ByteArrayOutputStream;
  * @version $id: CompileMain.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public class CompileMain {
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         Parser parser = new AcornJSParser();
         AbstractSyntaxTree ast = parser.parse("var a = 1;");
 

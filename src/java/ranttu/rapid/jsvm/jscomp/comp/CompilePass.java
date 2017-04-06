@@ -16,42 +16,50 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
  * @author rapidhere@gmail.com
  * @version $id: CompilePass.java, v0.1 2016/12/11 dongwei.dq Exp $
  */
-abstract public class CompilePass<T> {
-    protected Compiler compiler;
-
-    public CompilePass(Compiler compiler) {
-        this.compiler = compiler;
-    }
+abstract public class CompilePass {
+    protected CompilingContext context;
 
     /**
      * start the compile pass from here
      * @param astRoot the ast root
      */
     public void process(Program astRoot) {
-        visit(astRoot);
+        on(astRoot);
+    }
+
+    /**
+     * set the compiling context
+     * @param compilingContext the context
+     */
+    final public void setContext(CompilingContext compilingContext) {
+        this.context = compilingContext;
     }
 
     // ~~~ visitors
-    protected T visit(Node node) {
-        if (node.isProgram()) {
-            return visit((Program) node);
-        } else if (node.isVariableDeclaration()) {
-            return visit((VariableDeclaration) node);
+    private void visit(Node node) {
+        if (node.is(Program.class)) {
+            visit((Program) node);
+        } else if (node.is(VariableDeclaration.class)) {
+            visit((VariableDeclaration) node);
         }
-
-        // should not reach
-        return null;
     }
 
-    protected T visit(Program program) {
-        return null;
+    private void visit(Program program) {
+        on(program);
+        program.getBody().forEach(this::visit);
     }
 
-    protected T visit(VariableDeclaration variableDeclaration) {
-        return null;
+    private void visit(VariableDeclaration variableDeclaration) {
+        on(variableDeclaration);
     }
 
-    protected T visit(FunctionDeclaration functionDeclaration) {
-        return null;
+    // ~~~ program node handlers
+    protected void on(Program program) {
+    }
+
+    protected void on(VariableDeclaration variableDeclaration) {
+    }
+
+    protected void on(FunctionDeclaration functionDeclaration) {
     }
 }

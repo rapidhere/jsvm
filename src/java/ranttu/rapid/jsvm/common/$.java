@@ -6,14 +6,14 @@
 package ranttu.rapid.jsvm.common;
 
 /**
- * object util
+ * utils
  *
  * @author rapidhere@gmail.com
- * @version $id: ObjectUtil.java, v0.1 2016/12/9 dongwei.dq Exp $
+ * @version $id: $.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-final public class ObjectUtil {
+final public class $ {
     // forbidden constructor
-    private ObjectUtil(){
+    private $(){
     }
 
     /**

@@ -8,7 +8,7 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
 
-import static ranttu.rapid.jsvm.common.ObjectUtil.cast;
+import static ranttu.rapid.jsvm.common.$.cast;
 
 /**
  * a literal

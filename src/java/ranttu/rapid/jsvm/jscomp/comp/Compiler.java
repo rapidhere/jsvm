@@ -5,10 +5,11 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
-import ranttu.rapid.jsvm.jscomp.bytecode.JvmClassFile;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -19,11 +20,7 @@ import java.io.OutputStream;
 public class Compiler {
     protected AbstractSyntaxTree ast;
 
-    protected JvmClassFile classFile;
-
-    // ~~~ the naming scope
-    protected NamingEnvironment lexicalEnvironment;
-    protected NamingEnvironment variableEnvironment;
+    protected CompilingContext   context;
 
     public Compiler(AbstractSyntaxTree ast) {
         this.ast = ast;
@@ -33,14 +30,14 @@ public class Compiler {
      * compile and output the bytes
      * @param output output byte stream
      */
-    public void compile(@Nonnull OutputStream output) {
-        // TODO
-        classFile = new JvmClassFile("", "");
-        classFile.setOutputStream(output);
+    public void compile(@Nonnull OutputStream output) throws IOException {
+        // generate bytecode
+        invokePass(new GenerateBytecodePass());
 
-        // ~~~ build name scope
-        invokePass(new BuildNameScopePass(this));
-
+        // write class
+        ClassWriter cw = new ClassWriter(0);
+        context.currentClass().accept(cw);
+        output.write(cw.toByteArray());
     }
 
     /**
@@ -48,6 +45,7 @@ public class Compiler {
      * @param pass the pass
      */
     private void invokePass(CompilePass pass) {
+        pass.setContext(context);
         pass.process(ast.getRoot());
     }
 }
