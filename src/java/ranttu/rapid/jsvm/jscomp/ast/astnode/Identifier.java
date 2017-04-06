@@ -7,7 +7,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 /**
  * a identifier
@@ -15,7 +14,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
  * @author rapidhere@gmail.com
  * @version $id: Identifier.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class Identifier extends BaseAstNode implements Pattern, Expression {
+public class Identifier extends BaseAstNode implements Expression {
     /** the name of the identifier */
     private String name;
 

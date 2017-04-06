@@ -25,6 +25,7 @@ abstract public class CompilePass {
      */
     public void process(Program astRoot) {
         on(astRoot);
+        afterProcess();
     }
 
     /**
@@ -33,6 +34,15 @@ abstract public class CompilePass {
      */
     final public void setContext(CompilingContext compilingContext) {
         this.context = compilingContext;
+    }
+
+    // ~~~ hooks
+
+    /**
+     * do something after processing on tree
+     */
+    protected void afterProcess() {
+
     }
 
     // ~~~ visitors

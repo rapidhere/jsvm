@@ -5,9 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
-import ranttu.rapid.jsvm.jscomp.bytecode.RJvmClass;
-
-import java.util.Stack;
+import org.objectweb.asm.tree.ClassNode;
 
 /**
  * the compiling context
@@ -16,15 +14,9 @@ import java.util.Stack;
  * @version $id: CompilingContext.java, v0.1 2017/4/6 dongwei.dq Exp $
  */
 public class CompilingContext {
-    public Stack<RJvmClass> classStack = new Stack<>();
+    /** the file name of source*/
+    public String    sourceFileName;
 
-    public String sourceFileName;
-
-    public RJvmClass currentClass() {
-        return classStack.peek();
-    }
-
-    public RJvmClass newClass() {
-        return classStack.push(new RJvmClass());
-    }
+    /** compiled class */
+    public ClassNode moduleClass;
 }

@@ -36,7 +36,7 @@ public class Compiler {
 
         // write class
         ClassWriter cw = new ClassWriter(0);
-        context.currentClass().accept(cw);
+        context.moduleClass.accept(cw);
         output.write(cw.toByteArray());
     }
 

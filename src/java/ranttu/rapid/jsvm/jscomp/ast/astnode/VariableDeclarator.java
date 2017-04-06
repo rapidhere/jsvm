@@ -8,7 +8,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 import java.util.Optional;
 
@@ -20,7 +19,7 @@ import java.util.Optional;
  * @version $id: VariableDeclarator.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public class VariableDeclarator extends BaseAstNode {
-    private Pattern              id;
+    private Identifier           id;
     private Optional<Expression> initExpression;
 
     public VariableDeclarator(JSONObject jsonObject) {
@@ -30,7 +29,7 @@ public class VariableDeclarator extends BaseAstNode {
         initExpression = Node.ofNullable(this, jsonObject, "init");
     }
 
-    public Pattern getId() {
+    public Identifier getId() {
         return id;
     }
 
