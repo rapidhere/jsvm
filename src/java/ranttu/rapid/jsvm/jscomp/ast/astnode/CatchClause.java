@@ -7,7 +7,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 /**
  * a catch clause in a `try...catch`
@@ -16,7 +15,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
  * @version $id: CatchClause.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
 public class CatchClause extends BaseAstNode {
-    private Pattern param;
+    private Identifier param;
     private BlockStatement body;
 
     public CatchClause(JSONObject jsonObject) {
@@ -29,7 +28,7 @@ public class CatchClause extends BaseAstNode {
         return body;
     }
 
-    public Pattern getParam() {
+    public Identifier getParam() {
         return param;
     }
 }

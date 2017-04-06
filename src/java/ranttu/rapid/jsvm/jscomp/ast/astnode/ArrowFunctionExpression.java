@@ -7,7 +7,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Function;
 
 /**
  * @author rapidhere@gmail.com

@@ -8,7 +8,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
 
 import java.util.Optional;
@@ -23,7 +22,7 @@ import static ranttu.rapid.jsvm.common.$.cast;
  */
 public class ForInStatement extends BaseAstNode implements Statement {
     private Optional<VariableDeclaration> declarationLeft = Optional.empty();
-    private Optional<Pattern>             patternLeft     = Optional.empty();
+    private Optional<Identifier> patternLeft     = Optional.empty();
     private Expression                    right;
     private Statement                     body;
 
@@ -45,7 +44,7 @@ public class ForInStatement extends BaseAstNode implements Statement {
         return declarationLeft;
     }
 
-    public Optional<Pattern> getPatternLeft() {
+    public Optional<Identifier> getPatternLeft() {
         return patternLeft;
     }
 

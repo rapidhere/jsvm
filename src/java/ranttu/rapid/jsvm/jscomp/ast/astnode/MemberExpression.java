@@ -8,13 +8,12 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 /**
  * @author rapidhere@gmail.com
  * @version $id: MemberExpression.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public class MemberExpression extends BaseAstNode implements Expression, Pattern {
+public class MemberExpression extends BaseAstNode implements Expression {
     private Expression object;
     private Expression property;
     private boolean computed;

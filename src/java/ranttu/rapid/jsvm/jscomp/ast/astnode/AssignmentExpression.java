@@ -8,7 +8,6 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
 
 /**
  * a assignment expression
@@ -18,7 +17,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Pattern;
  */
 public class AssignmentExpression extends BaseAstNode implements Expression {
     private AssignmentOperator operator;
-    private Pattern left;
+    private Identifier left;
     private Expression right;
 
     public AssignmentExpression(JSONObject jsonObject) {
@@ -28,7 +27,7 @@ public class AssignmentExpression extends BaseAstNode implements Expression {
         right = Node.of(this, jsonObject, "right");
     }
 
-    public Pattern getLeft() {
+    public Identifier getLeft() {
         return left;
     }
 

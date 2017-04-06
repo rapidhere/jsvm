@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Function;
 
 /**
  * a function declaration

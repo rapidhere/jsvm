@@ -3,13 +3,15 @@
  * Copyright (c) 1995-2016 All Rights Reserved.
  * ===> GLORY TO THE FIRST BORN! <===
  */
-package ranttu.rapid.jsvm.jscomp.ast.asttype;
+package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +25,9 @@ import static ranttu.rapid.jsvm.common.$.cast;
  * @author rapidhere@gmail.com
  * @version $id: Function.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public class Function extends BaseAstNode {
+abstract public class Function extends BaseAstNode {
     private Optional<Identifier> id;
-    private List<Pattern> params = new ArrayList<>();
+    private List<Identifier> params = new ArrayList<>();
     private BlockStatement body;
     private boolean generator;
 
@@ -50,7 +52,7 @@ public class Function extends BaseAstNode {
         return id;
     }
 
-    public List<Pattern> getParams() {
+    public List<Identifier> getParams() {
         return params;
     }
 

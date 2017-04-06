@@ -36,7 +36,7 @@ abstract public class BaseAstNode implements Node {
     @Override
     public boolean hasParent() {
         // if node is not program, it must have a parent
-        return ! isProgram();
+        return ! is(Program.class);
     }
 
     @Override
