@@ -13,7 +13,7 @@ package ranttu.rapid.jsvm.common;
  */
 final public class $ {
     // forbidden constructor
-    private $(){
+    private $() {
     }
 
     /**
@@ -22,5 +22,27 @@ final public class $ {
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object o) {
         return (T) o;
+    }
+
+    // ~~~ assert utils
+    public static <T> T notNull(T o) {
+        if (o == null) {
+            throw new AssertionError("object cannot be null");
+        }
+
+        return o;
+    }
+
+    public static String notBlank(String s) {
+        if (s == null || s.trim().length() == 0) {
+            throw new AssertionError("string cannot be blank");
+        }
+
+        return s;
+    }
+
+    // string utils
+    public static boolean isBlank(String s) {
+        return s.trim().length() != 0;
     }
 }

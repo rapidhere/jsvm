@@ -6,8 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp;
 
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
+import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.runtime.JsModule;
 
@@ -25,23 +24,28 @@ public class GenerateBytecodePass extends CompilePass {
 
     @Override
     protected void on(Program program) {
-        ClassNode cls = newClass();
+        // whole module as a top class
+        ClassNode cls = newClass()
+            .acc(Opcodes.ACC_PUBLIC)
+            .name(getClassName(), JsModule.class)
+            .source(context.sourceFileName);
 
         // set this class to the context
-        context.moduleClass = cls;
-
-        // setup class
-        cls.access = Opcodes.ACC_PUBLIC;
-        cls.name = getClassName();
-        cls.superName = JsModule.class.getName();
-        cls.sourceFile = context.sourceFileName;
+        context.moduleClass = cls
 
         // add MODULE field
-        cls.fields.add(new FieldNode(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_STATIC,
-            JsModule.FIELD_MODULE_NAME, cls.name, "", null));
+        .field()
+            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
+            .name(JsModule.FIELD_MODULE_NAME)
+            .desc(cls.name)
+        .end()
 
-        // TODO
-        // init module field
+        // init MODULE field
+        .clinit()
+            .new_class(cls.name)
+            .store_static(cls.last_field())
+            .ret()
+        .end();
     }
 
     /**
@@ -58,11 +62,7 @@ public class GenerateBytecodePass extends CompilePass {
      * @return the class node
      */
     private ClassNode newClass() {
-        ClassNode cls = new ClassNode();
-        classStack.push(cls);
-
-        cls.version = Opcodes.V1_8;
-        return cls;
+        return classStack.push(new ClassNode());
     }
 
     /**
