@@ -31,6 +31,9 @@ public class Compiler {
      * @param output output byte stream
      */
     public void compile(@Nonnull OutputStream output) throws IOException {
+        // create new context
+        context = new CompilingContext();
+
         // generate bytecode
         invokePass(new GenerateBytecodePass());
 

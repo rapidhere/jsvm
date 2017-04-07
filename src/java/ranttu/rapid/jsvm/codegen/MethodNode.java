@@ -17,33 +17,35 @@ import org.objectweb.asm.tree.TypeInsnNode;
  * @author rapidhere@gmail.com
  * @version $id: MethodNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class MethodNode extends org.objectweb.asm.tree.MethodNode {
-    ClassNode clazz;
+public class MethodNode {
+    private ClassNode                 clazz;
+    org.objectweb.asm.tree.MethodNode innerNode;
 
     public MethodNode(ClassNode clazz) {
         this.clazz = clazz;
+        innerNode = new org.objectweb.asm.tree.MethodNode();
     }
 
     public MethodNode acc(int... accValues) {
-        access = 0;
+        innerNode.access = 0;
         for (int v : accValues) {
-            access += v;
+            innerNode.access += v;
         }
         return this;
     }
 
     public MethodNode desc(String desc) {
-        this.desc = desc;
+        innerNode.desc = desc;
         return this;
     }
 
     public MethodNode name(String name) {
-        this.name = name;
+        innerNode.name = name;
         return this;
     }
 
     public ClassNode end() {
-        this.clazz.methods.add(this);
+        clazz.innerNode.methods.add(innerNode);
         return clazz;
     }
 
@@ -53,17 +55,18 @@ public class MethodNode extends org.objectweb.asm.tree.MethodNode {
     }
 
     public MethodNode new_class(String internalName) {
-        instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
+        innerNode.instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
         return this;
     }
 
     public MethodNode store_static(FieldNode field) {
-        instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, clazz.name, field.name, field.desc));
+        innerNode.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, clazz.innerNode.name,
+            field.innerNode.name, field.innerNode.desc));
         return this;
     }
 
     public MethodNode ret() {
-        instructions.add(new InsnNode(Opcodes.RETURN));
+        innerNode.instructions.add(new InsnNode(Opcodes.RETURN));
         return this;
     }
 }

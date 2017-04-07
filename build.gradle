@@ -17,8 +17,7 @@ dependencies {
     compile 'commons-io:commons-io:2.5'
     compile 'com.google.guava:guava:20.0'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
-    compile 'org.ow2.asm:asm:5.2'
-    compile 'org.ow2.asm:asm-tree:5.2'
+    compile 'org.ow2.asm:asm-all:5.2'
 }
 
 // ~~~ java source configuration

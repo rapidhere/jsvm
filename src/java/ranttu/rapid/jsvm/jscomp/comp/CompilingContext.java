@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
-import org.objectweb.asm.tree.ClassNode;
+import ranttu.rapid.jsvm.codegen.ClassNode;
 
 /**
  * the compiling context
@@ -15,7 +15,8 @@ import org.objectweb.asm.tree.ClassNode;
  */
 public class CompilingContext {
     /** the file name of source*/
-    public String    sourceFileName;
+    // TODO
+    public String    sourceFileName = "TEST";
 
     /** compiled class */
     public ClassNode moduleClass;

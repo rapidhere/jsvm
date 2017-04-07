@@ -37,12 +37,12 @@ public class GenerateBytecodePass extends CompilePass {
         .field()
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
             .name(JsModule.FIELD_MODULE_NAME)
-            .desc(cls.name)
+            .desc(cls.name())
         .end()
 
         // init MODULE field
         .clinit()
-            .new_class(cls.name)
+            .new_class(cls.name())
             .store_static(cls.last_field())
             .ret()
         .end();
@@ -54,7 +54,8 @@ public class GenerateBytecodePass extends CompilePass {
      */
     private String getClassName() {
         // TODO
-        return context.sourceFileName;
+        // return context.sourceFileName;
+        return "TestClass";
     }
 
     /**

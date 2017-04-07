@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.$;
@@ -15,25 +16,30 @@ import ranttu.rapid.jsvm.common.$;
  * @author rapidhere@gmail.com
  * @version $id: ClassNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class ClassNode extends org.objectweb.asm.tree.ClassNode {
+public class ClassNode {
+    org.objectweb.asm.tree.ClassNode innerNode;
+
+    FieldNode lastField;
+
     public ClassNode() {
         // TODO: get version from outside
-        version = Opcodes.V1_8;
+        innerNode = new org.objectweb.asm.tree.ClassNode();
+        innerNode.version = Opcodes.V1_8;
     }
 
     public ClassNode acc(int... accValues) {
-        access = 0;
+        innerNode.access = 0;
         for (int v : accValues) {
-            access += v;
+            innerNode.access += v;
         }
         return this;
     }
 
     public ClassNode name(String internal, String superName) {
-        name = $.notBlank(internal);
+        innerNode.name = $.notBlank(internal);
 
         if (!$.isBlank(superName)) {
-            this.superName = superName;
+            innerNode.superName = superName;
         }
 
         return this;
@@ -44,7 +50,7 @@ public class ClassNode extends org.objectweb.asm.tree.ClassNode {
     }
 
     public ClassNode source(String source) {
-        sourceFile = source;
+        innerNode.sourceFile = source;
         return this;
     }
 
@@ -63,6 +69,14 @@ public class ClassNode extends org.objectweb.asm.tree.ClassNode {
 
     // ~~ some helpers
     public FieldNode last_field() {
-        return $.cast(fields.get(fields.size() - 1));
+        return lastField;
+    }
+
+    public String name() {
+        return innerNode.name;
+    }
+
+    public void accept(ClassWriter cw) {
+        innerNode.accept(cw);
     }
 }
