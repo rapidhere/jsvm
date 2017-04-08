@@ -11,40 +11,53 @@ import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 
+import java.util.ArrayList;
+
 /**
  * a method node
  *
  * @author rapidhere@gmail.com
  * @version $id: MethodNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class MethodNode extends jdk.internal.org.objectweb.asm.tree.MethodNode {
-    private ClassNode                 clazz;
-
-    public MethodNode(ClassNode clazz) {
-        this.clazz = clazz;
+public class MethodNode extends CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
+    public MethodNode(ClassNode parent) {
+        super(parent);
     }
 
-    public MethodNode acc(int... accValues) {
-        access = 0;
-        for (int v : accValues) {
-            access += v;
-        }
+    public MethodNode(ClassNode parent, jdk.internal.org.objectweb.asm.tree.MethodNode inner) {
+        super(parent, inner);
+    }
+
+    @Override
+    protected jdk.internal.org.objectweb.asm.tree.MethodNode constructInnerNode() {
+        jdk.internal.org.objectweb.asm.tree.MethodNode inner = new jdk.internal.org.objectweb.asm.tree.MethodNode();
+        inner.exceptions = new ArrayList<>();
+
+        return inner;
+    }
+
+    @Override
+    public MethodNode acc(int v) {
+        $.access = v;
         return this;
     }
 
+    @Override
     public MethodNode desc(String desc) {
-        this.desc = desc;
+        $.desc = desc;
         return this;
     }
 
+    @Override
     public MethodNode name(String name) {
-        this.name = name;
+        $.name = name;
         return this;
     }
 
+    @Override
     public ClassNode end() {
-        clazz.methods.add(this);
-        return clazz;
+        parent.$.methods.add($);
+        return parent;
     }
 
     //~ inst goes here
@@ -53,18 +66,18 @@ public class MethodNode extends jdk.internal.org.objectweb.asm.tree.MethodNode {
     }
 
     public MethodNode new_class(String internalName) {
-        instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
+        $.instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
         return this;
     }
 
     public MethodNode store_static(FieldNode field) {
-        instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, clazz.name,
-            field.name, field.desc));
+        $.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, parent.$.name, field.$.name,
+            field.$.desc));
         return this;
     }
 
     public MethodNode ret() {
-        instructions.add(new InsnNode(Opcodes.RETURN));
+        $.instructions.add(new InsnNode(Opcodes.RETURN));
         return this;
     }
 }

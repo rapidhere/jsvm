@@ -7,7 +7,9 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
-import ranttu.rapid.jsvm.common.$;
+
+import static ranttu.rapid.jsvm.common.$$.isBlank;
+import static ranttu.rapid.jsvm.common.$$.notBlank;
 
 /**
  * extended asm class node
@@ -15,43 +17,50 @@ import ranttu.rapid.jsvm.common.$;
  * @author rapidhere@gmail.com
  * @version $id: ClassNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class ClassNode extends jdk.internal.org.objectweb.asm.tree.ClassNode {
+public class ClassNode extends CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
     public ClassNode() {
+        super(null);
+    }
+
+    @Override
+    protected jdk.internal.org.objectweb.asm.tree.ClassNode constructInnerNode() {
+        jdk.internal.org.objectweb.asm.tree.ClassNode inner = new jdk.internal.org.objectweb.asm.tree.ClassNode();
         // TODO: get version from outside
-        version = Opcodes.V1_8;
+        inner.version = Opcodes.V1_8;
+
+        return inner;
     }
 
-    public ClassNode acc(int... accValues) {
-        access = 0;
-        for (int v : accValues) {
-            access += v;
-        }
+    // ~~~ public access method
+    @Override
+    public ClassNode acc(int v) {
+        $.access = v;
         return this;
     }
 
+    @Override
     public ClassNode name(String internal, String superName) {
-        name = $.notBlank(internal);
+        $.name = notBlank(internal);
 
-        if (!$.isBlank(superName)) {
-            this.superName = superName;
+        if (!isBlank(superName)) {
+            $.superName = superName;
         }
 
         return this;
     }
 
-    public ClassNode name(String internal, Class superClass) {
-        return name(internal, Type.getInternalName(superClass));
-    }
-
+    // ~~~ class node specified access
     public ClassNode source(String source) {
-        sourceFile = source;
+        $.sourceFile = source;
         return this;
     }
 
+    // ~~~ fields
     public FieldNode field() {
         return new FieldNode(this);
     }
 
+    // ~~~ methods
     public MethodNode method() {
         return new MethodNode(this);
     }
@@ -63,6 +72,6 @@ public class ClassNode extends jdk.internal.org.objectweb.asm.tree.ClassNode {
 
     // ~~ some helpers
     public FieldNode last_field() {
-        return $.cast(fields.get(fields.size() - 1));
+        return new FieldNode(this, $.fields.get($.fields.size() - 1));
     }
 }

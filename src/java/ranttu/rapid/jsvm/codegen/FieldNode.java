@@ -11,34 +11,40 @@ package ranttu.rapid.jsvm.codegen;
  * @author rapidhere@gmail.com
  * @version $id: FieldNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class FieldNode extends jdk.internal.org.objectweb.asm.tree.FieldNode {
-    private ClassNode                clazz;
+public class FieldNode extends CgNode<jdk.internal.org.objectweb.asm.tree.FieldNode, ClassNode, FieldNode> {
+    public FieldNode(ClassNode parent) {
+        super(parent);
+    }
 
-    public FieldNode acc(int... accValues) {
-        access = 0;
-        for (int v : accValues) {
-            access += v;
-        }
+    public FieldNode(ClassNode parent, jdk.internal.org.objectweb.asm.tree.FieldNode inner) {
+        super(parent, inner);
+    }
+
+    @Override
+    protected jdk.internal.org.objectweb.asm.tree.FieldNode constructInnerNode() {
+        return new jdk.internal.org.objectweb.asm.tree.FieldNode(0, null, null, null, null);
+    }
+
+    @Override
+    public FieldNode acc(int v) {
+        $.access = v;
         return this;
     }
 
-    public FieldNode name(String name) {
-        this.name = name;
+    @Override
+    public FieldNode name(String internalName) {
+        $.name = internalName;
         return this;
     }
 
     public FieldNode desc(String desc) {
-        this.desc = desc;
+        $.desc = desc;
         return this;
     }
 
-    public FieldNode(ClassNode clazz) {
-        super(0, null, null, null, null);
-        this.clazz = clazz;
+    public ClassNode end() {
+        parent.$.fields.add($);
+        return parent;
     }
 
-    public ClassNode end() {
-        clazz.fields.add(this);
-        return clazz;
-    }
 }

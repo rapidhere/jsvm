@@ -12,7 +12,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
 
 import java.util.Optional;
 
-import static ranttu.rapid.jsvm.common.$.cast;
+import static ranttu.rapid.jsvm.common.$$.cast;
 
 /**
  * a for in statement

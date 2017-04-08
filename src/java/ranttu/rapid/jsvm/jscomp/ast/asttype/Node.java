@@ -53,7 +53,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.WithStatement;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-import static ranttu.rapid.jsvm.common.$.cast;
+import static ranttu.rapid.jsvm.common.$$.cast;
 
 /**
  * Abstract Syntax Node according to es tree standard

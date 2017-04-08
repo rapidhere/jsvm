@@ -6,10 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
@@ -17,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ranttu.rapid.jsvm.common.$.cast;
+import static ranttu.rapid.jsvm.common.$$.cast;
 
 /**
  * abstract function

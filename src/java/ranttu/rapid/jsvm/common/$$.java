@@ -9,11 +9,11 @@ package ranttu.rapid.jsvm.common;
  * utils
  *
  * @author rapidhere@gmail.com
- * @version $id: $.java, v0.1 2016/12/9 dongwei.dq Exp $
+ * @version $id: $$.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-final public class $ {
+final public class $$ {
     // forbidden constructor
-    private $() {
+    private $$() {
     }
 
     /**
@@ -22,6 +22,10 @@ final public class $ {
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object o) {
         return (T) o;
+    }
+
+    public static <T> T notSupport() {
+        throw new RuntimeException("not supported in this method");
     }
 
     // ~~~ assert utils
