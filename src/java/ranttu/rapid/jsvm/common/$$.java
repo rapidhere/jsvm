@@ -28,6 +28,14 @@ final public class $$ {
         throw new RuntimeException("not supported in this method");
     }
 
+    public static <T> T shouldNotReach() {
+        return shouldNotReach(null);
+    }
+
+    public static <T> T shouldNotReach(Throwable e) {
+        throw new RuntimeException("should not reach here", e);
+    }
+
     // ~~~ assert utils
     public static <T> T notNull(T o) {
         if (o == null) {
@@ -47,6 +55,6 @@ final public class $$ {
 
     // string utils
     public static boolean isBlank(String s) {
-        return s.trim().length() != 0;
+        return s.trim().length() == 0;
     }
 }

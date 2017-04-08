@@ -26,7 +26,7 @@ public class GenerateBytecodePass extends CompilePass {
     protected void on(Program program) {
         // whole module as a top class
         ClassNode cls = newClass()
-            .acc(Opcodes.ACC_PUBLIC)
+            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SUPER)
             .name(getClassName(), JsModule.class)
             .source(context.sourceFileName);
 
@@ -37,12 +37,26 @@ public class GenerateBytecodePass extends CompilePass {
         .field()
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
             .name(JsModule.FIELD_MODULE_NAME)
-            .desc(cls.$.name)
+            .desc(cls)
+        .end()
+
+        // default init
+        .method_init()
+            .stack(1)
+            .locals(0)
+
+            .invoke_init(Object.class)
+            .ret()
         .end()
 
         // init MODULE field
-        .clinit()
-            .new_class(cls.$.name)
+        .method_clinit()
+            .stack(2)
+            .locals(0)
+
+            .new_class(cls)
+            .dup()
+            .invoke_init(cls)
             .store_static(cls.last_field())
             .ret()
         .end();
@@ -55,7 +69,7 @@ public class GenerateBytecodePass extends CompilePass {
     private String getClassName() {
         // TODO
         // return context.sourceFileName;
-        return "TestClass";
+        return "TestClass$233";
     }
 
     /**

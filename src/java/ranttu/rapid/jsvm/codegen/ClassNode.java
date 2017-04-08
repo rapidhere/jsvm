@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.MethodConst;
 
 import static ranttu.rapid.jsvm.common.$$.isBlank;
 import static ranttu.rapid.jsvm.common.$$.notBlank;
@@ -65,8 +66,13 @@ public class ClassNode extends CgNode<jdk.internal.org.objectweb.asm.tree.ClassN
         return new MethodNode(this);
     }
 
-    public MethodNode clinit() {
-        return method().acc(Opcodes.ACC_STATIC).name("<clinit>")
+    public MethodNode method_clinit() {
+        return method().acc(Opcodes.ACC_STATIC).name(MethodConst.CLINIT)
+            .desc(Type.getMethodDescriptor(Type.VOID_TYPE));
+    }
+
+    public MethodNode method_init() {
+        return method().name(MethodConst.INIT)
             .desc(Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 

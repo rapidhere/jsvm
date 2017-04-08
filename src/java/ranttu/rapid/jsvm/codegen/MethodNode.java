@@ -9,7 +9,10 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
+import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
+import ranttu.rapid.jsvm.common.MethodConst;
+import ranttu.rapid.jsvm.common.ReflectionUtil;
 
 import java.util.ArrayList;
 
@@ -19,7 +22,9 @@ import java.util.ArrayList;
  * @author rapidhere@gmail.com
  * @version $id: MethodNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class MethodNode extends CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
+public class MethodNode
+                       extends
+                       CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
     public MethodNode(ClassNode parent) {
         super(parent);
     }
@@ -54,6 +59,16 @@ public class MethodNode extends CgNode<jdk.internal.org.objectweb.asm.tree.Metho
         return this;
     }
 
+    public MethodNode stack(int size) {
+        $.maxStack = size;
+        return this;
+    }
+
+    public MethodNode locals(int size) {
+        $.maxLocals = size;
+        return this;
+    }
+
     @Override
     public ClassNode end() {
         parent.$.methods.add($);
@@ -61,8 +76,30 @@ public class MethodNode extends CgNode<jdk.internal.org.objectweb.asm.tree.Metho
     }
 
     //~ inst goes here
+    public MethodNode dup() {
+        $.instructions.add(new InsnNode(Opcodes.DUP));
+        return this;
+    }
+
+    public MethodNode invoke_init(ClassNode clazz) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, clazz.$.name,
+            MethodConst.INIT, Type.getMethodDescriptor(Type.VOID_TYPE), false));
+        return this;
+    }
+
+    public MethodNode invoke_init(Class clazz, Class... constructorPars) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getInternalName(clazz),
+            MethodConst.INIT, Type.getConstructorDescriptor(ReflectionUtil.getConstructor(clazz,
+                constructorPars)), false));
+        return this;
+    }
+
     public MethodNode new_class(Class clazz) {
         return new_class(Type.getInternalName(clazz));
+    }
+
+    public MethodNode new_class(ClassNode classNode) {
+        return new_class(classNode.$.name);
     }
 
     public MethodNode new_class(String internalName) {

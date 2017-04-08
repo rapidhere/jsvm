@@ -42,6 +42,10 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return acc(sum);
     }
 
+    public THIS desc(ClassNode classNode) {
+        return desc(getDescriptor(classNode));
+    }
+
     public THIS name(String internalName, Class clazz) {
         return name(internalName, Type.getInternalName(clazz));
     }
@@ -68,5 +72,11 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
 
     public P end() {
         return notSupport();
+    }
+
+    // ~~~ helpers
+
+    public static String getDescriptor(ClassNode classNode) {
+        return "L" + classNode.$.name + ";";
     }
 }
