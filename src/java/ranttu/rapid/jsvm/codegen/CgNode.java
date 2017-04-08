@@ -32,6 +32,7 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         this.parent = parent;
     }
 
+    // ~~~ access helpers
     public THIS acc(int... values) {
         int sum = 0;
         for (int v : values) {
@@ -45,10 +46,10 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return name(internalName, Type.getInternalName(clazz));
     }
 
-    // abstract interface
+    // ~~~ abstract interface
     protected abstract T constructInnerNode();
 
-    // access helpers
+    // ~~~ base accessors
     public THIS acc(int v) {
         return notSupport();
     }

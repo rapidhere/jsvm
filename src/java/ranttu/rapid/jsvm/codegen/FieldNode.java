@@ -37,11 +37,13 @@ public class FieldNode extends CgNode<jdk.internal.org.objectweb.asm.tree.FieldN
         return this;
     }
 
+    @Override
     public FieldNode desc(String desc) {
         $.desc = desc;
         return this;
     }
 
+    @Override
     public ClassNode end() {
         parent.$.fields.add($);
         return parent;
