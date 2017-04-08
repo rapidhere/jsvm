@@ -11,36 +11,34 @@ package ranttu.rapid.jsvm.codegen;
  * @author rapidhere@gmail.com
  * @version $id: FieldNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class FieldNode {
+public class FieldNode extends jdk.internal.org.objectweb.asm.tree.FieldNode {
     private ClassNode                clazz;
-    org.objectweb.asm.tree.FieldNode innerNode;
 
     public FieldNode acc(int... accValues) {
-        innerNode.access = 0;
+        access = 0;
         for (int v : accValues) {
-            innerNode.access += v;
+            access += v;
         }
         return this;
     }
 
     public FieldNode name(String name) {
-        innerNode.name = name;
+        this.name = name;
         return this;
     }
 
     public FieldNode desc(String desc) {
-        innerNode.desc = desc;
+        this.desc = desc;
         return this;
     }
 
     public FieldNode(ClassNode clazz) {
-        innerNode = new org.objectweb.asm.tree.FieldNode(0, null, null, null, null);
+        super(0, null, null, null, null);
         this.clazz = clazz;
     }
 
     public ClassNode end() {
-        clazz.innerNode.fields.add(innerNode);
-        clazz.lastField = this;
+        clazz.fields.add(this);
         return clazz;
     }
 }

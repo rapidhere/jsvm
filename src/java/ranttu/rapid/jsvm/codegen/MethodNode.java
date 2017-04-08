@@ -5,11 +5,11 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.TypeInsnNode;
+import jdk.internal.org.objectweb.asm.Opcodes;
+import jdk.internal.org.objectweb.asm.Type;
+import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
+import jdk.internal.org.objectweb.asm.tree.InsnNode;
+import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 
 /**
  * a method node
@@ -17,35 +17,33 @@ import org.objectweb.asm.tree.TypeInsnNode;
  * @author rapidhere@gmail.com
  * @version $id: MethodNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class MethodNode {
+public class MethodNode extends jdk.internal.org.objectweb.asm.tree.MethodNode {
     private ClassNode                 clazz;
-    org.objectweb.asm.tree.MethodNode innerNode;
 
     public MethodNode(ClassNode clazz) {
         this.clazz = clazz;
-        innerNode = new org.objectweb.asm.tree.MethodNode();
     }
 
     public MethodNode acc(int... accValues) {
-        innerNode.access = 0;
+        access = 0;
         for (int v : accValues) {
-            innerNode.access += v;
+            access += v;
         }
         return this;
     }
 
     public MethodNode desc(String desc) {
-        innerNode.desc = desc;
+        this.desc = desc;
         return this;
     }
 
     public MethodNode name(String name) {
-        innerNode.name = name;
+        this.name = name;
         return this;
     }
 
     public ClassNode end() {
-        clazz.innerNode.methods.add(innerNode);
+        clazz.methods.add(this);
         return clazz;
     }
 
@@ -55,18 +53,18 @@ public class MethodNode {
     }
 
     public MethodNode new_class(String internalName) {
-        innerNode.instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
+        instructions.add(new TypeInsnNode(Opcodes.NEW, internalName));
         return this;
     }
 
     public MethodNode store_static(FieldNode field) {
-        innerNode.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, clazz.innerNode.name,
-            field.innerNode.name, field.innerNode.desc));
+        instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, clazz.name,
+            field.name, field.desc));
         return this;
     }
 
     public MethodNode ret() {
-        innerNode.instructions.add(new InsnNode(Opcodes.RETURN));
+        instructions.add(new InsnNode(Opcodes.RETURN));
         return this;
     }
 }

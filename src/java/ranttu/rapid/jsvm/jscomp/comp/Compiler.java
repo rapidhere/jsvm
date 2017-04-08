@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
-import org.objectweb.asm.ClassWriter;
+import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 
 import javax.annotation.Nonnull;
