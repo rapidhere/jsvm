@@ -7,10 +7,7 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
-import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
-import jdk.internal.org.objectweb.asm.tree.InsnNode;
-import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
-import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
+import jdk.internal.org.objectweb.asm.tree.*;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 
@@ -76,6 +73,11 @@ public class MethodNode
     }
 
     //~ inst goes here
+    public MethodNode aload(int i) {
+        $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
+        return this;
+    }
+
     public MethodNode dup() {
         $.instructions.add(new InsnNode(Opcodes.DUP));
         return this;

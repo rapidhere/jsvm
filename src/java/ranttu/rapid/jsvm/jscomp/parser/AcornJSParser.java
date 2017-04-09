@@ -7,25 +7,26 @@ package ranttu.rapid.jsvm.jscomp.parser;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.exp.CompileError;
-import ranttu.rapid.jsvm.exp.CompileInterrupted;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 
-import java.io.File;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
+import java.io.InputStreamReader;
 
 /**
- * a js compiler use javascript's acorn lib, require Node.js installed
+ * a js compiler use javascript's acorn lib, require nashorn library
  *
  * @author rapidhere@gmail.com
  * @version $id: AcornJSParser.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
 public class AcornJSParser implements Parser {
-    private static final String ACORN_SCRIPT_FILE_NAME = "_$acorn.js";
-
-    private static final String SOURCE_FILE_NAME       = "_$source.js";
+    private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 
     /**
      * @see Parser#parse(InputStream)
@@ -42,54 +43,24 @@ public class AcornJSParser implements Parser {
      */
     private String getESTreeString(InputStream inputStream) {
         try {
-            cleanUp();
-            saveSources(inputStream);
+            engine.eval(new InputStreamReader(
+                    getClass().getResourceAsStream("/acorn/acorn.js")));
 
-            Process process = new ProcessBuilder("node", "-e", generateCompileScript(), "-p")
-                .start();
+            // add a entry point
+            engine.eval(
+                    "function parse(source) { return JSON.stringify(acorn.parse.call(" +
+                            "acorn, source, {locations:true})); }");
 
-            // exit failed
-            if (process.waitFor() != 0) {
-                throw new CompileError(IOUtils.toString(process.getErrorStream(), "utf-8").trim());
-            }
+            Invocable invoker = $$.cast(engine);
 
-            return IOUtils.toString(process.getInputStream(), "utf-8");
+            Object ret = invoker.invokeFunction(
+                    "parse", IOUtils.toString(inputStream, "utf-8"));
+
+            return $$.cast(ret);
         } catch (IOException e) {
             throw new CompileError("wrong with acorn compile env", e);
-        } catch (InterruptedException e) {
-            throw new CompileInterrupted(e);
-        } finally {
-            cleanUp();
-        }
-    }
-
-    /**
-     * generate the compile script
-     */
-    private String generateCompileScript() {
-        return String.format(
-            "try { JSON.stringify(require('./%s').parse(require('fs').readFileSync('%s'), {locations: true})) } "
-                    + "catch(err) {console.error(err.message);process.exit(1);}",
-            ACORN_SCRIPT_FILE_NAME, SOURCE_FILE_NAME);
-    }
-
-    /**
-     * save the compile needed sources
-     */
-    private void saveSources(InputStream inputStream) throws IOException {
-        Files.copy(getClass().getResourceAsStream("/acorn/acorn.js"), new File(
-            ACORN_SCRIPT_FILE_NAME).toPath());
-        Files.copy(inputStream, new File(SOURCE_FILE_NAME).toPath());
-    }
-
-    /**
-     * clean up the working directory
-     */
-    private void cleanUp() {
-        try {
-            Files.deleteIfExists(new File(SOURCE_FILE_NAME).toPath());
-            Files.deleteIfExists(new File(ACORN_SCRIPT_FILE_NAME).toPath());
-        } catch (IOException ignore) {
+        } catch (ScriptException | NoSuchMethodException e) {
+            throw new CompileError(e.toString());
         }
     }
 }
