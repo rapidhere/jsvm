@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
@@ -27,6 +28,10 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
 
         jsonObject.getJSONArray("declarations").forEach(
             (child) -> declarations.add(Node.of(this, (JSONObject) child)));
+
+        if (kind != DeclarationType.LET) {
+            throw new NotSupportedYet(this, "variable declaration only support `let`");
+        }
     }
 
     public List<VariableDeclarator> getDeclarations() {

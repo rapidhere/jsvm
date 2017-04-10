@@ -28,6 +28,19 @@ import java.io.InputStreamReader;
 public class AcornJSParser implements Parser {
     private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 
+    static {
+        try {
+            engine.eval(new InputStreamReader(AcornJSParser.class
+                .getResourceAsStream("/acorn/acorn.js")));
+
+            // add a entry point
+            engine.eval("function parse(source) { return JSON.stringify(acorn.parse.call("
+                        + "acorn, source, {locations:true, sourceType: 'module'})); }");
+        } catch (ScriptException e) {
+            throw new CompileError("wrong with acorn compile env", e);
+        }
+    }
+
     /**
      * @see Parser#parse(InputStream)
      */
@@ -43,24 +56,15 @@ public class AcornJSParser implements Parser {
      */
     private String getESTreeString(InputStream inputStream) {
         try {
-            engine.eval(new InputStreamReader(
-                    getClass().getResourceAsStream("/acorn/acorn.js")));
-
-            // add a entry point
-            engine.eval(
-                    "function parse(source) { return JSON.stringify(acorn.parse.call(" +
-                            "acorn, source, {locations:true})); }");
-
             Invocable invoker = $$.cast(engine);
 
-            Object ret = invoker.invokeFunction(
-                    "parse", IOUtils.toString(inputStream, "utf-8"));
+            Object ret = invoker.invokeFunction("parse", IOUtils.toString(inputStream, "utf-8"));
 
             return $$.cast(ret);
         } catch (IOException e) {
             throw new CompileError("wrong with acorn compile env", e);
         } catch (ScriptException | NoSuchMethodException e) {
-            throw new CompileError(e.toString());
+            throw new CompileError("compile failed", e);
         }
     }
 }

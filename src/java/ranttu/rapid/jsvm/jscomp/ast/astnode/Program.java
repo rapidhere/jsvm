@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Statement;
 
@@ -29,6 +30,10 @@ public class Program extends BaseAstNode {
         jsonObject.getJSONArray("body").forEach(
             (child) -> body.add(Node.of(this, (JSONObject) child)));
         sourceType = SourceType.of(jsonObject.getString("sourceType"));
+
+        if (sourceType != SourceType.MODULE) {
+            throw new NotSupportedYet(this, "program type only support `module`");
+        }
     }
 
     public List<Statement> getBody() {

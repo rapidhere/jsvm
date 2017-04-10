@@ -17,4 +17,8 @@ public class NotSupportedYet extends CompileError {
     public NotSupportedYet(Node node) {
         super(node, "not supported yet");
     }
+
+    public NotSupportedYet(Node node, String msg) {
+        super(node, "not supported yet: " + msg);
+    }
 }

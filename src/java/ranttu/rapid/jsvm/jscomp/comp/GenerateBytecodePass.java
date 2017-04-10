@@ -7,7 +7,6 @@ package ranttu.rapid.jsvm.jscomp.comp;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
@@ -67,10 +66,6 @@ public class GenerateBytecodePass extends CompilePass {
 
     @Override
     protected void on(VariableDeclaration variableDeclaration) {
-        if (variableDeclaration.getKind() != VariableDeclaration.DeclarationType.LET) {
-            throw new NotSupportedYet(variableDeclaration);
-        }
-
         for (VariableDeclarator varDec: variableDeclaration.getDeclarations()) {
             String varName = varDec.getId().getName();
 
