@@ -12,12 +12,9 @@ package ranttu.rapid.jsvm.codegen;
  * @version $id: FieldNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
 public class FieldNode extends CgNode<jdk.internal.org.objectweb.asm.tree.FieldNode, ClassNode, FieldNode> {
-    public FieldNode(ClassNode parent) {
+    public FieldNode(ClassNode parent, String name) {
         super(parent);
-    }
-
-    public FieldNode(ClassNode parent, jdk.internal.org.objectweb.asm.tree.FieldNode inner) {
-        super(parent, inner);
+        $.name = name;
     }
 
     @Override
@@ -28,12 +25,6 @@ public class FieldNode extends CgNode<jdk.internal.org.objectweb.asm.tree.FieldN
     @Override
     public FieldNode acc(int v) {
         $.access = v;
-        return this;
-    }
-
-    @Override
-    public FieldNode name(String internalName) {
-        $.name = internalName;
         return this;
     }
 

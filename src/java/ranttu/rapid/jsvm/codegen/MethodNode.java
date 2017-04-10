@@ -37,10 +37,6 @@ public class MethodNode
         super(parent);
     }
 
-    public MethodNode(ClassNode parent, jdk.internal.org.objectweb.asm.tree.MethodNode inner) {
-        super(parent, inner);
-    }
-
     @Override
     protected jdk.internal.org.objectweb.asm.tree.MethodNode constructInnerNode() {
         jdk.internal.org.objectweb.asm.tree.MethodNode inner = new jdk.internal.org.objectweb.asm.tree.MethodNode();

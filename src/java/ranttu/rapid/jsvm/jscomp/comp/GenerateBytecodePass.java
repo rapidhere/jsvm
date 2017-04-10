@@ -7,7 +7,10 @@ package ranttu.rapid.jsvm.jscomp.comp;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import ranttu.rapid.jsvm.codegen.ClassNode;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.runtime.JsModule;
 
 import java.util.Stack;
@@ -27,16 +30,15 @@ public class GenerateBytecodePass extends CompilePass {
         // whole module as a top class
         ClassNode cls = newClass()
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SUPER)
-            .name(getClassName(), JsModule.class)
+            .name(context.className, JsModule.class)
             .source(context.sourceFileName);
 
         // set this class to the context
         context.moduleClass = cls
 
         // add MODULE field
-        .field()
+        .field(JsModule.FIELD_MODULE_NAME)
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
-            .name(JsModule.FIELD_MODULE_NAME)
             .desc(cls)
         .end()
 
@@ -57,20 +59,26 @@ public class GenerateBytecodePass extends CompilePass {
             .new_class(cls)
             .dup()
             .invoke_init(cls)
-            .store_static(cls.last_field())
+            .store_static(cls.field(JsModule.FIELD_MODULE_NAME))
             .ret()
             .stack(2)
         .end();
     }
 
-    /**
-     * get the top class name of the source file
-     * @return the class name
-     */
-    private String getClassName() {
-        // TODO
-        // return context.sourceFileName;
-        return "TestClass$233";
+    @Override
+    protected void on(VariableDeclaration variableDeclaration) {
+        if (variableDeclaration.getKind() != VariableDeclaration.DeclarationType.LET) {
+            throw new NotSupportedYet(variableDeclaration);
+        }
+
+        for (VariableDeclarator varDec: variableDeclaration.getDeclarations()) {
+            String varName = varDec.getId().getName();
+
+            clazz().field(varName)
+                .acc(Opcodes.ACC_PRIVATE)
+                .desc(Object.class)
+            .end();
+        }
     }
 
     /**

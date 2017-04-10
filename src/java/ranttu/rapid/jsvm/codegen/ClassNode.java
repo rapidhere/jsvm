@@ -9,6 +9,9 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.MethodConst;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static ranttu.rapid.jsvm.common.$$.isBlank;
 import static ranttu.rapid.jsvm.common.$$.notBlank;
 
@@ -18,7 +21,10 @@ import static ranttu.rapid.jsvm.common.$$.notBlank;
  * @author rapidhere@gmail.com
  * @version $id: ClassNode.java, v0.1 2017/4/7 dongwei.dq Exp $
  */
-public class ClassNode extends CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
+public class ClassNode extends
+                      CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
+    private Map<String, FieldNode> fields = new HashMap<>();
+
     public ClassNode() {
         super(null);
     }
@@ -57,8 +63,11 @@ public class ClassNode extends CgNode<jdk.internal.org.objectweb.asm.tree.ClassN
     }
 
     // ~~~ fields
-    public FieldNode field() {
-        return new FieldNode(this);
+    public FieldNode field(String name) {
+        if (!fields.containsKey(name)) {
+            fields.put(name, new FieldNode(this, name));
+        }
+        return fields.get(name);
     }
 
     // ~~~ methods
@@ -72,12 +81,6 @@ public class ClassNode extends CgNode<jdk.internal.org.objectweb.asm.tree.ClassN
     }
 
     public MethodNode method_init() {
-        return method().name(MethodConst.INIT)
-            .desc(Type.getMethodDescriptor(Type.VOID_TYPE));
-    }
-
-    // ~~ some helpers
-    public FieldNode last_field() {
-        return new FieldNode(this, $.fields.get($.fields.size() - 1));
+        return method().name(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 }

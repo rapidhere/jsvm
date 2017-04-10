@@ -21,7 +21,7 @@ final public class ReflectionUtil {
 
     public static Field getField(Object instance, String fieldName) {
         try {
-            return instance.getClass().getField(fieldName);
+            return instance.getClass().getDeclaredField(fieldName);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

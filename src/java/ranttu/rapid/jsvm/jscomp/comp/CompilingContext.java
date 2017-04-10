@@ -15,8 +15,10 @@ import ranttu.rapid.jsvm.codegen.ClassNode;
  */
 public class CompilingContext {
     /** the file name of source*/
-    // TODO
-    public String    sourceFileName = "TEST";
+    public String    sourceFileName;
+
+    /** the compiled classname*/
+    public String    className;
 
     /** compiled class */
     public ClassNode moduleClass;

@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 
 import javax.annotation.Nonnull;
@@ -29,10 +30,25 @@ public class Compiler {
     /**
      * compile and output the bytes
      * @param output output byte stream
+     * @param className the name of the compiled class
      */
-    public void compile(@Nonnull OutputStream output) throws IOException {
+    public void compile(@Nonnull OutputStream output, @Nonnull String className) throws IOException {
+        compile(output, className, "<dummy>");
+    }
+
+    /**
+     * compile and output the bytes
+     * @param output output byte stream
+     * @param className the name of the compiled class
+     * @param sourceFileName the name of the source file
+     */
+    public void compile(@Nonnull OutputStream output, @Nonnull String className,
+                        @Nonnull String sourceFileName) throws IOException {
         // create new context
         context = new CompilingContext();
+
+        context.className = $$.notBlank(className);
+        context.sourceFileName = $$.notBlank(sourceFileName);
 
         // generate bytecode
         invokePass(new GenerateBytecodePass());

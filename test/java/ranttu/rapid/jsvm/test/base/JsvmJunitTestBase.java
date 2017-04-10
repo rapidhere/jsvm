@@ -29,10 +29,8 @@ abstract public class JsvmJunitTestBase extends Assert {
 
     /**
      * compile the source to byte array
-     * @param source the source to compile
-     * @return compiled byte code
      */
-    protected byte[] compileSource(String source) {
+    protected byte[] compileSource(String className, String source) {
         Parser parser = new AcornJSParser();
         AbstractSyntaxTree ast = parser.parse(source);
 
@@ -40,7 +38,7 @@ abstract public class JsvmJunitTestBase extends Assert {
         ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
 
         try {
-            compiler.compile(output);
+            compiler.compile(output, className);
         } catch (Exception e) {
             fail("failed to compile source", e);
         }
@@ -50,22 +48,18 @@ abstract public class JsvmJunitTestBase extends Assert {
 
     /**
      * load the source to a java class
-     * @param source the source to load
-     * @return loaded class
      */
-    protected Class<? extends JsModule> loadSource(String source) {
-        byte[] bytecodes = compileSource(source);
+    protected Class<? extends JsModule> loadSource(String className, String source) {
+        byte[] bytes = compileSource(className, source);
 
-        return byteArrayClassLoader.loadClass(JsModule.class, bytecodes);
+        return byteArrayClassLoader.loadClass(className, bytes);
     }
 
     /**
      * load the source a JsModule instance
-     * @param source the source to load
-     * @return loaded module
      */
-    protected JsModule loadModule(String source) {
-        Class<? extends JsModule> moduleClass = loadSource(source);
+    protected JsModule loadModule(String className, String source) {
+        Class<? extends JsModule> moduleClass = loadSource(className, source);
 
         try {
             return ReflectionUtil.getStaticValue(moduleClass, JsModule.FIELD_MODULE_NAME);

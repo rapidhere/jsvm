@@ -27,11 +27,6 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         this.parent = parent;
     }
 
-    public CgNode(P parent, T inner) {
-        $ = inner;
-        this.parent = parent;
-    }
-
     // ~~~ access helpers
     public THIS acc(int... values) {
         int sum = 0;
@@ -44,6 +39,10 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
 
     public THIS desc(ClassNode classNode) {
         return desc(getDescriptor(classNode));
+    }
+
+    public THIS desc(Class clazz) {
+        return desc(Type.getDescriptor(clazz));
     }
 
     public THIS name(String internalName, Class clazz) {

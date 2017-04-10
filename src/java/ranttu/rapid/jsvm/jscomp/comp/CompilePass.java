@@ -24,7 +24,7 @@ abstract public class CompilePass {
      * @param astRoot the ast root
      */
     public void process(Program astRoot) {
-        on(astRoot);
+        visit(astRoot);
         afterProcess();
     }
 

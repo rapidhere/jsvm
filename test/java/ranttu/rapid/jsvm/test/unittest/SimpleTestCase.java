@@ -19,8 +19,11 @@ import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
 public class SimpleTestCase extends JsvmJunitTestBase {
     @Test
     public void test() throws Exception {
-        JsModule module = loadModule("var a = 1;");
+        String clsName = "JsModuleTest";
 
+        JsModule module = loadModule(clsName, "let a = 1;");
+
+        assertEquals(clsName, module.getClass().getSimpleName());
         assertEquals(new Integer(1), ReflectionUtil.getFieldValue(module, "a"));
     }
 }
