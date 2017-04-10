@@ -42,20 +42,24 @@ public class GenerateBytecodePass extends CompilePass {
 
         // default init
         .method_init()
-            .stack(1).locals(1)
+            .label("L0")
             .aload(0)
-            .invoke_init(Object.class)
+            .invoke_init(JsModule.class)
             .ret()
+            .label("L1")
+
+            .local_var("this", cls, "L0", "L1")
+            .stack(1)
         .end()
 
         // init MODULE field
         .method_clinit()
-            .stack(2).locals(0)
             .new_class(cls)
             .dup()
             .invoke_init(cls)
             .store_static(cls.last_field())
             .ret()
+            .stack(2)
         .end();
     }
 

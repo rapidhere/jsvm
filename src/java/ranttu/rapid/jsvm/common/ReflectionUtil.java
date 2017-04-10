@@ -62,7 +62,7 @@ final public class ReflectionUtil {
 
     public static <T> Constructor<T> getConstructor(Class<T> clazz, Class... pars) {
         try {
-            return clazz.getConstructor(pars);
+            return clazz.getDeclaredConstructor(pars);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

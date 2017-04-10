@@ -7,11 +7,19 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
-import jdk.internal.org.objectweb.asm.tree.*;
+import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
+import jdk.internal.org.objectweb.asm.tree.InsnNode;
+import jdk.internal.org.objectweb.asm.tree.LabelNode;
+import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
+import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
+import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
+import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * a method node
@@ -22,6 +30,9 @@ import java.util.ArrayList;
 public class MethodNode
                        extends
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
+    private Map<String, LabelNode> labels = new HashMap<>();
+    private Map<String, LocalVariableNode> locals = new HashMap<>();
+
     public MethodNode(ClassNode parent) {
         super(parent);
     }
@@ -34,6 +45,7 @@ public class MethodNode
     protected jdk.internal.org.objectweb.asm.tree.MethodNode constructInnerNode() {
         jdk.internal.org.objectweb.asm.tree.MethodNode inner = new jdk.internal.org.objectweb.asm.tree.MethodNode();
         inner.exceptions = new ArrayList<>();
+        inner.localVariables = new ArrayList<>();
 
         return inner;
     }
@@ -58,11 +70,7 @@ public class MethodNode
 
     public MethodNode stack(int size) {
         $.maxStack = size;
-        return this;
-    }
-
-    public MethodNode locals(int size) {
-        $.maxLocals = size;
+        $.maxLocals = locals.size();
         return this;
     }
 
@@ -72,7 +80,29 @@ public class MethodNode
         return parent;
     }
 
+    public MethodNode local_var(String name, ClassNode cls, String label1, String label2) {
+        LocalVariableNode local = new LocalVariableNode(name, getDescriptor(cls), null, labels
+            .get(label1), labels.get(label2), locals.size());
+
+        $.localVariables.add(local);
+        locals.put(name, local);
+        return this;
+    }
+
     //~ inst goes here
+
+    public MethodNode label(String name) {
+        if (!labels.containsKey(name)) {
+            LabelNode label = new LabelNode();
+            labels.put(name, label);
+            $.instructions.add(label);
+        } else {
+            throw new AssertionError("should label with same name: " + name);
+        }
+
+        return this;
+    }
+
     public MethodNode aload(int i) {
         $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
         return this;

@@ -34,7 +34,7 @@ abstract public class JsvmJunitTestBase extends Assert {
      */
     protected byte[] compileSource(String source) {
         Parser parser = new AcornJSParser();
-        AbstractSyntaxTree ast = parser.parse("var a = 1;");
+        AbstractSyntaxTree ast = parser.parse(source);
 
         Compiler compiler = new Compiler(ast);
         ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
