@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 
 /**
  * a function declaration
@@ -13,7 +14,7 @@ import org.json.JSONObject;
  * @author rapidhere@gmail.com
  * @version $id: FunctionDeclaration.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
-public class FunctionDeclaration extends Function {
+public class FunctionDeclaration extends Function implements Declaration {
     public FunctionDeclaration(JSONObject jsonObject) {
         super(jsonObject);
     }

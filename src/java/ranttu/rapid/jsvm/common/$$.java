@@ -45,6 +45,12 @@ final public class $$ {
         return o;
     }
 
+    public static void should(boolean b) {
+        if(! b) {
+            throw new AssertionError();
+        }
+    }
+
     public static String notBlank(String s) {
         if (s == null || s.trim().length() == 0) {
             throw new AssertionError("string cannot be blank");

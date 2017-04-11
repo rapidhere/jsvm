@@ -8,6 +8,7 @@ package ranttu.rapid.jsvm.jscomp.comp;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 /**
@@ -24,6 +25,7 @@ abstract public class CompilePass {
      * @param astRoot the ast root
      */
     public void process(Program astRoot) {
+        beforeProcess();
         visit(astRoot);
         afterProcess();
     }
@@ -41,9 +43,12 @@ abstract public class CompilePass {
     /**
      * do something after processing on tree
      */
-    protected void afterProcess() {
+    protected void afterProcess() {}
 
-    }
+    /**
+     * do something before processing on tree
+     */
+    protected void beforeProcess() {}
 
     // ~~~ visitors
     private void visit(Node node) {
@@ -51,6 +56,10 @@ abstract public class CompilePass {
             visit((Program) node);
         } else if (node.is(VariableDeclaration.class)) {
             visit((VariableDeclaration) node);
+        } else if (node.is(FunctionDeclaration.class)) {
+            visit((FunctionDeclaration) node);
+        } else if (node.is(VariableDeclarator.class)) {
+            visit((VariableDeclarator) node);
         }
     }
 
@@ -61,6 +70,20 @@ abstract public class CompilePass {
 
     private void visit(VariableDeclaration variableDeclaration) {
         on(variableDeclaration);
+        variableDeclaration.getDeclarations().forEach(this::visit);
+    }
+
+    private void visit(VariableDeclarator variableDeclarator) {
+        on(variableDeclarator);
+
+        if(variableDeclarator.getInitExpression().isPresent()) {
+            visit(variableDeclarator.getInitExpression().get());
+        }
+    }
+
+    private void visit(FunctionDeclaration functionDeclaration) {
+        // TODO
+        on(functionDeclaration);
     }
 
     // ~~~ program node handlers
@@ -71,5 +94,8 @@ abstract public class CompilePass {
     }
 
     protected void on(FunctionDeclaration functionDeclaration) {
+    }
+
+    protected void on(VariableDeclarator variableDeclarator) {
     }
 }

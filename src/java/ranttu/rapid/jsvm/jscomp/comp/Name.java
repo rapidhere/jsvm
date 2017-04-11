@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 
 import java.util.Optional;
@@ -17,19 +18,19 @@ import java.util.Optional;
  */
 public class Name {
     private String id;
-    private Optional<Expression> init;
+    private Declaration declaration;
 
-    public Name(String id, Optional<Expression> init) {
+    public Name(String id, Declaration declaration) {
         this.id = id;
-        this.init = init;
+        this.declaration = declaration;
     }
 
     public String getId() {
         return id;
     }
 
-    public Optional<Expression> getInit() {
-        return init;
+    public Declaration getDeclaration() {
+        return  declaration;
     }
 
     @Override

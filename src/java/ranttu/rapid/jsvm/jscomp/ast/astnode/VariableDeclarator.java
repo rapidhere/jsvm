@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
  * @author rapidhere@gmail.com
  * @version $id: VariableDeclarator.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class VariableDeclarator extends BaseAstNode {
+public class VariableDeclarator extends BaseAstNode implements Declaration {
     private Identifier           id;
     private Optional<Expression> initExpression;
 

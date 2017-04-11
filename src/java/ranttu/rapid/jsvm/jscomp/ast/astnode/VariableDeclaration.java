@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
+import ranttu.rapid.jsvm.jscomp.ast.enums.DeclarationType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,8 @@ import java.util.List;
  * @author rapidhere@gmail.com
  * @version $id: VariableDeclaration.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class VariableDeclaration extends BaseAstNode implements Declaration {
-    private DeclarationType          kind;
+public class VariableDeclaration extends BaseAstNode {
+    private DeclarationType kind;
 
     private List<VariableDeclarator> declarations = new ArrayList<>();
 
@@ -40,18 +41,5 @@ public class VariableDeclaration extends BaseAstNode implements Declaration {
 
     public DeclarationType getKind() {
         return kind;
-    }
-
-    /**
-     * declaration type enum
-     */
-    public enum DeclarationType {
-        VAR, LET, CONST
-
-        ;
-
-        public static DeclarationType of(String s) {
-            return DeclarationType.valueOf(s.toUpperCase());
-        }
     }
 }

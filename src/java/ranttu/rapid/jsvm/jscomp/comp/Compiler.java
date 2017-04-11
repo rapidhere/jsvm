@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.jscomp.comp;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
+import ranttu.rapid.jsvm.jscomp.comp.pass.CollectNamePass;
+import ranttu.rapid.jsvm.jscomp.comp.pass.GenerateBytecodePass;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -50,7 +52,8 @@ public class Compiler {
         context.className = $$.notBlank(className);
         context.sourceFileName = $$.notBlank(sourceFileName);
 
-        // generate bytecode
+        // invoking scopes
+        invokePass(new CollectNamePass());
         invokePass(new GenerateBytecodePass());
 
         // write class
