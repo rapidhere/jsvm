@@ -3,4 +3,5 @@ language: java
 jdk:
   - oraclejdk8
 
+install: bash gradlew assemble
 script: bash gradlew build
