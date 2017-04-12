@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 
 import java.util.HashMap;
@@ -23,7 +24,8 @@ import static ranttu.rapid.jsvm.common.$$.notBlank;
  */
 public class ClassNode extends
                       CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
-    private Map<String, FieldNode> fields = new HashMap<>();
+    private Map<String, FieldNode>  fields  = new HashMap<>();
+    private Map<String, MethodNode> methods = new HashMap<>();
 
     public ClassNode() {
         super(null);
@@ -56,6 +58,11 @@ public class ClassNode extends
         return this;
     }
 
+    @Override
+    public ClassNode end() {
+        return $$.notSupport();
+    }
+
     // ~~~ class node specified access
     public ClassNode source(String source) {
         $.sourceFile = source;
@@ -65,22 +72,31 @@ public class ClassNode extends
     // ~~~ fields
     public FieldNode field(String name) {
         if (!fields.containsKey(name)) {
-            fields.put(name, new FieldNode(this, name));
+            FieldNode fieldNode = new FieldNode(this, name);
+
+            fields.put(name, fieldNode);
+            $.fields.add(fieldNode.$);
         }
         return fields.get(name);
     }
 
     // ~~~ methods
-    public MethodNode method() {
-        return new MethodNode(this);
+    public MethodNode method(String name) {
+        if (!methods.containsKey(name)) {
+            MethodNode methodNode = new MethodNode(this, name);
+            methods.put(name, methodNode);
+            $.methods.add(methodNode.$);
+        }
+
+        return methods.get(name);
     }
 
     public MethodNode method_clinit() {
-        return method().acc(Opcodes.ACC_STATIC).name(MethodConst.CLINIT)
-            .desc(Type.getMethodDescriptor(Type.VOID_TYPE));
+        return method(MethodConst.CLINIT).acc(Opcodes.ACC_STATIC).desc(
+            Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
     public MethodNode method_init() {
-        return method().name(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE));
+        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 }

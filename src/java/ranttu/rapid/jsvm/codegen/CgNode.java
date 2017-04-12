@@ -70,7 +70,7 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
     }
 
     public P end() {
-        return notSupport();
+        return parent;
     }
 
     // ~~~ helpers

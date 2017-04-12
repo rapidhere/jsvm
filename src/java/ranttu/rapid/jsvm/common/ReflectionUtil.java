@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.common;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * the reflection utils
@@ -63,6 +64,14 @@ final public class ReflectionUtil {
     public static <T> Constructor<T> getConstructor(Class<T> clazz, Class... pars) {
         try {
             return clazz.getDeclaredConstructor(pars);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Method getMethod(Class clazz, String methodName, Class... pars) {
+        try {
+            return clazz.getMethod(methodName, pars);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

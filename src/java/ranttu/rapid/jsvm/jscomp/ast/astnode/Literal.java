@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 
 import static ranttu.rapid.jsvm.common.$$.cast;
 
@@ -16,7 +17,7 @@ import static ranttu.rapid.jsvm.common.$$.cast;
  * @author rapidhere@gmail.com
  * @version $id: Literal.java, v0.1 2016/12/8 dongwei.dq Exp $
  */
-public class Literal<T> extends BaseAstNode {
+public class Literal<T> extends BaseAstNode implements Expression {
     private T value;
 
     private Literal(JSONObject jsonObject, T value) {
@@ -26,6 +27,14 @@ public class Literal<T> extends BaseAstNode {
 
     public T get() {
         return value;
+    }
+
+    public boolean isInt() {
+        return value instanceof Integer;
+    }
+
+    public int getInt() {
+        return (Integer) value;
     }
 
     public static Literal of(JSONObject jsonObject) {

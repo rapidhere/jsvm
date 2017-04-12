@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.comp;
 
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 
 import java.util.Optional;
 
@@ -25,12 +24,16 @@ public class Name {
         this.declaration = declaration;
     }
 
+    public Name(String id) {
+        this.id = id;
+    }
+
     public String getId() {
         return id;
     }
 
-    public Declaration getDeclaration() {
-        return  declaration;
+    public Optional<Declaration> getDeclaration() {
+        return Optional.ofNullable(declaration);
     }
 
     @Override

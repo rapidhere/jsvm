@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.common;
 
+import java.util.Optional;
+
 /**
  * utils
  *
@@ -24,6 +26,24 @@ final public class $$ {
         return (T) o;
     }
 
+    // ~~~ collections
+    @SafeVarargs
+    public static <T> boolean in(T o, T... others) {
+        for(T other: others) {
+            if(other.equals(o)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @SafeVarargs
+    public static <T> boolean notIn(T o, T... others) {
+        return !in(o, others);
+    }
+
+    // ~~~ assertion errors
     public static <T> T notSupport() {
         throw new RuntimeException("not supported in this method");
     }
@@ -37,6 +57,26 @@ final public class $$ {
     }
 
     // ~~~ assert utils
+    public static void should(boolean b) {
+        if(! b) {
+            throw new AssertionError();
+        }
+    }
+
+    @SafeVarargs
+    public static  <T> void shouldIn(T o, T ...others) {
+        should(in(o, others));
+    }
+
+    // ~~~ filter utils
+    public static String notBlank(String s) {
+        if (s == null || s.trim().length() == 0) {
+            throw new AssertionError("string cannot be blank");
+        }
+
+        return s;
+    }
+
     public static <T> T notNull(T o) {
         if (o == null) {
             throw new AssertionError("object cannot be null");
@@ -45,18 +85,12 @@ final public class $$ {
         return o;
     }
 
-    public static void should(boolean b) {
-        if(! b) {
-            throw new AssertionError();
-        }
-    }
-
-    public static String notBlank(String s) {
-        if (s == null || s.trim().length() == 0) {
-            throw new AssertionError("string cannot be blank");
+    public static <T> T present(Optional<T> op) {
+        if(op.isPresent()) {
+            return op.get();
         }
 
-        return s;
+        throw new AssertionError("object must present");
     }
 
     // string utils

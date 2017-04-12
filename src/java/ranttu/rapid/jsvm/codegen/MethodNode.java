@@ -9,6 +9,7 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
+import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
@@ -17,6 +18,7 @@ import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,11 +32,12 @@ import java.util.Map;
 public class MethodNode
                        extends
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
-    private Map<String, LabelNode> labels = new HashMap<>();
+    private Map<String, LabelNode>         labels = new HashMap<>();
     private Map<String, LocalVariableNode> locals = new HashMap<>();
 
-    public MethodNode(ClassNode parent) {
+    public MethodNode(ClassNode parent, String name) {
         super(parent);
+        $.name = name;
     }
 
     @Override
@@ -58,27 +61,15 @@ public class MethodNode
         return this;
     }
 
-    @Override
-    public MethodNode name(String name) {
-        $.name = name;
-        return this;
-    }
-
     public MethodNode stack(int size) {
         $.maxStack = size;
         $.maxLocals = locals.size();
         return this;
     }
 
-    @Override
-    public ClassNode end() {
-        parent.$.methods.add($);
-        return parent;
-    }
-
     public MethodNode local_var(String name, ClassNode cls, String label1, String label2) {
-        LocalVariableNode local = new LocalVariableNode(name, getDescriptor(cls), null, labels
-            .get(label1), labels.get(label2), locals.size());
+        LocalVariableNode local = new LocalVariableNode(name, getDescriptor(cls), null,
+            labels.get(label1), labels.get(label2), locals.size());
 
         $.localVariables.add(local);
         locals.put(name, local);
@@ -106,6 +97,13 @@ public class MethodNode
 
     public MethodNode dup() {
         $.instructions.add(new InsnNode(Opcodes.DUP));
+        return this;
+    }
+
+    public MethodNode invoke_static(Class clazz, String methodName, Class... pars) {
+        Method method = ReflectionUtil.getMethod(clazz, methodName, pars);
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(clazz),
+            method.getName(), Type.getMethodDescriptor(method), false));
         return this;
     }
 
@@ -138,6 +136,44 @@ public class MethodNode
     public MethodNode store_static(FieldNode field) {
         $.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, parent.$.name, field.$.name,
             field.$.desc));
+        return this;
+    }
+
+    public MethodNode store(FieldNode field) {
+        $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, parent.$.name, field.$.name,
+            field.$.desc));
+        return this;
+    }
+
+    public MethodNode load_const(int i) {
+        int opcode = -1;
+        switch (i) {
+            case 0:
+                opcode = Opcodes.ICONST_0;
+                break;
+            case 1:
+                opcode = Opcodes.ICONST_1;
+                break;
+            case 2:
+                opcode = Opcodes.ICONST_2;
+                break;
+            case 3:
+                opcode = Opcodes.ICONST_3;
+                break;
+            case 4:
+                opcode = Opcodes.ICONST_4;
+                break;
+            case 5:
+                opcode = Opcodes.ICONST_5;
+                break;
+        }
+
+        if(opcode > 0) {
+            $.instructions.add(new InsnNode(opcode));
+        } else {
+            $.instructions.add(new IntInsnNode(Opcodes.BIPUSH, i));
+        }
+
         return this;
     }
 

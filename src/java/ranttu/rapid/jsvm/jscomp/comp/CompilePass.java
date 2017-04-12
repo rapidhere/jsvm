@@ -6,6 +6,8 @@
 package ranttu.rapid.jsvm.jscomp.comp;
 
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
@@ -43,12 +45,14 @@ abstract public class CompilePass {
     /**
      * do something after processing on tree
      */
-    protected void afterProcess() {}
+    protected void afterProcess() {
+    }
 
     /**
      * do something before processing on tree
      */
-    protected void beforeProcess() {}
+    protected void beforeProcess() {
+    }
 
     // ~~~ visitors
     private void visit(Node node) {
@@ -60,42 +64,34 @@ abstract public class CompilePass {
             visit((FunctionDeclaration) node);
         } else if (node.is(VariableDeclarator.class)) {
             visit((VariableDeclarator) node);
+        } else if (node.is(FunctionExpression.class)) {
+            visit((FunctionExpression) node);
+        } else if (node.is(Literal.class)) {
+            visit((Literal) node);
         }
     }
 
-    private void visit(Program program) {
-        on(program);
+    protected void visit(Program program) {
         program.getBody().forEach(this::visit);
     }
 
-    private void visit(VariableDeclaration variableDeclaration) {
-        on(variableDeclaration);
+    protected void visit(VariableDeclaration variableDeclaration) {
         variableDeclaration.getDeclarations().forEach(this::visit);
     }
 
-    private void visit(VariableDeclarator variableDeclarator) {
-        on(variableDeclarator);
-
-        if(variableDeclarator.getInitExpression().isPresent()) {
+    protected void visit(VariableDeclarator variableDeclarator) {
+        if (variableDeclarator.getInitExpression().isPresent()) {
             visit(variableDeclarator.getInitExpression().get());
         }
     }
 
-    private void visit(FunctionDeclaration functionDeclaration) {
-        // TODO
-        on(functionDeclaration);
+    protected void visit(FunctionExpression functionExpression) {
+        visit(functionExpression.getBody());
     }
 
-    // ~~~ program node handlers
-    protected void on(Program program) {
+    protected void visit(FunctionDeclaration functionDeclaration) {
+        visit(functionDeclaration.getBody());
     }
 
-    protected void on(VariableDeclaration variableDeclaration) {
-    }
-
-    protected void on(FunctionDeclaration functionDeclaration) {
-    }
-
-    protected void on(VariableDeclarator variableDeclarator) {
-    }
+    protected void visit(Literal literal) {}
 }
