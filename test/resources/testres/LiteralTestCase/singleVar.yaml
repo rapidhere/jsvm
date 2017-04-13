@@ -1,9 +1,19 @@
--
-  description: int_1
+- description: int_1
   jsSource: var a = 1;
   expected: 1
 
--
-  description: int_100
+- description: int_100
   jsSource: var a = 100;
   expected: 100
+
+- description: string
+  jsSource: var a = "hello world!";
+  expected: "hello world!"
+
+- description: boolean_true
+  jsSource: var a = true;
+  expected: true
+
+- description: boolean_false
+  jsSource: var a = false;
+  expected: false

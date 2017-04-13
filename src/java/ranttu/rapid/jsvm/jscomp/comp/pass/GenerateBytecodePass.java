@@ -96,6 +96,9 @@ public class GenerateBytecodePass extends CompilePass {
                 .invoke_static(Integer.class, "valueOf", int.class);
         } else if (literal.isString()) {
             method().load_const(literal.getString());
+        } else if (literal.isBoolean()) {
+            method().load_const(literal.getBoolean())
+                .invoke_static(Boolean.class, "valueOf", boolean.class);
         } else {
             $$.notSupport();
         }

@@ -37,11 +37,19 @@ public class Literal<T> extends BaseAstNode implements Expression {
         return value instanceof String;
     }
 
+    public boolean isBoolean() {
+        return value instanceof Boolean;
+    }
+
     public int getInt() {
         return cast(value);
     }
 
     public String getString() {
+        return cast(value);
+    }
+
+    public boolean getBoolean() {
         return cast(value);
     }
 

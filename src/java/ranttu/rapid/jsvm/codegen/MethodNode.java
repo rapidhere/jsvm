@@ -151,6 +151,10 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode load_const(boolean bool) {
+        return load_const(bool ? 1 : 0);
+    }
+
     public MethodNode load_const(int i) {
         int opcode = -1;
         switch (i) {

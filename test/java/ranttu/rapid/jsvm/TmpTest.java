@@ -12,5 +12,5 @@ package ranttu.rapid.jsvm;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    String a = "12345";
+    Object a = true;
 }
