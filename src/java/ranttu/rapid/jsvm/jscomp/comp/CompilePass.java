@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
@@ -68,6 +69,8 @@ abstract public class CompilePass {
             visit((FunctionExpression) node);
         } else if (node.is(Literal.class)) {
             visit((Literal) node);
+        } else if (node.is(BinaryExpression.class)) {
+            visit((BinaryExpression) node);
         }
     }
 
@@ -93,5 +96,11 @@ abstract public class CompilePass {
         visit(functionDeclaration.getBody());
     }
 
-    protected void visit(Literal literal) {}
+    protected void visit(Literal literal) {
+    }
+
+    protected void visit(BinaryExpression binaryExpression) {
+        visit(binaryExpression.getLeft());
+        visit(binaryExpression.getRight());
+    }
 }

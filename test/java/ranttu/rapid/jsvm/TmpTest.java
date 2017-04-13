@@ -12,5 +12,6 @@ package ranttu.rapid.jsvm;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    Object a = true;
+    Integer a = 1, b =2;
+    Object res = a + b;
 }

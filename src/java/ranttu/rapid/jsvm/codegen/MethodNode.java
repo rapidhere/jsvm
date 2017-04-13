@@ -91,6 +91,16 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode add(@SuppressWarnings("unused") Class<? extends Integer> unused) {
+        $.instructions.add(new InsnNode(Opcodes.IADD));
+        return this;
+    }
+
+    public MethodNode sub(@SuppressWarnings("unused") Class<? extends Integer> unused) {
+        $.instructions.add(new InsnNode(Opcodes.ISUB));
+        return this;
+    }
+
     public MethodNode aload(int i) {
         $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
         return this;

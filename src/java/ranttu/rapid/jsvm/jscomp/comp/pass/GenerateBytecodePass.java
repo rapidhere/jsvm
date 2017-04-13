@@ -9,6 +9,7 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
@@ -70,7 +71,7 @@ public class GenerateBytecodePass extends CompilePass {
             .label("L1")
             .ret()
             .local_var("this", cls, "L0", "L1")
-            .stack(2)
+            .stack(3)
         .end();
     }
 
@@ -87,6 +88,22 @@ public class GenerateBytecodePass extends CompilePass {
         super.visit(variableDeclarator);
         method().store(clazz().field(varName));
         methodStack.pop();
+    }
+
+    @Override
+    protected void visit(BinaryExpression bin) {
+        super.visit(bin);
+
+        switch (bin.getOperator()) {
+            case ADD:
+                method().add(int.class);
+                break;
+            case SUBTRACT:
+                method().sub(int.class);
+                break;
+            default:
+                $$.notSupport();
+        }
     }
 
     @Override
