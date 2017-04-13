@@ -1,0 +1,9 @@
+-
+  description: int_1
+  jsSource: var a = 1;
+  expected: 1
+
+-
+  description: int_100
+  jsSource: var a = 100;
+  expected: 100

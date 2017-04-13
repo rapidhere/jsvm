@@ -5,7 +5,11 @@
  */
 package ranttu.rapid.jsvm.test.base;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.tngtech.java.junit.dataprovider.DataProvider;
 import org.junit.Assert;
+import org.junit.runners.model.FrameworkMethod;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
@@ -15,6 +19,10 @@ import ranttu.rapid.jsvm.jscomp.parser.Parser;
 import ranttu.rapid.jsvm.runtime.JsModule;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * the base junit test facility
@@ -80,5 +88,44 @@ abstract public class JsvmJunitTestBase extends Assert {
         fail(null, e);
 
         return $$.shouldNotReach();
+    }
+
+    // ~~~ data provider
+    protected static class BaseCaseData {
+        public String description;
+
+        public String toString() {
+            return description;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @DataProvider(format = "%m[%i]: %p[0]")
+    public static List<List<Object>> yamlDataProvider(FrameworkMethod method) throws IOException {
+        Class<? extends BaseCaseData> dataClass = $$
+            .cast(method.getMethod().getParameterTypes()[0]);
+
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        List<? extends BaseCaseData> data = mapper.readValue(getTestResource(method),
+            mapper.getTypeFactory().constructCollectionType(List.class, dataClass));
+
+        List<List<Object>> result = new ArrayList<>();
+
+        for(BaseCaseData d: data) {
+            ArrayList l = new ArrayList();
+            l.add(d);
+            result.add(l);
+        }
+
+        return result;
+    }
+
+    private static InputStream getTestResource(FrameworkMethod method) {
+        Class clazz = method.getMethod().getDeclaringClass();
+        String className = clazz.getSimpleName();
+        String methodName = method.getName();
+
+        return clazz.getClassLoader().getResourceAsStream(
+            "testres/" + className + "/" + methodName + ".yaml");
     }
 }

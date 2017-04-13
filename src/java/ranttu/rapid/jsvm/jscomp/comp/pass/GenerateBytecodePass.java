@@ -91,10 +91,11 @@ public class GenerateBytecodePass extends CompilePass {
 
     @Override
     protected void visit(Literal literal) {
-        if(literal.isInt()) {
-            method()
-                .load_const(literal.getInt())
+        if (literal.isInt()) {
+            method().load_const(literal.getInt())
                 .invoke_static(Integer.class, "valueOf", int.class);
+        } else if (literal.isString()) {
+            method().load_const(literal.getString());
         } else {
             $$.notSupport();
         }

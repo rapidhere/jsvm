@@ -11,6 +11,7 @@ import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
+import jdk.internal.org.objectweb.asm.tree.LdcInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
@@ -142,6 +143,11 @@ public class MethodNode
     public MethodNode store(FieldNode field) {
         $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, parent.$.name, field.$.name,
             field.$.desc));
+        return this;
+    }
+
+    public MethodNode load_const(Object o) {
+        $.instructions.add(new LdcInsnNode(o));
         return this;
     }
 

@@ -33,8 +33,16 @@ public class Literal<T> extends BaseAstNode implements Expression {
         return value instanceof Integer;
     }
 
+    public boolean isString() {
+        return value instanceof String;
+    }
+
     public int getInt() {
-        return (Integer) value;
+        return cast(value);
+    }
+
+    public String getString() {
+        return cast(value);
     }
 
     public static Literal of(JSONObject jsonObject) {
