@@ -59,6 +59,10 @@ public class Literal<T> extends BaseAstNode implements Expression {
         return cast(value);
     }
 
+    public String stringValue() {
+        return String.valueOf(value);
+    }
+
     public static Literal of(JSONObject jsonObject) {
         // TODO: support regexp
         Object v = jsonObject.get("value");

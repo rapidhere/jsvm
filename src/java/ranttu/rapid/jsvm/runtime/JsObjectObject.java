@@ -15,9 +15,18 @@ import java.util.Map;
  * @version $id: JsObjectObject.java, v0.1 2017/4/14 dongwei.dq Exp $
  */
 public class JsObjectObject {
-    private Map<String, Object> properties = new HashMap<>();
+    protected Map<String, Object> properties = new HashMap<>();
 
     public Object getProperty(String name) {
         return properties.get(name);
+    }
+
+    public Object setProperty(String name, Object val) {
+        properties.put(name, val);
+        return val;
+    }
+
+    public boolean hasProperty(String name) {
+        return properties.containsKey(name);
     }
 }

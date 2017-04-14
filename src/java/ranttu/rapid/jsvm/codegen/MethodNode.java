@@ -62,9 +62,9 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode stack(int size) {
+    public MethodNode stack(int size, int localSize) {
         $.maxStack = size;
-        $.maxLocals = locals.size();
+        $.maxLocals = localSize;
         return this;
     }
 

@@ -7,17 +7,22 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import ranttu.rapid.jsvm.codegen.ClassNode;
+import ranttu.rapid.jsvm.codegen.FieldNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
+import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
+import java.util.HashMap;
 import java.util.Stack;
 
 /**
@@ -28,106 +33,100 @@ import java.util.Stack;
  */
 public class GenerateBytecodePass extends CompilePass {
     /** the class stack*/
-    private Stack<ClassNode> classStack = new Stack<>();
+    private Stack<ClassNode>  classStack  = new Stack<>();
 
     /** the method stack */
     private Stack<MethodNode> methodStack = new Stack<>();
 
+    // current clazz in stack
+    private ClassNode         clazz;
+
+    // current method in stack
+    private MethodNode        method;
+
+    @Override
+    protected void beforeProcess() {
+        context.moduleClasses = new HashMap<>();
+    }
+
     @Override
     protected void visit(Program program) {
         // whole module as a top class
-        ClassNode cls = newClass()
+        ClassNode cls = new ClassNode()
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SUPER)
             .name(context.className, JsModule.class)
             .source(context.sourceFileName);
+        context.moduleClasses.put(cls.$.name, cls);
 
-        // set this class to the context
-        context.moduleClass = cls
+        in(cls).invoke(() -> {
+            // add MODULE field
+            clazz.field(JsModule.FIELD_MODULE_NAME)
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
+                .desc(clazz)
+            .end()
 
-        // add MODULE field
-        .field(JsModule.FIELD_MODULE_NAME)
-            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
-            .desc(cls)
-        .end()
+            // init MODULE field
+            .method_clinit()
+                .new_class(clazz)
+                .dup()
+                .invoke_init(clazz)
+                .store_static(clazz.field(JsModule.FIELD_MODULE_NAME))
+                .ret()
+                .stack(2, 0)
+            .end();
 
-        // init MODULE field
-        .method_clinit()
-            .new_class(cls)
-            .dup()
-            .invoke_init(cls)
-            .store_static(cls.field(JsModule.FIELD_MODULE_NAME))
-            .ret()
-            .stack(2)
-        .end();
+            // generate init method
+            clazz.method_init()
+                .aload(0)
+                .invoke_init(JsModule.class);
 
-        // generate init method
-        cls.method_init()
-            .label("L0")
-            .aload(0)
-            .invoke_init(JsModule.class);
+            super.visit(program);
 
-        super.visit(program);
-
-        // end init method generate
-        cls.method_init()
-            .label("L1")
-            .ret()
-            .local_var("this", cls, "L0", "L1")
-            // TODO
-            .stack(16)
-        .end();
+            // end init method generate
+            clazz.method_init()
+                .ret()
+                // TODO
+                .stack(16, 1)
+            .end();
+        });
     }
 
     @Override
     protected void visit(VariableDeclarator variableDeclarator) {
         String varName = variableDeclarator.getId().getName();
 
-        clazz().field(varName)
+        clazz.field(varName)
             .acc(Opcodes.ACC_PRIVATE)
             .desc(Object.class);
 
-        methodStack.push(clazz().method_init());
-        method().aload(0);
-        super.visit(variableDeclarator);
-        method().store(clazz().field(varName));
-        methodStack.pop();
-    }
-
-    @Override
-    protected void visit(BinaryExpression bin) {
-        super.visit(bin);
-
-        switch (bin.getOperator()) {
-            case ADD:
-                method().add(int.class);
-                break;
-            case SUBTRACT:
-                method().sub(int.class);
-                break;
-            default:
-                $$.notSupport();
-        }
+        in(clazz.method_init())
+        .invoke(() -> {
+            method.aload(0);
+            super.visit(variableDeclarator);
+            method.store(clazz.field(varName));
+        });
     }
 
     @Override
     protected void visit(Literal literal) {
         if (literal.isInt()) {
-            method()
+            method
                 .new_class(JsNumberObject.class)
                 .dup()
                 .load_const(literal.getInt())
                 .invoke_init(JsNumberObject.class, int.class);
         } else if (literal.isString()) {
-            method()
+            method
                 .new_class(JsStringObject.class)
                 .dup()
                 .load_const(literal.getString())
                 .invoke_init(JsStringObject.class, String.class);
         } else if (literal.isBoolean()) {
-            method().load_const(literal.getBoolean())
+            method
+                .load_const(literal.getBoolean())
                 .invoke_static(Boolean.class, "valueOf", boolean.class);
-        } else if(literal.isDouble()) {
-            method()
+        } else if (literal.isDouble()) {
+            method
                 .new_class(JsNumberObject.class)
                 .dup()
                 .load_const(literal.getDouble())
@@ -137,27 +136,119 @@ public class GenerateBytecodePass extends CompilePass {
         }
     }
 
-    /**
-     * create a new class
-     * @return the class node
-     */
-    private ClassNode newClass() {
-        return classStack.push(new ClassNode());
+    @Override
+    protected void visit(ObjectExpression objExp) {
+        ClassNode objClass = clazz.inner_class("Object", JsObjectObject.class, Opcodes.ACC_PRIVATE,
+            Opcodes.ACC_SUPER);
+        context.moduleClasses.put(objClass.$.name, objClass);
+
+        // load init method
+        in(objClass)
+        .in(objClass.method_init())
+        .invoke(() -> {
+            method.aload(0).invoke_init(JsObjectObject.class);
+
+            for (Property prop : objExp.getProperties()) {
+                FieldNode field = clazz
+                    .field(prop.getKeyString())
+                    .acc(Opcodes.ACC_PUBLIC)
+                    .desc(Object.class);
+
+                method.aload(0);
+                visit(prop.getValue());
+                method.store(field);
+            }
+
+            // end init method
+            method.ret()
+            // TODO
+                .stack(16, 1);
+        });
+
+        // load inner class
+        method.new_class(objClass)
+            .dup()
+            .invoke_init(objClass);
+    }
+
+
+    @Override
+    protected void visit(BinaryExpression bin) {
+        super.visit(bin);
+
+        switch (bin.getOperator()) {
+            case ADD:
+                method.add(int.class);
+                break;
+            case SUBTRACT:
+                method.sub(int.class);
+                break;
+            default:
+                $$.notSupport();
+        }
     }
 
     /**
-     * get current class
-     * @return current class
+     * do something in the method
      */
-    private ClassNode clazz() {
-        return classStack.peek();
+    private InvokeWrapper in(MethodNode methodNode) {
+        return new InvokeWrapper().in(methodNode);
     }
 
+    // ~~~ invoke helper
     /**
-     * get current method
-     * @return current method
+     * do something in the class
      */
-    private MethodNode method() {
-        return methodStack.peek();
+    private InvokeWrapper in(ClassNode classNode) {
+        return new InvokeWrapper().in(classNode);
+    }
+
+    private class InvokeWrapper {
+        private int methodOrigSize;
+        private int classOrigSize;
+
+        public InvokeWrapper() {
+            methodOrigSize = methodStack.size();
+            classOrigSize = classStack.size();
+        }
+
+        public InvokeWrapper in(MethodNode methodNode) {
+            method = methodNode;
+            methodStack.push(methodNode);
+            return this;
+        }
+
+        public InvokeWrapper in(ClassNode classNode) {
+            clazz = classNode;
+            classStack.push(classNode);
+            return this;
+        }
+
+        public void invoke(Runnable run) {
+            run.run();
+
+            // ~~ clear
+            while (methodStack.size() > methodOrigSize) {
+                methodStack.pop();
+            }
+
+            while (classStack.size() > classOrigSize) {
+                classStack.pop();
+            }
+
+
+            method = restore(methodStack, methodOrigSize);
+            clazz = restore(classStack, classOrigSize);
+        }
+
+        private <T> T restore(Stack<T> stack, int sz) {
+            while(stack.size() > sz) stack.pop();
+
+            if(! stack.isEmpty()) {
+                return stack.peek();
+            }
+
+            return null;
+        }
     }
 }

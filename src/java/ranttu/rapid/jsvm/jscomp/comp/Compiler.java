@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
+import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 import ranttu.rapid.jsvm.jscomp.comp.pass.CollectNamePass;
@@ -13,7 +14,8 @@ import ranttu.rapid.jsvm.jscomp.comp.pass.GenerateBytecodePass;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * the jvm compiler
@@ -31,21 +33,19 @@ public class Compiler {
 
     /**
      * compile and output the bytes
-     * @param output output byte stream
      * @param className the name of the compiled class
      */
-    public void compile(@Nonnull OutputStream output, @Nonnull String className) throws IOException {
-        compile(output, className, "<dummy>");
+    public Map<String, byte[]> compile(@Nonnull String className) throws IOException {
+        return compile(className, "<dummy>");
     }
 
     /**
      * compile and output the bytes
-     * @param output output byte stream
      * @param className the name of the compiled class
      * @param sourceFileName the name of the source file
      */
-    public void compile(@Nonnull OutputStream output, @Nonnull String className,
-                        @Nonnull String sourceFileName) throws IOException {
+    public Map<String, byte[]> compile(@Nonnull String className, @Nonnull String sourceFileName)
+                                                                                                 throws IOException {
         // create new context
         context = new CompilingContext();
 
@@ -57,9 +57,16 @@ public class Compiler {
         invokePass(new GenerateBytecodePass());
 
         // write class
-        ClassWriter cw = new ClassWriter(0);
-        context.moduleClass.$.accept(cw);
-        output.write(cw.toByteArray());
+        Map<String, byte[]> ret = new HashMap<>();
+        for (String clsName : context.moduleClasses.keySet()) {
+            ClassNode clsNode = context.moduleClasses.get(clsName);
+
+            ClassWriter cw = new ClassWriter(0);
+            clsNode.$.accept(cw);
+            ret.put(clsName, cw.toByteArray());
+        }
+
+        return ret;
     }
 
     /**

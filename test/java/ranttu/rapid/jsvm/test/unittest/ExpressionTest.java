@@ -9,9 +9,13 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
+
+import java.util.Map;
 
 /**
  * some common and base cases for modules
@@ -34,6 +38,28 @@ public class ExpressionTest extends JsvmJunitTestBase {
 
         assertEquals(clsName, module.getClass().getSimpleName());
         assertEquals(jsValueOf(testData.expected), ReflectionUtil.getFieldValue(module, "a"));
+    }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void objectExpression(ExpressionTestData testData) throws Exception {
+        JsModule module = loadModule("ExpressionLiteralTest", testData.jsSource);
+        JsObjectObject object = ReflectionUtil.getFieldValue(module, "a");
+
+        Map<String, Object> expected = $$.cast(testData.expected);
+        if (expected == null) {
+            return;
+        }
+        for (String key : expected.keySet()) {
+            Object value = jsValueOf(expected.get(key));
+
+            if (key.startsWith("$")) {
+                key = key.substring(1);
+                assertEquals("property: " + key, value, object.getProperty(key));
+            } else {
+                assertEquals("field: " + key, value, ReflectionUtil.getFieldValue(object, key));
+            }
+        }
     }
 
     // ~~~ not working yet

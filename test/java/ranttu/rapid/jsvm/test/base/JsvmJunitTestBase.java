@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * the base junit test facility
@@ -40,7 +41,7 @@ abstract public class JsvmJunitTestBase extends Assert {
     /**
      * compile the source to byte array
      */
-    protected byte[] compileSource(String className, String source) {
+    protected Map<String, byte[]> compileSource(String className, String source) {
         Parser parser = new AcornJSParser();
         AbstractSyntaxTree ast = parser.parse(source);
 
@@ -48,21 +49,29 @@ abstract public class JsvmJunitTestBase extends Assert {
         ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
 
         try {
-            compiler.compile(output, className);
+            return compiler.compile(className);
         } catch (Exception e) {
-            fail("failed to compile source", e);
+            return fail("failed to compile source", e);
         }
-
-        return output.toByteArray();
     }
 
     /**
      * load the source to a java class
      */
     protected Class<? extends JsModule> loadSource(String className, String source) {
-        byte[] bytes = compileSource(className, source);
+        Map<String, byte[]> ret = compileSource(className, source);
 
-        return byteArrayClassLoader.loadClass(className, bytes);
+        Class<? extends JsModule> topClass = null;
+        for (Map.Entry<String, byte[]> r : ret.entrySet()) {
+            Class<? extends JsModule> current = byteArrayClassLoader.loadClass(r.getKey(),
+                r.getValue());
+
+            if (r.getKey().equals(className)) {
+                topClass = current;
+            }
+        }
+
+        return topClass;
     }
 
     /**
@@ -81,7 +90,7 @@ abstract public class JsvmJunitTestBase extends Assert {
     // ~~~ assertion helpers
     protected static <T> T fail(String message, Throwable e) {
         e.printStackTrace(System.err);
-        fail(message);
+        fail(message + e.toString());
 
         return $$.shouldNotReach();
     }

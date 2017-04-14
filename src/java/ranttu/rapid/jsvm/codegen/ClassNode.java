@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
+import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 
@@ -61,6 +62,21 @@ public class ClassNode extends
     @Override
     public ClassNode end() {
         return $$.notSupport();
+    }
+
+    public ClassNode inner_class(String innerName, Class superClass, int...acces) {
+        return inner_class(innerName, Type.getInternalName(superClass), acces);
+    }
+
+    public ClassNode inner_class(String innerName, String superName, int...acces) {
+        ClassNode cls = new ClassNode()
+            .name($.name + "$" + innerName +
+                ($.innerClasses.size() + 1), superName)
+            .acc(acces);
+        $.innerClasses.add(
+            new InnerClassNode(cls.$.name, $.name, innerName, cls.$.access));
+
+        return cls;
     }
 
     // ~~~ class node specified access

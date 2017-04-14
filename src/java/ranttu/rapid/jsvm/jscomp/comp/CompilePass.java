@@ -9,6 +9,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
@@ -56,7 +57,7 @@ abstract public class CompilePass {
     }
 
     // ~~~ visitors
-    private void visit(Node node) {
+    protected void visit(Node node) {
         if (node.is(Program.class)) {
             visit((Program) node);
         } else if (node.is(VariableDeclaration.class)) {
@@ -71,6 +72,8 @@ abstract public class CompilePass {
             visit((Literal) node);
         } else if (node.is(BinaryExpression.class)) {
             visit((BinaryExpression) node);
+        } else if (node.is(ObjectExpression.class)) {
+            visit((ObjectExpression) node);
         }
     }
 
@@ -97,6 +100,9 @@ abstract public class CompilePass {
     }
 
     protected void visit(Literal literal) {
+    }
+
+    protected void visit(ObjectExpression objectExpression) {
     }
 
     protected void visit(BinaryExpression binaryExpression) {

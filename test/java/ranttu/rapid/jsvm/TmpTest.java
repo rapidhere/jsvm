@@ -15,4 +15,7 @@ import ranttu.rapid.jsvm.runtime.JsNumberObject;
  */
 public class TmpTest {
     Object res = new JsNumberObject(1);
+
+    public class Inner {
+    }
 }
