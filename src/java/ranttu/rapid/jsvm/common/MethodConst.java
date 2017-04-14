@@ -13,4 +13,8 @@ public interface MethodConst {
     String INIT = "<init>";
 
     String CLINIT  = "<clinit>";
+
+    String SET_PROPERTY = "setProperty";
+
+    String GET_PROPERTY = "setProperty";
 }

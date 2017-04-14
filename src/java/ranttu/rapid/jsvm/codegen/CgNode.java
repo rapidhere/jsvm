@@ -78,4 +78,13 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
     public static String getDescriptor(ClassNode classNode) {
         return "L" + classNode.$.name + ";";
     }
+
+    public static Type[] getTypes(Class... types) {
+        Type[] ret = new Type[types.length];
+        for(int i = 0;i < types.length;i ++) {
+            ret[i] = Type.getType(types[i]);
+        }
+
+        return ret;
+    }
 }

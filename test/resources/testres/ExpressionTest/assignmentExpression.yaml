@@ -1,0 +1,7 @@
+- description: assign_1
+  jsSource: 'var a; a = 1;'
+  expected: 1
+
+- description: assign_1.1
+  jsSource: 'var a; a = 1.1;'
+  expected: 1.1

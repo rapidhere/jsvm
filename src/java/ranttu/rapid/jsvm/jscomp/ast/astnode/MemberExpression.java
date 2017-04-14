@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
@@ -16,13 +17,17 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 public class MemberExpression extends BaseAstNode implements Expression {
     private Expression object;
     private Expression property;
-    private boolean computed;
+    private boolean    computed;
 
     public MemberExpression(JSONObject jsonObject) {
         super(jsonObject);
         object = Node.of(this, jsonObject, "object");
         property = Node.of(this, jsonObject, "property");
         computed = jsonObject.getBoolean("computed");
+
+        if (computed) {
+            throw new NotSupportedYet(this, "only support computed access now");
+        }
     }
 
     public Expression getObject() {

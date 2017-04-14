@@ -111,6 +111,13 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode invoke_virtual(ClassNode clazz, String methodName, Class retType,
+                                     Class... pars) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, clazz.$.name, methodName, Type
+            .getMethodDescriptor(Type.getType(retType), getTypes(pars)), false));
+        return this;
+    }
+
     public MethodNode invoke_static(Class clazz, String methodName, Class... pars) {
         Method method = ReflectionUtil.getMethod(clazz, methodName, pars);
         $.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(clazz),
@@ -151,7 +158,13 @@ public class MethodNode
     }
 
     public MethodNode store(FieldNode field) {
-        $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, parent.$.name, field.$.name,
+        $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, field.parent.$.name, field.$.name,
+            field.$.desc));
+        return this;
+    }
+
+    public MethodNode load(FieldNode field) {
+        $.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, field.parent.$.name, field.$.name,
             field.$.desc));
         return this;
     }
@@ -188,7 +201,7 @@ public class MethodNode
                 break;
         }
 
-        if(opcode > 0) {
+        if (opcode > 0) {
             $.instructions.add(new InsnNode(opcode));
         } else {
             $.instructions.add(new IntInsnNode(Opcodes.BIPUSH, i));

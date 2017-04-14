@@ -7,3 +7,11 @@
   expected:
     a: 1
     b: 2
+
+# TODO: to support
+#- description: object and assign
+#  jsSource: |
+#    var a = {};
+#    a.a = 1;
+#  expected:
+#    $a: 1

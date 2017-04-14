@@ -5,10 +5,14 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
@@ -74,6 +78,14 @@ abstract public class CompilePass {
             visit((BinaryExpression) node);
         } else if (node.is(ObjectExpression.class)) {
             visit((ObjectExpression) node);
+        } else if (node.is(ExpressionStatement.class)) {
+            visit((ExpressionStatement) node);
+        } else if (node.is(AssignmentExpression.class)) {
+            visit((AssignmentExpression) node);
+        } else if (node.is(Identifier.class)) {
+            visit((Identifier) node);
+        } else if (node.is(MemberExpression.class)) {
+            visit((MemberExpression) node);
         }
     }
 
@@ -102,6 +114,10 @@ abstract public class CompilePass {
     protected void visit(Literal literal) {
     }
 
+    protected void visit(Identifier identifier) {
+
+    }
+
     protected void visit(ObjectExpression objectExpression) {
         objectExpression.getProperties().forEach(this::visit);
     }
@@ -110,4 +126,17 @@ abstract public class CompilePass {
         visit(binaryExpression.getLeft());
         visit(binaryExpression.getRight());
     }
+
+    protected void visit(ExpressionStatement statement) {
+        visit(statement.getExpression());
+    }
+
+    protected void visit(AssignmentExpression expression) {
+        visit(expression.getLeft());
+        visit(expression.getRight());
+    }
+
+    protected void visit(MemberExpression memExp) {
+    }
+
 }

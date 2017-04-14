@@ -33,6 +33,12 @@ compileJava {
     options.compilerArgs << "-XDignore.symbol.file"
 }
 
+compileTestJava {
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+    options.compilerArgs << "-XDignore.symbol.file"
+}
+
 test {
     testLogging {
         events "passed", "skipped", "failed", "standardOut"

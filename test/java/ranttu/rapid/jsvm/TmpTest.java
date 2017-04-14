@@ -5,8 +5,6 @@
  */
 package ranttu.rapid.jsvm;
 
-import ranttu.rapid.jsvm.runtime.JsNumberObject;
-
 /**
  * ONLY FOR OUTLINE-USAGE
  *
@@ -14,8 +12,9 @@ import ranttu.rapid.jsvm.runtime.JsNumberObject;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    Object res = new JsNumberObject(1);
+    int t = 1;
 
-    public class Inner {
+    public void f() {
+        t = 2;
     }
 }

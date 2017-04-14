@@ -96,6 +96,10 @@ public class ClassNode extends
         return fields.get(name);
     }
 
+    public boolean hasField(String name) {
+        return fields.containsKey(name);
+    }
+
     // ~~~ methods
     public MethodNode method(String name) {
         if (!methods.containsKey(name)) {

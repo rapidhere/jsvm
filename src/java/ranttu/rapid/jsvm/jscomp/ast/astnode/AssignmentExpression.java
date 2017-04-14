@@ -6,8 +6,11 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
+import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 
 /**
  * a assignment expression
@@ -17,7 +20,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
  */
 public class AssignmentExpression extends BaseAstNode implements Expression {
     private AssignmentOperator operator;
-    private Identifier left;
+    private Expression left;
     private Expression right;
 
     public AssignmentExpression(JSONObject jsonObject) {
@@ -25,9 +28,14 @@ public class AssignmentExpression extends BaseAstNode implements Expression {
         operator = AssignmentOperator.of(jsonObject.getString("operator"));
         left = Node.of(this, jsonObject, "left");
         right = Node.of(this, jsonObject, "right");
+
+        // ~~~ only assign is supported
+        if(! $$.in(operator, AssignmentOperator.ASSIGN)) {
+            throw new NotSupportedYet(this, "only support assign `=` now");
+        }
     }
 
-    public Identifier getLeft() {
+    public Expression getLeft() {
         return left;
     }
 
@@ -37,42 +45,5 @@ public class AssignmentExpression extends BaseAstNode implements Expression {
 
     public Expression getRight() {
         return right;
-    }
-
-    public enum AssignmentOperator {
-        ASSIGN("="),
-        ADD_ASSIGN("+="),
-        SUB_ASSIGN("-="),
-        MUL_ASSIGN("*="),
-        DIV_ASSIGN("/="),
-        MOD_ASSIGN("%="),
-        LSH_ASSIGN("<<="),
-        RSH_ASSIGN(">>="),
-        RSN_ASSIGN(">>>="),
-        OR_ASSIGN("|="),
-        NOT_ASSIGN("^="),
-        AND_ASSIGN("&="),
-
-        ;
-
-        private String token;
-
-        AssignmentOperator(String token) {
-            this.token = token;
-        }
-
-        public static AssignmentOperator of(String token) {
-            for(AssignmentOperator operator: values()) {
-                if(operator.token.equals(token)) {
-                    return operator;
-                }
-            }
-            // should not reach
-            return null;
-        }
-
-        public String getToken() {
-            return token;
-        }
     }
 }

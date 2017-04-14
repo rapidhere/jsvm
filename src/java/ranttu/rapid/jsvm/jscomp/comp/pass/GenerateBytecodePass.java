@@ -10,12 +10,17 @@ import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.FieldNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.common.MethodConst;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
@@ -23,6 +28,7 @@ import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Stack;
 
 /**
@@ -43,6 +49,9 @@ public class GenerateBytecodePass extends CompilePass {
 
     // current method in stack
     private MethodNode        method;
+
+    // current field name
+    private Optional<String>  fieldName   = Optional.empty();
 
     @Override
     protected void beforeProcess() {
@@ -76,18 +85,20 @@ public class GenerateBytecodePass extends CompilePass {
             .end();
 
             // generate init method
-            clazz.method_init()
-                .aload(0)
-                .invoke_init(JsModule.class);
+            in(clazz.method_init()).invoke(() -> {
+                method
+                    .aload(0)
+                    .invoke_init(JsModule.class);
 
-            super.visit(program);
+                super.visit(program);
 
-            // end init method generate
-            clazz.method_init()
-                .ret()
-                // TODO
-                .stack(16, 1)
-            .end();
+                // end init method generate
+                method
+                    .ret()
+                    // TODO
+                    .stack(16, 1)
+                    .end();
+            });
         });
     }
 
@@ -99,11 +110,11 @@ public class GenerateBytecodePass extends CompilePass {
             .acc(Opcodes.ACC_PRIVATE)
             .desc(Object.class);
 
-        in(clazz.method_init()).invoke(() -> {
+        if(variableDeclarator.getInitExpression().isPresent()) {
             method.aload(0);
-            super.visit(variableDeclarator);
+            visit(variableDeclarator.getInitExpression().get());
             method.store(clazz.field(varName));
-        });
+        }
     }
 
     @Override
@@ -143,7 +154,9 @@ public class GenerateBytecodePass extends CompilePass {
 
         // load init method
         in(objClass).in(objClass.method_init()).invoke(() -> {
-            method.aload(0).invoke_init(JsObjectObject.class);
+            method
+                .aload(0)
+                .invoke_init(JsObjectObject.class);
 
             for (Property prop : objExp.getProperties()) {
                 FieldNode field = clazz
@@ -163,9 +176,48 @@ public class GenerateBytecodePass extends CompilePass {
         });
 
         // load inner class
-        method.new_class(objClass)
+        method
+            .new_class(objClass)
             .dup()
             .invoke_init(objClass);
+    }
+
+    @Override
+    protected void visit(AssignmentExpression assignExp) {
+        // only support normal assign now
+        $$.shouldIn(assignExp.getOperator(), AssignmentOperator.ASSIGN);
+
+        in().invoke(() -> {
+            method.aload(0);
+
+            // after left-side visited, the clazz is on the stack now
+            visit(assignExp.getLeft());
+
+            // visit right-side to put the value on stack
+            visit(assignExp.getRight());
+
+            // if the field name is presented
+            // we can compile it as static
+            if (fieldName.isPresent()) {
+                method
+                    .store(clazz.field(fieldName.get()));
+            }
+            // else, we must store it the runtime
+            else {
+                clazz.method_init()
+                    .invoke_virtual(clazz, MethodConst.SET_PROPERTY, Object.class, String.class, Object.class);
+            }
+        });
+    }
+
+    @Override
+    protected void visit(MemberExpression memExp) {
+        $$.should(memExp.isComputed());
+    }
+
+    @Override
+    protected void visit(Identifier id) {
+        fieldName = Optional.of(id.getName());
     }
 
 
@@ -186,6 +238,14 @@ public class GenerateBytecodePass extends CompilePass {
     }
 
     // ~~~ invoke helper
+
+    /**
+     * do something in current class and method stack
+     */
+    private InvokeWrapper in() {
+        return new InvokeWrapper();
+    }
+
     /**
      * do something in the method
      */

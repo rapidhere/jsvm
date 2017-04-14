@@ -62,6 +62,15 @@ public class ExpressionTest extends JsvmJunitTestBase {
         }
     }
 
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void assignmentExpression(ExpressionTestData testData) throws Exception {
+        String clsName = "AssignmentExpressionTest";
+        JsModule module = loadModule(clsName, testData.jsSource);
+
+        assertEquals(jsValueOf(testData.expected), ReflectionUtil.getFieldValue(module, "a"));
+    }
+
     // ~~~ not working yet
     //    @Test
     //    @UseDataProvider("yamlDataProvider")

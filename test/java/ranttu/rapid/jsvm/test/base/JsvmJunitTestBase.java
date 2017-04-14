@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.test.base;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.tngtech.java.junit.dataprovider.DataProvider;
+import jdk.internal.org.objectweb.asm.ClassReader;
+import jdk.internal.org.objectweb.asm.util.TraceClassVisitor;
 import org.junit.Assert;
 import org.junit.runners.model.FrameworkMethod;
 import ranttu.rapid.jsvm.common.$$;
@@ -20,9 +22,9 @@ import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,14 @@ abstract public class JsvmJunitTestBase extends Assert {
     // the class loader
     protected ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader();
 
+    // should print the byte code
+    private static boolean         printByteCode        = false;
+
+    static {
+        String ret = System.getProperty("test.printByteCode", "false");
+        printByteCode = Boolean.valueOf(ret);
+    }
+
     /**
      * compile the source to byte array
      */
@@ -46,7 +56,6 @@ abstract public class JsvmJunitTestBase extends Assert {
         AbstractSyntaxTree ast = parser.parse(source);
 
         Compiler compiler = new Compiler(ast);
-        ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
 
         try {
             return compiler.compile(className);
@@ -60,6 +69,14 @@ abstract public class JsvmJunitTestBase extends Assert {
      */
     protected Class<? extends JsModule> loadSource(String className, String source) {
         Map<String, byte[]> ret = compileSource(className, source);
+
+        if (printByteCode) {
+            for (Map.Entry<String, byte[]> r : ret.entrySet()) {
+                System.out.println("========Class: " + r.getKey());
+                printBytecode(r.getValue());
+                System.out.println();
+            }
+        }
 
         Class<? extends JsModule> topClass = null;
         for (Map.Entry<String, byte[]> r : ret.entrySet()) {
@@ -99,6 +116,12 @@ abstract public class JsvmJunitTestBase extends Assert {
         fail(null, e);
 
         return $$.shouldNotReach();
+    }
+
+    // ~~~ bytecode printer
+    protected static void printBytecode(byte[] codes) {
+        ClassReader reader = new ClassReader(codes);
+        reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
     }
 
     // ~~~ data provider
