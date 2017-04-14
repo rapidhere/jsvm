@@ -99,8 +99,7 @@ public class GenerateBytecodePass extends CompilePass {
             .acc(Opcodes.ACC_PRIVATE)
             .desc(Object.class);
 
-        in(clazz.method_init())
-        .invoke(() -> {
+        in(clazz.method_init()).invoke(() -> {
             method.aload(0);
             super.visit(variableDeclarator);
             method.store(clazz.field(varName));
@@ -143,9 +142,7 @@ public class GenerateBytecodePass extends CompilePass {
         context.moduleClasses.put(objClass.$.name, objClass);
 
         // load init method
-        in(objClass)
-        .in(objClass.method_init())
-        .invoke(() -> {
+        in(objClass).in(objClass.method_init()).invoke(() -> {
             method.aload(0).invoke_init(JsObjectObject.class);
 
             for (Property prop : objExp.getProperties()) {
@@ -188,6 +185,7 @@ public class GenerateBytecodePass extends CompilePass {
         }
     }
 
+    // ~~~ invoke helper
     /**
      * do something in the method
      */
@@ -195,7 +193,6 @@ public class GenerateBytecodePass extends CompilePass {
         return new InvokeWrapper().in(methodNode);
     }
 
-    // ~~~ invoke helper
     /**
      * do something in the class
      */
@@ -203,8 +200,14 @@ public class GenerateBytecodePass extends CompilePass {
         return new InvokeWrapper().in(classNode);
     }
 
+    /**
+     * chain invoker wrapper
+     */
     private class InvokeWrapper {
+        // the size of method stack before invoke
         private int methodOrigSize;
+
+        // the size of class stack before invoke
         private int classOrigSize;
 
         public InvokeWrapper() {
@@ -212,35 +215,38 @@ public class GenerateBytecodePass extends CompilePass {
             classOrigSize = classStack.size();
         }
 
+        /**
+         * add a method into stack
+         */
         public InvokeWrapper in(MethodNode methodNode) {
             method = methodNode;
             methodStack.push(methodNode);
             return this;
         }
 
+        /**
+         * add a class into stack
+         */
         public InvokeWrapper in(ClassNode classNode) {
             clazz = classNode;
             classStack.push(classNode);
             return this;
         }
 
+        /**
+         * invoke in the context
+         */
         public void invoke(Runnable run) {
             run.run();
 
-            // ~~ clear
-            while (methodStack.size() > methodOrigSize) {
-                methodStack.pop();
-            }
-
-            while (classStack.size() > classOrigSize) {
-                classStack.pop();
-            }
-
-
+            // ~~ clear and restore
             method = restore(methodStack, methodOrigSize);
             clazz = restore(classStack, classOrigSize);
         }
 
+        /**
+         * restore the stack state after invoke
+         */
         private <T> T restore(Stack<T> stack, int sz) {
             while(stack.size() > sz) stack.pop();
 

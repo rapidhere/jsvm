@@ -103,6 +103,7 @@ abstract public class CompilePass {
     }
 
     protected void visit(ObjectExpression objectExpression) {
+        objectExpression.getProperties().forEach(this::visit);
     }
 
     protected void visit(BinaryExpression binaryExpression) {
