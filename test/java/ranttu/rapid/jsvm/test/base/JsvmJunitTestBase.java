@@ -17,6 +17,8 @@ import ranttu.rapid.jsvm.jscomp.comp.Compiler;
 import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
 import ranttu.rapid.jsvm.jscomp.parser.Parser;
 import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsNumberObject;
+import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -106,12 +108,12 @@ abstract public class JsvmJunitTestBase extends Assert {
             .cast(method.getMethod().getParameterTypes()[0]);
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        List<? extends BaseCaseData> data = mapper.readValue(getTestResource(method),
-            mapper.getTypeFactory().constructCollectionType(List.class, dataClass));
+        List<? extends BaseCaseData> data = mapper.readValue(getTestResource(method), mapper
+            .getTypeFactory().constructCollectionType(List.class, dataClass));
 
         List<List<Object>> result = new ArrayList<>();
 
-        for(BaseCaseData d: data) {
+        for (BaseCaseData d : data) {
             ArrayList l = new ArrayList();
             l.add(d);
             result.add(l);
@@ -127,5 +129,15 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         return clazz.getClassLoader().getResourceAsStream(
             "testres/" + className + "/" + methodName + ".yaml");
+    }
+
+    protected static Object jsValueOf(Object v) {
+        if (v instanceof Number) {
+            return new JsNumberObject($$.cast(v));
+        } else if (v instanceof String) {
+            return new JsStringObject($$.cast(v));
+        } else {
+            return v;
+        }
     }
 }

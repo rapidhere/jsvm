@@ -15,6 +15,8 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsNumberObject;
+import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.util.Stack;
 
@@ -71,7 +73,8 @@ public class GenerateBytecodePass extends CompilePass {
             .label("L1")
             .ret()
             .local_var("this", cls, "L0", "L1")
-            .stack(3)
+            // TODO
+            .stack(16)
         .end();
     }
 
@@ -109,13 +112,26 @@ public class GenerateBytecodePass extends CompilePass {
     @Override
     protected void visit(Literal literal) {
         if (literal.isInt()) {
-            method().load_const(literal.getInt())
-                .invoke_static(Integer.class, "valueOf", int.class);
+            method()
+                .new_class(JsNumberObject.class)
+                .dup()
+                .load_const(literal.getInt())
+                .invoke_init(JsNumberObject.class, int.class);
         } else if (literal.isString()) {
-            method().load_const(literal.getString());
+            method()
+                .new_class(JsStringObject.class)
+                .dup()
+                .load_const(literal.getString())
+                .invoke_init(JsStringObject.class, String.class);
         } else if (literal.isBoolean()) {
             method().load_const(literal.getBoolean())
                 .invoke_static(Boolean.class, "valueOf", boolean.class);
+        } else if(literal.isDouble()) {
+            method()
+                .new_class(JsNumberObject.class)
+                .dup()
+                .load_const(literal.getDouble())
+                .invoke_init(JsNumberObject.class, double.class);
         } else {
             $$.notSupport();
         }

@@ -33,9 +33,9 @@ public class ExpressionTest extends JsvmJunitTestBase {
         JsModule module = loadModule(clsName, testData.jsSource);
 
         assertEquals(clsName, module.getClass().getSimpleName());
-        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
+        assertEquals(jsValueOf(testData.expected), ReflectionUtil.getFieldValue(module, "a"));
     }
-    
+
     // ~~~ not working yet
     //    @Test
     //    @UseDataProvider("yamlDataProvider")

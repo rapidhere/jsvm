@@ -33,6 +33,8 @@ public class Literal<T> extends BaseAstNode implements Expression {
         return value instanceof Integer;
     }
 
+    public boolean isDouble() {return value instanceof Double; }
+
     public boolean isString() {
         return value instanceof String;
     }
@@ -50,6 +52,10 @@ public class Literal<T> extends BaseAstNode implements Expression {
     }
 
     public boolean getBoolean() {
+        return cast(value);
+    }
+
+    public double getDouble() {
         return cast(value);
     }
 
