@@ -26,6 +26,13 @@ final public class $$ {
         return (T) o;
     }
 
+    /**
+     * cast object into a required type
+     */
+    public static <T> T cast(Object o, @SuppressWarnings("unused") Class<T> clazz) {
+        return (T) o;
+    }
+
     // ~~~ collections
     @SafeVarargs
     public static <T> boolean in(T o, T... others) {

@@ -21,9 +21,8 @@ public class JsObjectObject {
         return properties.get(name);
     }
 
-    public Object setProperty(String name, Object val) {
+    public void setProperty(String name, Object val) {
         properties.put(name, val);
-        return val;
     }
 
     public boolean hasProperty(String name) {

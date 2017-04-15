@@ -28,6 +28,20 @@ final public class ReflectionUtil {
         }
     }
 
+    public static void setFieldValue(Object instance, String fieldName, Object value) {
+        Field field = getField(instance, fieldName);
+
+        boolean rawAccessible = field.isAccessible();
+        try {
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (IllegalAccessException e) {
+            $$.shouldNotReach(e);
+        } finally {
+            field.setAccessible(rawAccessible);
+        }
+    }
+
     public static <T> T getFieldValue(Object instance, String fieldName) {
         Field field = getField(instance, fieldName);
 

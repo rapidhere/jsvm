@@ -45,7 +45,7 @@ abstract public class JsvmJunitTestBase extends Assert {
 
     static {
         String ret = System.getProperty("test.printByteCode", "false");
-        printByteCode = Boolean.valueOf(ret);
+        printByteCode |= Boolean.valueOf(ret);
     }
 
     /**

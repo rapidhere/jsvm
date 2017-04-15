@@ -28,7 +28,6 @@ import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.Stack;
 
 /**
@@ -49,9 +48,6 @@ public class GenerateBytecodePass extends CompilePass {
 
     // current method in stack
     private MethodNode        method;
-
-    // current field name
-    private Optional<String>  fieldName   = Optional.empty();
 
     @Override
     protected void beforeProcess() {
@@ -106,7 +102,8 @@ public class GenerateBytecodePass extends CompilePass {
     protected void visit(VariableDeclarator variableDeclarator) {
         String varName = variableDeclarator.getId().getName();
 
-        clazz.field(varName)
+        clazz
+            .field(varName)
             .acc(Opcodes.ACC_PRIVATE)
             .desc(Object.class);
 
@@ -187,39 +184,46 @@ public class GenerateBytecodePass extends CompilePass {
         // only support normal assign now
         $$.shouldIn(assignExp.getOperator(), AssignmentOperator.ASSIGN);
 
-        in().invoke(() -> {
+        // field assignment
+        if (assignExp.getLeft().is(Identifier.class)) {
             method.aload(0);
-
-            // after left-side visited, the clazz is on the stack now
-            visit(assignExp.getLeft());
-
-            // visit right-side to put the value on stack
             visit(assignExp.getRight());
-
-            // if the field name is presented
-            // we can compile it as static
-            if (fieldName.isPresent()) {
-                method
-                    .store(clazz.field(fieldName.get()));
-            }
-            // else, we must store it the runtime
-            else {
-                clazz.method_init()
-                    .invoke_virtual(clazz, MethodConst.SET_PROPERTY, Object.class, String.class, Object.class);
-            }
-        });
+            method.store(clazz.field($$.cast(assignExp.getLeft(), Identifier.class).getName()));
+        }
+        // common assignment
+        else {
+            visit(assignExp.getLeft());
+            visit(assignExp.getRight());
+            method
+                .indy_jsobj(MethodConst.SET_PROPERTY, void.class, String.class, Object.class);
+        }
     }
 
     @Override
     protected void visit(MemberExpression memExp) {
-        $$.should(memExp.isComputed());
-    }
+        $$.should(! memExp.isComputed());
 
-    @Override
-    protected void visit(Identifier id) {
-        fieldName = Optional.of(id.getName());
-    }
+        //~~~ after visit, the parent object is on the stack
+        // for identifier, load the field
+        if (memExp.getObject().is(Identifier.class)) {
+            method
+                .aload(0)
+                .load(clazz.field($$.cast(memExp.getObject(), Identifier.class).getName()));
+        }
+        // others, common visit
+        else {
+            visit(memExp.getObject());
 
+            //~~~ then, invoke get property
+            method
+                .indy_jsobj(MethodConst.GET_PROPERTY, Object.class, String.class);
+        }
+
+        // put field name const on the stack
+        method
+            // only un-compiled field is supported
+            .load_const($$.cast(memExp.getProperty(), Identifier.class).getName());
+    }
 
     @Override
     protected void visit(BinaryExpression bin) {
@@ -238,13 +242,6 @@ public class GenerateBytecodePass extends CompilePass {
     }
 
     // ~~~ invoke helper
-
-    /**
-     * do something in current class and method stack
-     */
-    private InvokeWrapper in() {
-        return new InvokeWrapper();
-    }
 
     /**
      * do something in the method

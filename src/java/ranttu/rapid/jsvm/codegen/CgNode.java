@@ -79,6 +79,17 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return "L" + classNode.$.name + ";";
     }
 
+    public static Type[] getTypes(Class t1, Class ...types) {
+        Type[] ret = new Type[types.length + 1];
+        ret[0] = Type.getType(t1);
+
+        for(int i = 0;i < types.length;i ++) {
+            ret[i + 1] = Type.getType(types[i]);
+        }
+
+        return ret;
+    }
+
     public static Type[] getTypes(Class... types) {
         Type[] ret = new Type[types.length];
         for(int i = 0;i < types.length;i ++) {

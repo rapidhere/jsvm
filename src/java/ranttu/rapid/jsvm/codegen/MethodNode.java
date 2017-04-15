@@ -10,6 +10,7 @@ import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
+import jdk.internal.org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import jdk.internal.org.objectweb.asm.tree.LdcInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
@@ -135,6 +136,27 @@ public class MethodNode
         $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getInternalName(clazz),
             MethodConst.INIT, Type.getConstructorDescriptor(ReflectionUtil.getConstructor(clazz,
                 constructorPars)), false));
+        return this;
+    }
+
+    public MethodNode indy_jsobj(String methodName, Class retType, Class... parType) {
+        String actualMethodDesc = Type.getMethodDescriptor(Type.getType(retType), getTypes(parType));
+
+        // add object.class, for duck typing
+        String methodDesc = Type.getMethodDescriptor(Type.getType(retType), getTypes(Object.class, parType));
+
+
+        $.instructions.add(new InvokeDynamicInsnNode(methodName, methodDesc,
+            MethodConst.INDY_JSOBJ_FACTORY, Type.getType(actualMethodDesc)));
+        return this;
+    }
+
+    public MethodNode check_cast(ClassNode cls) {
+        return check_cast(cls.$.name);
+    }
+
+    public MethodNode check_cast(String internalName) {
+        $.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, internalName));
         return this;
     }
 

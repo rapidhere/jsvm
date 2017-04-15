@@ -5,6 +5,9 @@
  */
 package ranttu.rapid.jsvm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * ONLY FOR OUTLINE-USAGE
  *
@@ -12,9 +15,10 @@ package ranttu.rapid.jsvm;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    int t = 1;
+    Map<String, Integer> map = new HashMap<>();
 
-    public void f() {
-        t = 2;
+    TmpTest() {
+        Object o = 2;
+        map.put("key", (Integer) o);
     }
 }
