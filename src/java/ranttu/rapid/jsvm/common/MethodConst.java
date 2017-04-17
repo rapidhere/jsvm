@@ -8,7 +8,7 @@ package ranttu.rapid.jsvm.common;
 import jdk.internal.org.objectweb.asm.Handle;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
-import ranttu.rapid.jsvm.runtime.JsIndyFactory;
+import ranttu.rapid.jsvm.runtime.indy.JsIndyFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;

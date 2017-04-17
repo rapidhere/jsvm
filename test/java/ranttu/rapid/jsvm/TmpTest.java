@@ -11,13 +11,16 @@ package ranttu.rapid.jsvm;
  * @author rapidhere@gmail.com
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
-public class TmpTest extends  AbsClass {
-    @Override
-    public Object invoke(Object... args) {
-        return new Object();
-    }
-}
+public class TmpTest {
+    int a = 1;
 
-abstract class AbsClass {
-    abstract public Object invoke(Object... args);
+    TmpTest() {
+        invoke(() -> {
+            System.out.println(this.a);
+        });
+    }
+
+    public void invoke(Runnable runnable) {
+        runnable.run();
+    }
 }

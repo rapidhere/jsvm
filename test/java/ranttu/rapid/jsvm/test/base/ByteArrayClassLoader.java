@@ -23,7 +23,7 @@ public class ByteArrayClassLoader extends ClassLoader {
         try {
             return findClass(clsName);
         } catch (Exception e) {
-            return $$.shouldNotReach();
+            return $$.shouldNotReach(e);
         }
     }
 
