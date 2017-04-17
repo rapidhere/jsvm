@@ -196,6 +196,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode load_null() {
+        $.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
+        return this;
+    }
+
     public MethodNode load_const(boolean bool) {
         return load_const(bool ? 1 : 0);
     }
@@ -234,6 +239,11 @@ public class MethodNode
 
     public MethodNode ret() {
         $.instructions.add(new InsnNode(Opcodes.RETURN));
+        return this;
+    }
+
+    public MethodNode aret() {
+        $.instructions.add(new InsnNode(Opcodes.ARETURN));
         return this;
     }
 }

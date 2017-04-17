@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp;
 
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
@@ -15,6 +16,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
@@ -30,6 +32,7 @@ abstract public class CompilePass {
 
     /**
      * start the compile pass from here
+     *
      * @param astRoot the ast root
      */
     public void process(Program astRoot) {
@@ -40,6 +43,7 @@ abstract public class CompilePass {
 
     /**
      * set the compiling context
+     *
      * @param compilingContext the context
      */
     final public void setContext(CompilingContext compilingContext) {
@@ -86,6 +90,10 @@ abstract public class CompilePass {
             visit((Identifier) node);
         } else if (node.is(MemberExpression.class)) {
             visit((MemberExpression) node);
+        } else if (node.is(ReturnStatement.class)) {
+            visit((ReturnStatement) node);
+        } else if (node.is(BlockStatement.class)) {
+            visit((BlockStatement) node);
         }
     }
 
@@ -115,7 +123,6 @@ abstract public class CompilePass {
     }
 
     protected void visit(Identifier identifier) {
-
     }
 
     protected void visit(ObjectExpression objectExpression) {
@@ -139,4 +146,13 @@ abstract public class CompilePass {
     protected void visit(MemberExpression memExp) {
     }
 
+    protected void visit(BlockStatement blockStatement) {
+        blockStatement.getBody().forEach(this::visit);
+    }
+
+    protected void visit(ReturnStatement returnStatement) {
+        if (returnStatement.getArgument().isPresent()) {
+            visit(returnStatement.getArgument().get());
+        }
+    }
 }

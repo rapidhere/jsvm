@@ -13,15 +13,18 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
+import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
@@ -197,6 +200,62 @@ public class GenerateBytecodePass extends CompilePass {
             method
                 .indy_jsobj(MethodConst.SET_PROPERTY, void.class, String.class, Object.class);
         }
+    }
+
+    @Override
+    protected void visit(FunctionDeclaration function) {
+        ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class, Opcodes.ACC_PRIVATE,
+            Opcodes.ACC_SUPER);
+        context.moduleClasses.put(funcCls.$.name, funcCls);
+
+        // put the field
+        clazz
+            .field(function.getId().getName())
+            .acc(Opcodes.ACC_PRIVATE)
+            .desc(Object.class);
+
+        // build init command
+        in(funcCls.method_init()).invoke(() ->
+            method
+                .aload(0)
+                .invoke_init(JsFunctionObject.class)
+                .ret()
+                // TODO
+                .stack(16, 1)
+        );
+
+        // build invoke function
+        in(funcCls).in(funcCls.method("invoke")).invoke(() -> {
+            method
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
+                .desc(Object.class, Object[].class);
+            super.visit(function);
+
+            // end build invoke function
+            method
+                // TODO
+                .stack(16, 2);
+        });
+
+        // load the function
+        method
+            .aload(0)
+            .new_class(funcCls)
+            .dup()
+            .invoke_init(funcCls)
+            .store(clazz.field(function.getId().getName()));
+    }
+
+    @Override
+    protected void visit(ReturnStatement returnStatement) {
+        // have a argument
+        if(returnStatement.getArgument().isPresent()) {
+            super.visit(returnStatement);
+        } else {
+            method.load_null();
+        }
+
+        method.aret();
     }
 
     @Override

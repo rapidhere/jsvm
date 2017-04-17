@@ -45,6 +45,10 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return desc(Type.getDescriptor(clazz));
     }
 
+    public THIS desc(Class retType, Class... pars) {
+        return desc(Type.getMethodDescriptor(Type.getType(retType), getTypes(pars)));
+    }
+
     public THIS name(String internalName, Class clazz) {
         return name(internalName, Type.getInternalName(clazz));
     }

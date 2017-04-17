@@ -1,0 +1,6 @@
+- description: return 1
+  jsSource: |
+    function func() {
+        return 1;
+    }
+  expected: 1
