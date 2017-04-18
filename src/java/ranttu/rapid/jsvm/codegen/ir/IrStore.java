@@ -11,14 +11,26 @@ package ranttu.rapid.jsvm.codegen.ir;
  */
 public class IrStore extends IrNode {
     public FieldType type;
-    public String    name;
+    public IrNode context;
+    public IrNode key;
+    public IrNode value;
 
-    public IrStore(FieldType type, String name) {
+    public IrStore(FieldType type, IrNode context, IrNode key, IrNode value) {
         this.type = type;
-        this.name = name;
+        this.context = context;
+        this.key = key;
+        this.value = value;
     }
 
-    public static IrStore field(String name) {
-        return new IrStore(FieldType.FIELD, name);
+    public static IrStore field(IrNode context, IrNode key, IrNode value) {
+        return new IrStore(FieldType.FIELD, context, key, value);
+    }
+
+    public static IrStore field(IrNode context, String key, IrNode value) {
+        return new IrStore(FieldType.FIELD, context, IrLiteral.of(key), value);
+    }
+
+    public static IrStore staticField(String className, String key, IrNode value) {
+        return new IrStore(FieldType.STATIC_FIELD, IrLiteral.of(className), IrLiteral.of(key), value);
     }
 }

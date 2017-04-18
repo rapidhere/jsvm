@@ -13,14 +13,16 @@ package ranttu.rapid.jsvm.codegen.ir;
  */
 public class IrLoad extends IrNode {
     public FieldType type;
-    public String    name;
+    public IrNode context;
+    public IrNode key;
 
-    public IrLoad(FieldType type, String name) {
+    public IrLoad(FieldType type, IrNode context, IrNode key) {
         this.type = type;
-        this.name = name;
+        this.context = context;
+        this.key = key;
     }
 
-    public static IrLoad loadThis() {
-        return new IrLoad(FieldType.LOCAL, "this");
+    public static IrLoad field(IrNode context, IrNode key) {
+        return new IrLoad(FieldType.FIELD, context, key);
     }
 }

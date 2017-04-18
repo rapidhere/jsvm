@@ -5,8 +5,6 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
-import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
-
 /**
  * a base ir tree node
  *
@@ -14,7 +12,7 @@ import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
  * @version $id: IrNode.java, v0.1 2017/4/18 dongwei.dq Exp $
  */
 abstract public class IrNode {
-    public IrNode() {
-        CompilePass.getCurrnetIrList().add(this);
+    final public boolean is(Class<? extends IrNode> target) {
+        return target.isAssignableFrom(getClass());
     }
 }

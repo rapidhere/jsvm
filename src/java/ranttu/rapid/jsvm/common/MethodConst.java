@@ -22,10 +22,6 @@ public interface MethodConst {
 
     String CLINIT             = "<clinit>";
 
-    String SET_PROPERTY       = "setProperty";
-
-    String GET_PROPERTY       = "getProperty";
-
     // indy support
     Class  INDY_FACTORY_CLASS = JsIndyFactory.class;
 
@@ -39,5 +35,5 @@ public interface MethodConst {
                                   // the factory method desc
                                   Type.getMethodDescriptor(ReflectionUtil.getMethod(
                                       JsIndyFactory.class, "callsite", MethodHandles.Lookup.class,
-                                      String.class, MethodType.class, MethodType.class)));
+                                      String.class, MethodType.class)));
 }

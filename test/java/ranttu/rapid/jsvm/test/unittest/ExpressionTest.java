@@ -52,13 +52,7 @@ public class ExpressionTest extends JsvmJunitTestBase {
         }
         for (String key : expected.keySet()) {
             Object value = jsValueOf(expected.get(key));
-
-            if (key.startsWith("$")) {
-                key = key.substring(1);
-                assertEquals("property: " + key, value, object.getProperty(key));
-            } else {
-                assertEquals("field: " + key, value, ReflectionUtil.getFieldValue(object, key));
-            }
+            assertEquals("property: " + key, value, object.getProperty(key));
         }
     }
 

@@ -5,17 +5,13 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
-import jdk.internal.org.objectweb.asm.ClassWriter;
-import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
-import ranttu.rapid.jsvm.jscomp.comp.pass.CollectNamePass;
 import ranttu.rapid.jsvm.jscomp.comp.pass.GenerateBytecodePass;
 import ranttu.rapid.jsvm.jscomp.comp.pass.IrTransformPass;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -56,20 +52,9 @@ public class Compiler {
 
         // invoking passes
         invokePass(new IrTransformPass());
-        invokePass(new CollectNamePass());
         invokePass(new GenerateBytecodePass());
 
-        // write class
-        Map<String, byte[]> ret = new HashMap<>();
-        for (String clsName : context.moduleClasses.keySet()) {
-            ClassNode clsNode = context.moduleClasses.get(clsName);
-
-            ClassWriter cw = new ClassWriter(0);
-            clsNode.$.accept(cw);
-            ret.put(clsName, cw.toByteArray());
-        }
-
-        return ret;
+        return context.byteCodes;
     }
 
     /**
@@ -78,6 +63,6 @@ public class Compiler {
      */
     private void invokePass(CompilePass pass) {
         pass.setContext(context);
-        pass.process(ast.getRoot());
+        pass.start();
     }
 }

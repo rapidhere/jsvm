@@ -11,7 +11,9 @@ import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ranttu.rapid.jsvm.common.$$.isBlank;
@@ -27,6 +29,7 @@ public class ClassNode extends
                       CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
     private Map<String, FieldNode>  fields  = new HashMap<>();
     private Map<String, MethodNode> methods = new HashMap<>();
+    private Map<String, ClassNode>  innerClasses = new HashMap<>();
 
     public ClassNode() {
         super(null);
@@ -64,8 +67,13 @@ public class ClassNode extends
         return $$.notSupport();
     }
 
+    // ~~~ inner classes
     public ClassNode inner_class(String innerName, Class superClass, int...acces) {
         return inner_class(innerName, Type.getInternalName(superClass), acces);
+    }
+
+    public Collection<ClassNode> innerClasses() {
+        return innerClasses.values();
     }
 
     public ClassNode inner_class(String innerName, String superName, int...acces) {
@@ -75,6 +83,7 @@ public class ClassNode extends
             .acc(acces);
         $.innerClasses.add(
             new InnerClassNode(cls.$.name, $.name, innerName, cls.$.access));
+        innerClasses.put(cls.$.name, cls);
 
         return cls;
     }
@@ -96,11 +105,11 @@ public class ClassNode extends
         return fields.get(name);
     }
 
-    public boolean hasField(String name) {
-        return fields.containsKey(name);
+    // ~~~ methods
+    public Collection<MethodNode> methods() {
+        return methods.values();
     }
 
-    // ~~~ methods
     public MethodNode method(String name) {
         if (!methods.containsKey(name)) {
             MethodNode methodNode = new MethodNode(this, name);

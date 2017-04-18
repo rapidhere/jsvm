@@ -13,4 +13,4 @@
     var a = {};
     a.a = 1;
   expected:
-    $a: 1
+    a: 1

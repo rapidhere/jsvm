@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
+import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.MethodConst;
 
 /**
@@ -13,14 +14,20 @@ import ranttu.rapid.jsvm.common.MethodConst;
  */
 public class IrInvoke extends IrNode {
     public InvokeType type;
-    public String name;
+    public IrNode invoker;
+    public IrNode invokeName;
 
-    public IrInvoke(InvokeType type, String name) {
+    public IrInvoke(InvokeType type, IrNode invoker, IrNode invokeName) {
         this.type = type;
-        this.name = name;
+        this.invoker = invoker;
+        this.invokeName = invokeName;
     }
 
-    public static IrInvoke invokeInit() {
-        return new IrInvoke(InvokeType.SPECIAL, MethodConst.INIT);
+    public static IrInvoke invokeInit(IrNode invoker) {
+        return new IrInvoke(InvokeType.SPECIAL, invoker, IrLiteral.of(MethodConst.INIT));
+    }
+
+    public static IrInvoke invokeInit(Class clazz) {
+        return invokeInit(IrLiteral.of(Type.getInternalName(clazz)));
     }
 }

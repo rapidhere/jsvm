@@ -7,9 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp;
 
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.IrNode;
 
-import java.util.List;
 import java.util.Stack;
 
 /**
@@ -33,20 +31,6 @@ abstract public class CompilePass {
     // current method in stack
     protected MethodNode       method;
 
-    // current working pass
-    private static ThreadLocal<CompilePass> currentPass = new ThreadLocal<>();
-
-    public void process() {
-        currentPass.set(this);
-    }
-
-    /**
-     * get current ir list
-     */
-    public static List<IrNode> getCurrnetIrList() {
-        return currentPass.get().ir();
-    }
-
     /**
      * start the compile pass from here
      */
@@ -59,16 +43,6 @@ abstract public class CompilePass {
      */
     final public void setContext(CompilingContext compilingContext) {
         this.context = compilingContext;
-    }
-
-    // ~~~ ir helper
-    protected List<IrNode> ir() {
-        return method.ir();
-    }
-
-    protected MethodNode ir(IrNode ir) {
-        method.ir(ir);
-        return method;
     }
 
     // ~~~ invoke helper

@@ -17,15 +17,14 @@ import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
+import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * a method node
@@ -38,7 +37,7 @@ public class MethodNode
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
     private Map<String, LabelNode>         labels = new HashMap<>();
     private Map<String, LocalVariableNode> locals = new HashMap<>();
-    private List<IrNode>                   ir;
+    private IrBlock root = IrBlock.of();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -72,12 +71,12 @@ public class MethodNode
         return this;
     }
 
-    public List<IrNode> ir() {
-        return ir;
+    public IrBlock ir() {
+        return root;
     }
 
-    public MethodNode ir(IrNode ir) {
-        this.ir.add(ir);
+    public MethodNode ir(IrNode...ir) {
+        Collections.addAll(this.root.irs, ir);
         return this;
     }
 
@@ -124,43 +123,20 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode invoke_virtual(ClassNode clazz, String methodName, Class retType,
-                                     Class... pars) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, clazz.$.name, methodName, Type
-            .getMethodDescriptor(Type.getType(retType), getTypes(pars)), false));
+    public MethodNode invoke_init(String name, String desc) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, name,
+            MethodConst.INIT, desc, false));
         return this;
     }
 
-    public MethodNode invoke_static(Class clazz, String methodName, Class... pars) {
-        Method method = ReflectionUtil.getMethod(clazz, methodName, pars);
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(clazz),
-            method.getName(), Type.getMethodDescriptor(method), false));
+    public MethodNode invoke_dynamic(JsIndyType indyType) {
+        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(),
+            MethodConst.INDY_JSOBJ_FACTORY));
         return this;
     }
 
-    public MethodNode invoke_init(ClassNode clazz) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, clazz.$.name,
-            MethodConst.INIT, Type.getMethodDescriptor(Type.VOID_TYPE), false));
-        return this;
-    }
-
-    public MethodNode invoke_init(Class clazz, Class... constructorPars) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getInternalName(clazz),
-            MethodConst.INIT, Type.getConstructorDescriptor(ReflectionUtil.getConstructor(clazz,
-                constructorPars)), false));
-        return this;
-    }
-
-    public MethodNode indy_jsobj(String methodName, Class retType, Class... parType) {
-        String actualMethodDesc = Type
-            .getMethodDescriptor(Type.getType(retType), getTypes(parType));
-
-        // add object.class, for duck typing
-        String methodDesc = Type.getMethodDescriptor(Type.getType(retType),
-            getTypes(Object.class, parType));
-
-        $.instructions.add(new InvokeDynamicInsnNode(methodName, methodDesc,
-            MethodConst.INDY_JSOBJ_FACTORY, Type.getType(actualMethodDesc)));
+    public MethodNode invoke_special(String invokeName, String name, String desc) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, invokeName, name, desc, false));
         return this;
     }
 
@@ -171,14 +147,6 @@ public class MethodNode
     public MethodNode check_cast(String internalName) {
         $.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, internalName));
         return this;
-    }
-
-    public MethodNode new_class(Class clazz) {
-        return new_class(Type.getInternalName(clazz));
-    }
-
-    public MethodNode new_class(ClassNode classNode) {
-        return new_class(classNode.$.name);
     }
 
     public MethodNode new_class(String internalName) {
