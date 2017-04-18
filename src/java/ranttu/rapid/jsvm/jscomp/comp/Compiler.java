@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 import ranttu.rapid.jsvm.jscomp.comp.pass.CollectNamePass;
 import ranttu.rapid.jsvm.jscomp.comp.pass.GenerateBytecodePass;
+import ranttu.rapid.jsvm.jscomp.comp.pass.IrTransformPass;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -51,8 +52,10 @@ public class Compiler {
 
         context.className = $$.notBlank(className);
         context.sourceFileName = $$.notBlank(sourceFileName);
+        context.ast = ast;
 
-        // invoking scopes
+        // invoking passes
+        invokePass(new IrTransformPass());
         invokePass(new CollectNamePass());
         invokePass(new GenerateBytecodePass());
 

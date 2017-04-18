@@ -5,21 +5,12 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
-import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
+import ranttu.rapid.jsvm.codegen.ClassNode;
+import ranttu.rapid.jsvm.codegen.MethodNode;
+import ranttu.rapid.jsvm.codegen.ir.IrNode;
+
+import java.util.List;
+import java.util.Stack;
 
 /**
  * a compile pass
@@ -30,16 +21,36 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 abstract public class CompilePass {
     protected CompilingContext context;
 
+    /** the class stack*/
+    private Stack<ClassNode>   classStack  = new Stack<>();
+
+    /** the method stack */
+    private Stack<MethodNode>  methodStack = new Stack<>();
+
+    // current clazz in stack
+    protected ClassNode        clazz;
+
+    // current method in stack
+    protected MethodNode       method;
+
+    // current working pass
+    private static ThreadLocal<CompilePass> currentPass = new ThreadLocal<>();
+
+    public void process() {
+        currentPass.set(this);
+    }
+
+    /**
+     * get current ir list
+     */
+    public static List<IrNode> getCurrnetIrList() {
+        return currentPass.get().ir();
+    }
+
     /**
      * start the compile pass from here
-     *
-     * @param astRoot the ast root
      */
-    public void process(Program astRoot) {
-        beforeProcess();
-        visit(astRoot);
-        afterProcess();
-    }
+    abstract public void start();
 
     /**
      * set the compiling context
@@ -50,109 +61,88 @@ abstract public class CompilePass {
         this.context = compilingContext;
     }
 
-    // ~~~ hooks
+    // ~~~ ir helper
+    protected List<IrNode> ir() {
+        return method.ir();
+    }
+
+    protected MethodNode ir(IrNode ir) {
+        method.ir(ir);
+        return method;
+    }
+
+    // ~~~ invoke helper
 
     /**
-     * do something after processing on tree
+     * do something in the method
      */
-    protected void afterProcess() {
+    protected InvokeWrapper in(MethodNode methodNode) {
+        return new InvokeWrapper().in(methodNode);
     }
 
     /**
-     * do something before processing on tree
+     * do something in the class
      */
-    protected void beforeProcess() {
+    protected InvokeWrapper in(ClassNode classNode) {
+        return new InvokeWrapper().in(classNode);
     }
 
-    // ~~~ visitors
-    protected void visit(Node node) {
-        if (node.is(Program.class)) {
-            visit((Program) node);
-        } else if (node.is(VariableDeclaration.class)) {
-            visit((VariableDeclaration) node);
-        } else if (node.is(FunctionDeclaration.class)) {
-            visit((FunctionDeclaration) node);
-        } else if (node.is(VariableDeclarator.class)) {
-            visit((VariableDeclarator) node);
-        } else if (node.is(FunctionExpression.class)) {
-            visit((FunctionExpression) node);
-        } else if (node.is(Literal.class)) {
-            visit((Literal) node);
-        } else if (node.is(BinaryExpression.class)) {
-            visit((BinaryExpression) node);
-        } else if (node.is(ObjectExpression.class)) {
-            visit((ObjectExpression) node);
-        } else if (node.is(ExpressionStatement.class)) {
-            visit((ExpressionStatement) node);
-        } else if (node.is(AssignmentExpression.class)) {
-            visit((AssignmentExpression) node);
-        } else if (node.is(Identifier.class)) {
-            visit((Identifier) node);
-        } else if (node.is(MemberExpression.class)) {
-            visit((MemberExpression) node);
-        } else if (node.is(ReturnStatement.class)) {
-            visit((ReturnStatement) node);
-        } else if (node.is(BlockStatement.class)) {
-            visit((BlockStatement) node);
+    /**
+     * chain invoker wrapper
+     */
+    protected class InvokeWrapper {
+        // the size of method stack before invoke
+        private int methodOrigSize;
+
+        // the size of class stack before invoke
+        private int classOrigSize;
+
+        public InvokeWrapper() {
+            methodOrigSize = methodStack.size();
+            classOrigSize = classStack.size();
         }
-    }
 
-    protected void visit(Program program) {
-        program.getBody().forEach(this::visit);
-    }
-
-    protected void visit(VariableDeclaration variableDeclaration) {
-        variableDeclaration.getDeclarations().forEach(this::visit);
-    }
-
-    protected void visit(VariableDeclarator variableDeclarator) {
-        if (variableDeclarator.getInitExpression().isPresent()) {
-            visit(variableDeclarator.getInitExpression().get());
+        /**
+         * add a method into stack
+         */
+        public InvokeWrapper in(MethodNode methodNode) {
+            method = methodNode;
+            methodStack.push(methodNode);
+            return this;
         }
-    }
 
-    protected void visit(FunctionExpression functionExpression) {
-        visit(functionExpression.getBody());
-    }
+        /**
+         * add a class into stack
+         */
+        public InvokeWrapper in(ClassNode classNode) {
+            clazz = classNode;
+            classStack.push(classNode);
+            return this;
+        }
 
-    protected void visit(FunctionDeclaration functionDeclaration) {
-        visit(functionDeclaration.getBody());
-    }
+        /**
+         * invoke in the context
+         */
+        public void invoke(Runnable run) {
+            run.run();
 
-    protected void visit(Literal literal) {
-    }
+            // ~~ clear and restore
+            method = restore(methodStack, methodOrigSize);
+            clazz = restore(classStack, classOrigSize);
+        }
 
-    protected void visit(Identifier identifier) {
-    }
+        /**
+         * restore the stack state after invoke
+         */
+        private <T> T restore(Stack<T> stack, int sz) {
+            while (stack.size() > sz)
+                stack.pop();
 
-    protected void visit(ObjectExpression objectExpression) {
-        objectExpression.getProperties().forEach(this::visit);
-    }
+            if (!stack.isEmpty()) {
+                return stack.peek();
+            }
 
-    protected void visit(BinaryExpression binaryExpression) {
-        visit(binaryExpression.getLeft());
-        visit(binaryExpression.getRight());
-    }
-
-    protected void visit(ExpressionStatement statement) {
-        visit(statement.getExpression());
-    }
-
-    protected void visit(AssignmentExpression expression) {
-        visit(expression.getLeft());
-        visit(expression.getRight());
-    }
-
-    protected void visit(MemberExpression memExp) {
-    }
-
-    protected void visit(BlockStatement blockStatement) {
-        blockStatement.getBody().forEach(this::visit);
-    }
-
-    protected void visit(ReturnStatement returnStatement) {
-        if (returnStatement.getArgument().isPresent()) {
-            visit(returnStatement.getArgument().get());
+            return null;
         }
     }
 }

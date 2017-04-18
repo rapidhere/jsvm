@@ -17,12 +17,14 @@ import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
+import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +38,7 @@ public class MethodNode
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
     private Map<String, LabelNode>         labels = new HashMap<>();
     private Map<String, LocalVariableNode> locals = new HashMap<>();
+    private List<IrNode>                   ir;
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -66,6 +69,15 @@ public class MethodNode
     public MethodNode stack(int size, int localSize) {
         $.maxStack = size;
         $.maxLocals = localSize;
+        return this;
+    }
+
+    public List<IrNode> ir() {
+        return ir;
+    }
+
+    public MethodNode ir(IrNode ir) {
+        this.ir.add(ir);
         return this;
     }
 
@@ -140,11 +152,12 @@ public class MethodNode
     }
 
     public MethodNode indy_jsobj(String methodName, Class retType, Class... parType) {
-        String actualMethodDesc = Type.getMethodDescriptor(Type.getType(retType), getTypes(parType));
+        String actualMethodDesc = Type
+            .getMethodDescriptor(Type.getType(retType), getTypes(parType));
 
         // add object.class, for duck typing
-        String methodDesc = Type.getMethodDescriptor(Type.getType(retType), getTypes(Object.class, parType));
-
+        String methodDesc = Type.getMethodDescriptor(Type.getType(retType),
+            getTypes(Object.class, parType));
 
         $.instructions.add(new InvokeDynamicInsnNode(methodName, methodDesc,
             MethodConst.INDY_JSOBJ_FACTORY, Type.getType(actualMethodDesc)));
