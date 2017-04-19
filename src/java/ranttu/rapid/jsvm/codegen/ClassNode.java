@@ -13,7 +13,6 @@ import ranttu.rapid.jsvm.common.MethodConst;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static ranttu.rapid.jsvm.common.$$.isBlank;
@@ -27,8 +26,8 @@ import static ranttu.rapid.jsvm.common.$$.notBlank;
  */
 public class ClassNode extends
                       CgNode<jdk.internal.org.objectweb.asm.tree.ClassNode, ClassNode, ClassNode> {
-    private Map<String, FieldNode>  fields  = new HashMap<>();
-    private Map<String, MethodNode> methods = new HashMap<>();
+    private Map<String, FieldNode>  fields       = new HashMap<>();
+    private Map<String, MethodNode> methods      = new HashMap<>();
     private Map<String, ClassNode>  innerClasses = new HashMap<>();
 
     public ClassNode() {
@@ -68,7 +67,7 @@ public class ClassNode extends
     }
 
     // ~~~ inner classes
-    public ClassNode inner_class(String innerName, Class superClass, int...acces) {
+    public ClassNode inner_class(String innerName, Class superClass, int... acces) {
         return inner_class(innerName, Type.getInternalName(superClass), acces);
     }
 
@@ -76,13 +75,10 @@ public class ClassNode extends
         return innerClasses.values();
     }
 
-    public ClassNode inner_class(String innerName, String superName, int...acces) {
-        ClassNode cls = new ClassNode()
-            .name($.name + "$" + innerName +
-                ($.innerClasses.size() + 1), superName)
-            .acc(acces);
-        $.innerClasses.add(
-            new InnerClassNode(cls.$.name, $.name, innerName, cls.$.access));
+    public ClassNode inner_class(String innerName, String superName, int... acces) {
+        ClassNode cls = new ClassNode().name(
+            $.name + "$" + innerName + ($.innerClasses.size() + 1), superName).acc(acces);
+        $.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerName, cls.$.access));
         innerClasses.put(cls.$.name, cls);
 
         return cls;
@@ -126,6 +122,6 @@ public class ClassNode extends
     }
 
     public MethodNode method_init() {
-        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE));
+        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE)).par("this");
     }
 }

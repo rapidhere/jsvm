@@ -9,7 +9,15 @@ import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.*;
+import ranttu.rapid.jsvm.codegen.ir.FieldType;
+import ranttu.rapid.jsvm.codegen.ir.InvokeType;
+import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
+import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
+import ranttu.rapid.jsvm.codegen.ir.IrLoad;
+import ranttu.rapid.jsvm.codegen.ir.IrNew;
+import ranttu.rapid.jsvm.codegen.ir.IrReturn;
+import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
@@ -41,7 +49,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         super.visit(methodNode);
 
         // TODO: calc stack size and local size
-        methodNode.stack(16, 16);
+        methodNode.stack(16);
     }
 
     @Override
@@ -51,7 +59,8 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         // TODO
         String invokeType = $$.cast($$.cast(invoke.invoker, IrLiteral.class).value);
         String invokeName = $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value);
-        method.aload(0).invoke_special(invokeType, invokeName, Type.getMethodDescriptor(Type.VOID_TYPE));
+        method.aload("this")
+            .invoke_special(invokeType, invokeName, Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
     @Override
@@ -112,7 +121,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrThis irThis) {
-        method.aload(0);
+        method.aload("this");
     }
 
     @Override

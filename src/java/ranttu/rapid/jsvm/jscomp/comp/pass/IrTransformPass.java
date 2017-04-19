@@ -8,13 +8,37 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.nashorn.internal.codegen.types.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.ir.*;
+import ranttu.rapid.jsvm.codegen.ir.IrBlock;
+import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
+import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
+import ranttu.rapid.jsvm.codegen.ir.IrLoad;
+import ranttu.rapid.jsvm.codegen.ir.IrNew;
+import ranttu.rapid.jsvm.codegen.ir.IrNode;
+import ranttu.rapid.jsvm.codegen.ir.IrReturn;
+import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
-import ranttu.rapid.jsvm.runtime.*;
+import ranttu.rapid.jsvm.runtime.JsFunctionObject;
+import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsNumberObject;
+import ranttu.rapid.jsvm.runtime.JsObjectObject;
+import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 /**
  * the pass transform the ast-tree to ir-tree
@@ -106,7 +130,9 @@ public class IrTransformPass extends CompilePass {
         in(funcCls).in(funcCls.method("invoke")).invoke(() -> {
             method
                 .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
-                .desc(Object.class, Object[].class);
+                .desc(Object.class, Object[].class)
+                .par("this")
+                .par("args");
 
             method.ir(visit(function.getBody()));
         });

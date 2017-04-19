@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
@@ -15,16 +14,19 @@ import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import jdk.internal.org.objectweb.asm.tree.LdcInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
+import jdk.internal.org.objectweb.asm.tree.ParameterNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
-import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * a method node
@@ -35,9 +37,11 @@ import java.util.*;
 public class MethodNode
                        extends
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
-    private Map<String, LabelNode>         labels = new HashMap<>();
-    private Map<String, LocalVariableNode> locals = new HashMap<>();
-    private IrBlock root = IrBlock.of();
+    private Map<String, LabelNode>         labels     = new HashMap<>();
+    private Map<String, LocalVariableNode> locals     = new HashMap<>();
+    private Map<String, ParameterNode>     parameters = new HashMap<>();
+
+    private IrBlock                        root       = IrBlock.of();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -49,6 +53,7 @@ public class MethodNode
         jdk.internal.org.objectweb.asm.tree.MethodNode inner = new jdk.internal.org.objectweb.asm.tree.MethodNode();
         inner.exceptions = new ArrayList<>();
         inner.localVariables = new ArrayList<>();
+        inner.parameters = new ArrayList<>();
 
         return inner;
     }
@@ -65,9 +70,10 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode stack(int size, int localSize) {
+    public MethodNode stack(int size) {
         $.maxStack = size;
-        $.maxLocals = localSize;
+        $.maxLocals = locals.size() + parameters.size();
+
         return this;
     }
 
@@ -75,17 +81,20 @@ public class MethodNode
         return root;
     }
 
-    public MethodNode ir(IrNode...ir) {
+    public MethodNode ir(IrNode... ir) {
         Collections.addAll(this.root.irs, ir);
         return this;
     }
 
-    public MethodNode local_var(String name, ClassNode cls, String label1, String label2) {
-        LocalVariableNode local = new LocalVariableNode(name, getDescriptor(cls), null,
-            labels.get(label1), labels.get(label2), locals.size());
+    public MethodNode par(String name, int... acc) {
+        int sum = 0;
+        for (int a : acc)
+            sum += a;
 
-        $.localVariables.add(local);
-        locals.put(name, local);
+        ParameterNode parNode = new ParameterNode(name, sum);
+        parameters.put(name, parNode);
+        $.parameters.add(parNode);
+
         return this;
     }
 
@@ -118,14 +127,30 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode aload(String name) {
+        for (int i = 0; i < $.parameters.size(); i++) {
+            if ($.parameters.get(i).name.equals(name)) {
+                return aload(i);
+            }
+        }
+
+        for(int i = 0;i < $.localVariables.size();i ++) {
+            if($.localVariables.get(i).name.equals(name)) {
+                return aload(i + $.parameters.size());
+            }
+        }
+
+        return $$.shouldNotReach();
+    }
+
     public MethodNode dup() {
         $.instructions.add(new InsnNode(Opcodes.DUP));
         return this;
     }
 
     public MethodNode invoke_init(String name, String desc) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, name,
-            MethodConst.INIT, desc, false));
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, name, MethodConst.INIT, desc,
+            false));
         return this;
     }
 
@@ -136,7 +161,8 @@ public class MethodNode
     }
 
     public MethodNode invoke_special(String invokeName, String name, String desc) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, invokeName, name, desc, false));
+        $.instructions
+            .add(new MethodInsnNode(Opcodes.INVOKESPECIAL, invokeName, name, desc, false));
         return this;
     }
 

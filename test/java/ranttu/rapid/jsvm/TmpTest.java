@@ -23,4 +23,8 @@ public class TmpTest {
     public void invoke(Runnable runnable) {
         runnable.run();
     }
+
+    public void invoke(Object... args) {
+        System.out.println(args);
+    }
 }
