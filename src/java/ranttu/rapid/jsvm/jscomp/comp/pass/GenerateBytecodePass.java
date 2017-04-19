@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
-import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.InvokeType;
@@ -14,6 +13,7 @@ import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
 import ranttu.rapid.jsvm.codegen.ir.IrNew;
+import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
 import ranttu.rapid.jsvm.codegen.ir.IrThis;
@@ -58,20 +58,29 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         // TODO
         String invokeType = $$.cast($$.cast(invoke.invoker, IrLiteral.class).value);
         String invokeName = $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value);
-        method.aload("this")
-            .invoke_special(invokeType, invokeName, Type.getMethodDescriptor(Type.VOID_TYPE));
+        method.aload("this");
+        for (IrNode ir: invoke.args) {
+            visit(ir);
+        }
+        method.invoke_special(invokeType, invokeName, invoke.desc);
     }
 
     @Override
     protected void visit(IrLoad irl) {
+        String name;
         switch (irl.type) {
             case FIELD:
+                name = $$.cast($$.cast(irl.key, IrLiteral.class).value);
+                visit(irl.context);
+                method.load(irl.className, name, irl.desc);
+                break;
+            case PROP:
                 visit(irl.context);
                 visit(irl.key);
                 method.invoke_dynamic(JsIndyType.GET_PROP);
                 break;
             case LOCAL:
-                String name = $$.cast($$.cast(irl.key, IrLiteral.class).value);
+                name = $$.cast($$.cast(irl.key, IrLiteral.class).value);
                 method.aload(name);
                 break;
             case ARRAY:
@@ -92,6 +101,12 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             case STRING:
                 method.load_const(literal.getString());
                 break;
+            case INTEGER:
+                method.load_const(literal.getInt());
+                break;
+            case DOUBLE:
+                method.load_const(literal.getDouble());
+                break;
             default:
                 $$.notSupport();
         }
@@ -99,8 +114,16 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrStore irs) {
+        String key;
+
         switch (irs.type) {
             case FIELD:
+                visit(irs.context);
+                visit(irs.value);
+                key = $$.cast($$.cast(irs.key, IrLiteral.class).value);
+                method.store(irs.className, key, irs.desc);
+                break;
+            case PROP:
                 visit(irs.context);
                 visit(irs.key);
                 visit(irs.value);
@@ -111,7 +134,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 visit(irs.context);
                 visit(irs.value);
 
-                String key = $$.cast($$.cast(irs.key, IrLiteral.class).value);
+                key = $$.cast($$.cast(irs.key, IrLiteral.class).value);
                 method.store_static(clazz.field(key));
                 break;
             default:
@@ -125,11 +148,9 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         String name = $$.cast($$.cast(irNew.name, IrLiteral.class).value);
 
         method.new_class(name).dup();
-
-        for(Object o: irNew.args) {
-            method.load_const(o);
+        for(IrNode o: irNew.args) {
+            visit(o);
         }
-
         method.invoke_init(name, irNew.desc);
     }
 

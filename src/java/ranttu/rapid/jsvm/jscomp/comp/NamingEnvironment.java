@@ -5,15 +5,20 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp;
 
+import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.exp.CompileError;
 import ranttu.rapid.jsvm.exp.DuplicateName;
+import ranttu.rapid.jsvm.exp.NoSuchName;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * the naming environment
@@ -22,19 +27,33 @@ import java.util.Map;
  * @version $id: NamingEnvironment.java, v0.1 2016/12/11 dongwei.dq Exp $
  */
 public class NamingEnvironment {
-    private Map<Node, Map<String, Name>> scopes = new HashMap<>();
+    private Map<Node, Set<String>> scopes         = new HashMap<>();
+    private Map<Node, ClassNode>   bindingClasses = new HashMap<>();
 
     /**
-     * get the scope of the node
-     * @param node the node to find scope
-     * @return the scope of the node
+     * bind the scope class to the scope
      */
-    public Map<String, Name> getScope(Node node) {
-        Map<String, Name> scope;
+    public void bindScopeClass(Node node, ClassNode clazz) {
+        node = getVarScopeNode(node);
+        bindingClasses.put(node, clazz);
+    }
 
+    /**
+     * get the binding class node
+     */
+    public ClassNode getScopeClass(Node node) {
+        return bindingClasses.get(getVarScopeNode(node));
+    }
+
+    /**
+     * find the scope node
+     */
+    public Node getVarScopeNode(Node node) {
         while (true) {
-            if ((scope = scopes.get(node)) != null) {
-                return scope;
+            if (node.is(Function.class) || node.is(Program.class)) {
+                if ((scopes.get(node)) != null) {
+                    return node;
+                }
             }
 
             if (node.hasParent()) {
@@ -53,25 +72,9 @@ public class NamingEnvironment {
      * @param node the node to find scope
      * @return the scope of the node
      */
-    public Map<String, Name> getVarScope(Node node) {
-        Map<String, Name> scope;
-
-        while (true) {
-            if (node.is(Function.class) || node.is(Program.class)) {
-                if ((scope = scopes.get(node)) != null) {
-                    return scope;
-                }
-            }
-
-            if (node.hasParent()) {
-                node = node.getParent();
-            } else {
-                break;
-            }
-        }
-
-        // no scope exist, this should never happen
-        throw new CompileError(node, "cannot find a scope");
+    public Set<String> getVarScope(Node node) {
+        node = getVarScopeNode(node);
+        return scopes.get(node);
     }
 
     /**
@@ -79,53 +82,53 @@ public class NamingEnvironment {
      * @param scope the scope
      * @param name  the name
      */
-    public void putScope(Node node, Map<String, Name> scope, Name name) {
-        if (!scope.containsKey(name.getId())) {
-            scope.put(name.getId(), name);
+    public void putScope(Node node, Set<String> scope, String name) {
+        if (!scope.contains(name)) {
+            scope.add(name);
         } else {
             // TODO
-            throw new DuplicateName(node, name.getId());
+            throw new DuplicateName(node, name);
         }
-    }
-
-    /**
-     * add a binding to the last scope
-     * @param name the binding name
-     */
-    public void addBinding(Node node, Name name) {
-        putScope(node, getScope(node), name);
-    }
-
-    /**
-     * add a binding to the last scope
-     */
-    public void addBinding(Node node, String id, Declaration declaration) {
-        addBinding(node, new Name(id, declaration));
     }
 
     /**
      * add a binding to the var scope
      */
-    public void addVarBinding(Node node, Name name) {
+    public void addVarBinding(Node node, String name) {
         putScope(node, getVarScope(node), name);
     }
 
     /**
-     * add a binding to the Var scope
+     * find a name, and calc the jumped nodes
      */
-    public void addVarBinding(Node node, String id, Declaration declaration) {
-        addVarBinding(node, new Name(id, declaration));
+    public List<Node> resolveJumped(Node node, String name) {
+        Node origNode = node;
+        List<Node> nodes = new ArrayList<>();
+
+        while (true) {
+            Set<String> scope = scopes.get(node);
+
+            if (scope != null && scope.contains(name)) {
+                return nodes;
+            } else if (scope != null) {
+                nodes.add(node);
+            }
+
+            if (node.hasParent()) {
+                node = node.getParent();
+            } else {
+                throw new NoSuchName(origNode, name);
+            }
+        }
     }
-
-
 
     /**
      * create a new scope
      * @param node the node where scope activate
      * @return the created scope
      */
-    public Map<String, Name> newScope(Node node) {
-        Map<String, Name> scope = new HashMap<>();
+    public Set<String> newScope(Node node) {
+        Set<String> scope = new HashSet<>();
         scopes.put(node, scope);
 
         return scope;

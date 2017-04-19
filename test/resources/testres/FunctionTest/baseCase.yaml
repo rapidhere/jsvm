@@ -14,3 +14,12 @@
   parameters:
     - 1.1
   expected: 1.1
+
+- description: return outter a
+  jsSource: |
+    var a = "hello world";
+    function func() {
+        return a;
+    }
+  parameters:
+  expected: "hello world"

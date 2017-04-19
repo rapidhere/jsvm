@@ -121,7 +121,8 @@ public class ClassNode extends
             Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
-    public MethodNode method_init() {
-        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE)).par("this");
+    public MethodNode method_init(Class... args) {
+        return method(MethodConst.INIT).desc(
+            Type.getMethodDescriptor(Type.VOID_TYPE, getTypes(args))).par("this");
     }
 }

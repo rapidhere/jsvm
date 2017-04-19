@@ -11,8 +11,7 @@ import jdk.nashorn.internal.codegen.types.Type;
 public enum JsIndyType {
     SET_PROP(void.class, Object.class, String.class, Object.class),
 
-    GET_PROP(Object.class, Object.class, String.class)
-
+    GET_PROP(Object.class, Object.class, String.class),
     ;
 
     private String desc;

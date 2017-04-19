@@ -12,8 +12,14 @@ package ranttu.rapid.jsvm.runtime;
  * @version $id: JsFunctionObject.java, v0.1 2017/4/17 dongwei.dq Exp $
  */
 abstract public class JsFunctionObject extends JsObjectObject {
+    protected Object $that;
+
     /**
      * invoke the function object
      */
     abstract public Object invoke(Object... args);
+
+    public JsFunctionObject(Object $that) {
+        this.$that = $that;
+    }
 }

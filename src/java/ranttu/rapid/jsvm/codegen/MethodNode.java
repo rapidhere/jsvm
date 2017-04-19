@@ -134,8 +134,8 @@ public class MethodNode
             }
         }
 
-        for(int i = 0;i < $.localVariables.size();i ++) {
-            if($.localVariables.get(i).name.equals(name)) {
+        for (int i = 0; i < $.localVariables.size(); i++) {
+            if ($.localVariables.get(i).name.equals(name)) {
                 return aload(i + $.parameters.size());
             }
         }
@@ -186,15 +186,13 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode store(FieldNode field) {
-        $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, field.parent.$.name, field.$.name,
-            field.$.desc));
+    public MethodNode store(String className, String name, String desc) {
+        $.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, className, name, desc));
         return this;
     }
 
-    public MethodNode load(FieldNode field) {
-        $.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, field.parent.$.name, field.$.name,
-            field.$.desc));
+    public MethodNode load(String className, String name, String desc) {
+        $.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, className, name, desc));
         return this;
     }
 

@@ -26,7 +26,19 @@ public class IrLiteral extends IrNode {
         return new IrLiteral(LiteralType.INTEGER, i);
     }
 
+    public static IrLiteral of(double d) {
+        return new IrLiteral(LiteralType.DOUBLE, d);
+    }
+
     public String getString() {
+        return $$.cast(value);
+    }
+
+    public int getInt() {
+        return $$.cast(value);
+    }
+
+    public double getDouble() {
         return $$.cast(value);
     }
 }

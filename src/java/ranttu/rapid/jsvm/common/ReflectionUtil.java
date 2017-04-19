@@ -21,10 +21,18 @@ final public class ReflectionUtil {
     }
 
     public static Field getField(Object instance, String fieldName) {
-        try {
-            return instance.getClass().getDeclaredField(fieldName);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        Class clazz = instance.getClass();
+
+        while (true) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (Exception e) {
+                if (clazz == Object.class) {
+                    throw new RuntimeException(e);
+                } else {
+                    clazz = clazz.getSuperclass();
+                }
+            }
         }
     }
 

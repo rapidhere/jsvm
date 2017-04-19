@@ -16,6 +16,8 @@ public enum FieldType {
 
     FIELD,
 
+    PROP,
+
     STATIC_FIELD,
 
     CONST,

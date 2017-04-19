@@ -6,7 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.nashorn.internal.codegen.types.Type;
+import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
@@ -38,6 +38,8 @@ import ranttu.rapid.jsvm.runtime.JsNumberObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
+import java.util.List;
+
 /**
  * the pass transform the ast-tree to ir-tree
  *
@@ -46,11 +48,6 @@ import ranttu.rapid.jsvm.runtime.JsStringObject;
  */
 public class IrTransformPass extends AstBasedCompilePass {
     private IrNode irNode;
-
-    @Override
-    public void start() {
-        visit(context.ast.getRoot());
-    }
 
     private IrNode visitIr(Node node) {
         visit(node);
@@ -77,9 +74,12 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         if(variableDeclarator.getInitExpression().isPresent()) {
             irNode = IrStore.field(
-                    IrThis.irthis(),
-                    varName,
-                    visitIr(variableDeclarator.getInitExpression().get()));
+                IrThis.irthis(),
+                varName,
+                visitIr(variableDeclarator.getInitExpression().get()),
+                clazz.$.name,
+                clazz.field(varName).$.desc
+            );
         } else {
             irNode = IrBlock.of();
         }
@@ -96,59 +96,82 @@ public class IrTransformPass extends AstBasedCompilePass {
             .acc(Opcodes.ACC_PRIVATE)
             .desc(Object.class);
 
-        // build init command
-        in(funcCls.method_init()).invoke(() ->
-            method.ir(
-                    IrInvoke.invokeInit(JsFunctionObject.class),
-                    IrReturn.ret()
-            )
-        );
+        String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
 
-        // build invoke function
-        in(funcCls).in(funcCls.method("invoke")).invoke(() -> {
-            method
-                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
-                .desc(Object.class, Object[].class)
-                .par("this")
-                .par("args");
+        in(funcCls).invoke(() -> {
+            // bind class
+            context.namingEnv.bindScopeClass(function, clazz);
 
-            // put args into field
-            for(int i = 0;i < function.getParams().size();i ++) {
-                Identifier par = function.getParams().get(i);
-                clazz
-                    .field(par.getName())
-                    .acc(Opcodes.ACC_PRIVATE)
-                    .desc(Object.class);
+            // build init command
+            in(funcCls.method_init(Object.class)).invoke(() ->
+                method
+                    .par("$that")
+                    .ir(
+                        IrInvoke.invokeInit(
+                            JsFunctionObject.class,
+                            constructorDesc,
+                            IrLoad.local("$that")
+                        ),
+                        IrReturn.ret()
+                    )
+            );
 
-                // $fieldName = args[i]
-                method.ir(IrStore.field(
-                    IrThis.irthis(),
-                    par.getName(),
-                    IrLoad.array(IrLoad.local("args"), i)
-                ));
-            }
+            // build invoke function
+            in(funcCls.method("invoke")).invoke(() -> {
+                method
+                    .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
+                    .desc(Object.class, Object[].class)
+                    .par("this")
+                    .par("args");
 
-            method.ir(visitIr(function.getBody()));
+                // put args into field
+                for(int i = 0;i < function.getParams().size();i ++) {
+                    Identifier par = function.getParams().get(i);
+                    clazz
+                        .field(par.getName())
+                        .acc(Opcodes.ACC_PRIVATE)
+                        .desc(Object.class);
+
+                    // $fieldName = args[i]
+                    method.ir(IrStore.property(
+                        IrThis.irthis(),
+                        par.getName(),
+                        IrLoad.array(IrLoad.local("args"), i)
+                    ));
+                }
+
+                method.ir(visitIr(function.getBody()));
+            });
         });
 
         // load the function
-        irNode = IrStore.field(
+        irNode = IrStore.property(
             IrThis.irthis(),
             function.getId().getName(),
-            IrNew.of(funcCls.$.name));
+            IrNew.of(
+                funcCls.$.name,
+                constructorDesc,
+                IrThis.irthis())
+        );
     }
 
     @Override
     protected void visit(Literal literal) {
         if (literal.isInt()) {
             irNode = IrNew.of(JsNumberObject.class,
-                    Type.getMethodDescriptor(void.class, int.class), literal.getInt());
+                    Type.getMethodDescriptor(
+                        Type.VOID_TYPE, Type.INT_TYPE),
+                IrLiteral.of(literal.getInt()));
         } else if (literal.isString()) {
             irNode = IrNew.of(JsStringObject.class,
-                    Type.getMethodDescriptor(void.class, String.class), literal.getString());
+                    Type.getMethodDescriptor(
+                        Type.VOID_TYPE, Type.getType(String.class)),
+                IrLiteral.of(literal.getString()));
         }  else if (literal.isDouble()) {
             irNode = IrNew.of(JsNumberObject.class,
-                    Type.getMethodDescriptor(void.class, double.class), literal.getDouble());
+                    Type.getMethodDescriptor(
+                        Type.VOID_TYPE, Type.DOUBLE_TYPE),
+                IrLiteral.of(literal.getDouble()));
         } else {
             irNode = $$.notSupport();
         }
@@ -166,7 +189,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             for (Property prop : objExp.getProperties()) {
                 String fieldName = prop.getKeyString();
 
-                method.ir(IrStore.field(
+                method.ir(IrStore.property(
                         IrThis.irthis(),
                         fieldName,
                         visitIr(prop.getValue())));
@@ -182,7 +205,16 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(Identifier identifier) {
-        irNode = IrLoad.field(IrThis.irthis(), identifier.getName());
+        List<Node> nodes = context.namingEnv.resolveJumped(identifier, identifier.getName());
+
+        IrNode ctx = IrThis.irthis();
+        for(Node n: nodes) {
+            ClassNode cls = context.namingEnv.getScopeClass(n);
+
+            ctx = IrLoad.field(ctx, "$that", cls.$.name, Type.getDescriptor(Object.class));
+        }
+
+        irNode = IrLoad.property(ctx, identifier.getName());
     }
 
     @Override
@@ -192,16 +224,20 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         // field assignment
         if (assignExp.getLeft().is(Identifier.class)) {
+            String key = $$.cast(assignExp.getLeft(), Identifier.class).getName();
+
             irNode = IrStore.field(
                 IrThis.irthis(),
-                resolveProperty(assignExp.getLeft()),
-                visitIr(assignExp.getRight()));
+                key,
+                visitIr(assignExp.getRight()),
+                clazz.$.name,
+                clazz.field(key).$.desc);
         }
         // member assignment
         else if (assignExp.getLeft().is(MemberExpression.class)) {
             MemberExpression member = $$.cast(assignExp.getLeft());
 
-            irNode = IrStore.field(
+            irNode = IrStore.property(
                 visitIr(member.getObject()),
                 resolveProperty(member.getProperty()),
                 visitIr(assignExp.getRight()));
@@ -228,7 +264,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         $$.should(! memExp.isComputed());
 
         // load the field
-        irNode = IrLoad.field(
+        irNode = IrLoad.property(
             visitIr(memExp.getObject()), resolveProperty(memExp.getProperty()));
     }
 

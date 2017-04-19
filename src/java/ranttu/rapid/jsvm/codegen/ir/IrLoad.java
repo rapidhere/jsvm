@@ -16,18 +16,29 @@ public class IrLoad extends IrNode {
     public IrNode context;
     public IrNode key;
 
+    // for get_field instruction only
+    public String className;
+    public String desc;
+
     public IrLoad(FieldType type, IrNode context, IrNode key) {
         this.type = type;
         this.context = context;
         this.key = key;
     }
 
-    public static IrLoad field(IrNode context, IrNode key) {
-        return new IrLoad(FieldType.FIELD, context, key);
+    public static IrLoad property(IrNode context, IrNode key) {
+        return new IrLoad(FieldType.PROP, context, key);
     }
 
-    public static IrLoad field(IrNode context, String key) {
-        return field(context, IrLiteral.of(key));
+    public static IrLoad property(IrNode context, String key) {
+        return property(context, IrLiteral.of(key));
+    }
+
+    public static IrLoad field(IrNode context, String key, String className, String desc) {
+        IrLoad ir = new IrLoad(FieldType.FIELD, context, IrLiteral.of(key));
+        ir.className = className;
+        ir.desc = desc;
+        return ir;
     }
 
     public static IrLoad array(IrNode context, int idx) {

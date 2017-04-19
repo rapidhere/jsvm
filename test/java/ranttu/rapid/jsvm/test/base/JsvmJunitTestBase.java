@@ -106,8 +106,12 @@ abstract public class JsvmJunitTestBase extends Assert {
 
     // ~~~ assertion helpers
     protected static <T> T fail(String message, Throwable e) {
-        e.printStackTrace(System.err);
-        fail(message + e.toString());
+        if(e != null) {
+            e.printStackTrace(System.err);
+            fail(message + e.toString());
+        } else {
+            fail(message);
+        }
 
         return $$.shouldNotReach();
     }

@@ -10,4 +10,6 @@ public enum LiteralType {
     STRING,
 
     INTEGER,
+
+    DOUBLE,
 }

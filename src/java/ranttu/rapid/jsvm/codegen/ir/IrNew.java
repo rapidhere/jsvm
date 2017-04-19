@@ -8,20 +8,20 @@ import jdk.internal.org.objectweb.asm.Type;
  */
 public class IrNew extends IrNode {
     public IrNode name;
-    public Object[] args = {};
+    public IrNode[] args = {};
     public String desc;
 
-    public IrNew(IrNode name,String desc, Object...args) {
+    public IrNew(IrNode name,String desc, IrNode...args) {
         this.name = name;
         this.args = args;
         this.desc = desc;
     }
 
-    public static IrNew of(String name, String desc, Object...args) {
+    public static IrNew of(String name, String desc, IrNode...args) {
         return new IrNew(IrLiteral.of(name), desc, args);
     }
 
-    public static IrNew of(Class clazz, String desc, Object...args) {
+    public static IrNew of(Class clazz, String desc, IrNode...args) {
         return of(Type.getInternalName(clazz), desc, args);
     }
 
