@@ -31,8 +31,8 @@ public class VariableDeclaration extends BaseAstNode implements Statement {
         jsonObject.getJSONArray("declarations").forEach(
             (child) -> declarations.add(Node.of(this, (JSONObject) child)));
 
-        if ($$.notIn(kind, DeclarationType.LET, DeclarationType.VAR)) {
-            throw new NotSupportedYet(this, "variable declaration only support `let` and `var`");
+        if ($$.notIn(kind, DeclarationType.VAR)) {
+            throw new NotSupportedYet(this, "variable declaration only support `var`");
         }
     }
 

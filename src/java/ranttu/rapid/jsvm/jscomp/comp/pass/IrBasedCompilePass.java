@@ -3,9 +3,16 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.*;
+import ranttu.rapid.jsvm.codegen.ir.IrBlock;
+import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
+import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
+import ranttu.rapid.jsvm.codegen.ir.IrLoad;
+import ranttu.rapid.jsvm.codegen.ir.IrNew;
+import ranttu.rapid.jsvm.codegen.ir.IrNode;
+import ranttu.rapid.jsvm.codegen.ir.IrReturn;
+import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
-import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 
 /**
  * the pass that based on ir-tree
@@ -16,15 +23,8 @@ import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 abstract public class IrBasedCompilePass extends CompilePass {
     @Override
     public void start() {
-        before();
         visit(context.rootClassNode);
-        after();
     }
-
-    // ~~~ hooks
-    protected void before() {}
-
-    protected void after() {}
 
     // ~~~ visitors
     protected void visit(ClassNode classNode) {

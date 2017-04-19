@@ -20,7 +20,6 @@ import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
@@ -33,7 +32,6 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
-import ranttu.rapid.jsvm.jscomp.comp.CompilePass;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
@@ -46,51 +44,30 @@ import ranttu.rapid.jsvm.runtime.JsStringObject;
  * @author rapidhere@gmail.com
  * @version $id: IrTransformPass.java, v0.1 2017/4/18 dongwei.dq Exp $
  */
-public class IrTransformPass extends CompilePass {
+public class IrTransformPass extends AstBasedCompilePass {
+    private IrNode irNode;
+
     @Override
     public void start() {
         visit(context.ast.getRoot());
     }
 
-    private IrNode visit(Node node) {
-        if (node.is(Program.class)) {
-            return visit((Program) node);
-        } else if (node.is(VariableDeclaration.class)) {
-            return visit((VariableDeclaration) node);
-        } else if (node.is(FunctionDeclaration.class)) {
-            return visit((FunctionDeclaration) node);
-        } else if (node.is(VariableDeclarator.class)) {
-            return visit((VariableDeclarator) node);
-        } else if (node.is(Literal.class)) {
-            return visit((Literal) node);
-        } else if (node.is(ObjectExpression.class)) {
-            return visit((ObjectExpression) node);
-        } else if (node.is(ExpressionStatement.class)) {
-            return visit((ExpressionStatement) node);
-        } else if (node.is(AssignmentExpression.class)) {
-            return visit((AssignmentExpression) node);
-        } else if (node.is(MemberExpression.class)) {
-            return visit((MemberExpression) node);
-        } else if (node.is(ReturnStatement.class)) {
-            return visit((ReturnStatement) node);
-        } else if (node.is(BlockStatement.class)) {
-            return visit((BlockStatement) node);
-        } else if (node.is(Identifier.class)) {
-            return visit((Identifier) node);
-        }
-
-        return $$.notSupport();
+    private IrNode visitIr(Node node) {
+        visit(node);
+        return irNode;
     }
 
-    private IrNode visit(VariableDeclaration variableDeclaration) {
+    @Override
+    protected void visit(VariableDeclaration variableDeclaration) {
         IrBlock ret = IrBlock.of();
 
-        variableDeclaration.getDeclarations().forEach((declarator) -> ret.irs.add(visit(declarator)));
+        variableDeclaration.getDeclarations().forEach((declarator) -> ret.irs.add(visitIr(declarator)));
 
-        return ret;
+        irNode = ret;
     }
 
-    private IrNode visit(VariableDeclarator variableDeclarator) {
+    @Override
+    protected void visit(VariableDeclarator variableDeclarator) {
         String varName = variableDeclarator.getId().getName();
 
         clazz
@@ -99,16 +76,17 @@ public class IrTransformPass extends CompilePass {
             .desc(Object.class);
 
         if(variableDeclarator.getInitExpression().isPresent()) {
-            return IrStore.field(
+            irNode = IrStore.field(
                     IrThis.irthis(),
                     varName,
-                    visit(variableDeclarator.getInitExpression().get()));
+                    visitIr(variableDeclarator.getInitExpression().get()));
         } else {
-            return IrBlock.of();
+            irNode = IrBlock.of();
         }
     }
 
-    private IrNode visit(FunctionDeclaration function) {
+    @Override
+    protected void visit(FunctionDeclaration function) {
         ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class, Opcodes.ACC_PRIVATE,
             Opcodes.ACC_SUPER);
 
@@ -150,32 +128,34 @@ public class IrTransformPass extends CompilePass {
                 ));
             }
 
-            method.ir(visit(function.getBody()));
+            method.ir(visitIr(function.getBody()));
         });
 
         // load the function
-        return IrStore.field(
+        irNode = IrStore.field(
             IrThis.irthis(),
             function.getId().getName(),
             IrNew.of(funcCls.$.name));
     }
 
-    private IrNode visit(Literal literal) {
+    @Override
+    protected void visit(Literal literal) {
         if (literal.isInt()) {
-            return IrNew.of(JsNumberObject.class,
+            irNode = IrNew.of(JsNumberObject.class,
                     Type.getMethodDescriptor(void.class, int.class), literal.getInt());
         } else if (literal.isString()) {
-            return IrNew.of(JsStringObject.class,
+            irNode = IrNew.of(JsStringObject.class,
                     Type.getMethodDescriptor(void.class, String.class), literal.getString());
         }  else if (literal.isDouble()) {
-            return IrNew.of(JsNumberObject.class,
+            irNode = IrNew.of(JsNumberObject.class,
                     Type.getMethodDescriptor(void.class, double.class), literal.getDouble());
         } else {
-            return $$.notSupport();
+            irNode = $$.notSupport();
         }
     }
 
-    private IrNode visit(ObjectExpression objExp) {
+    @Override
+    protected void visit(ObjectExpression objExp) {
         ClassNode objClass = clazz.inner_class("Object", JsObjectObject.class, Opcodes.ACC_PRIVATE,
             Opcodes.ACC_SUPER);
 
@@ -189,7 +169,7 @@ public class IrTransformPass extends CompilePass {
                 method.ir(IrStore.field(
                         IrThis.irthis(),
                         fieldName,
-                        visit(prop.getValue())));
+                        visitIr(prop.getValue())));
             }
 
             // end init method
@@ -197,40 +177,38 @@ public class IrTransformPass extends CompilePass {
         });
 
         // load inner class
-        return IrNew.of(objClass.$.name);
+        irNode = IrNew.of(objClass.$.name);
     }
 
-    private IrNode visit(ExpressionStatement statement) {
-        return visit(statement.getExpression());
+    @Override
+    protected void visit(Identifier identifier) {
+        irNode = IrLoad.field(IrThis.irthis(), identifier.getName());
     }
 
-    private IrNode visit(Identifier identifier) {
-        return IrLoad.field(IrThis.irthis(), identifier.getName());
-    }
-
-    private IrNode visit(AssignmentExpression assignExp) {
+    @Override
+    protected void visit(AssignmentExpression assignExp) {
         // only support normal assign now
         $$.shouldIn(assignExp.getOperator(), AssignmentOperator.ASSIGN);
 
         // field assignment
         if (assignExp.getLeft().is(Identifier.class)) {
-            return IrStore.field(
+            irNode = IrStore.field(
                 IrThis.irthis(),
                 resolveProperty(assignExp.getLeft()),
-                visit(assignExp.getRight()));
+                visitIr(assignExp.getRight()));
         }
         // member assignment
         else if (assignExp.getLeft().is(MemberExpression.class)) {
             MemberExpression member = $$.cast(assignExp.getLeft());
 
-            return IrStore.field(
-                visit(member.getObject()),
+            irNode = IrStore.field(
+                visitIr(member.getObject()),
                 resolveProperty(member.getProperty()),
-                visit(assignExp.getRight()));
+                visitIr(assignExp.getRight()));
         }
         // otherwise, not support
         else {
-            return $$.notSupport();
+            irNode = $$.notSupport();
         }
     }
 
@@ -241,34 +219,38 @@ public class IrTransformPass extends CompilePass {
         }
         // others, common visit
         else {
-            return visit(property);
+            return visitIr(property);
         }
     }
 
-    private IrNode visit(MemberExpression memExp) {
+    @Override
+    protected void visit(MemberExpression memExp) {
         $$.should(! memExp.isComputed());
 
         // load the field
-        return IrLoad.field(
-            visit(memExp.getObject()), resolveProperty(memExp.getProperty()));
+        irNode = IrLoad.field(
+            visitIr(memExp.getObject()), resolveProperty(memExp.getProperty()));
     }
 
-    private IrNode visit(BlockStatement blockStatement) {
+    @Override
+    protected void visit(BlockStatement blockStatement) {
         IrBlock ret = IrBlock.of();
-        blockStatement.getBody().forEach((statement) -> ret.irs.add(visit(statement)));
+        blockStatement.getBody().forEach((statement) -> ret.irs.add(visitIr(statement)));
 
-        return ret;
+        irNode = ret;
     }
 
-    private IrNode visit(ReturnStatement returnStatement) {
+    @Override
+    protected void visit(ReturnStatement returnStatement) {
         if (returnStatement.getArgument().isPresent()) {
-            return IrReturn.ret(visit(returnStatement.getArgument().get()));
+            irNode = IrReturn.ret(visitIr(returnStatement.getArgument().get()));
         } else {
-            return IrReturn.ret();
+            irNode = IrReturn.ret();
         }
     }
 
-    private IrNode visit(Program program) {
+    @Override
+    protected void visit(Program program) {
         ClassNode cls = new ClassNode()
             .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SUPER)
             .name(context.className, JsModule.class)
@@ -294,14 +276,11 @@ public class IrTransformPass extends CompilePass {
             in(clazz.method_init()).invoke(() -> {
                 method.ir(IrInvoke.invokeInit(JsModule.class));
 
-                program.getBody().forEach(statement -> method.ir(visit(statement)));
+                program.getBody().forEach(statement -> method.ir(visitIr(statement)));
 
                 // end init method generate
                 method.ir(IrReturn.ret());
             });
         });
-
-        // not used
-        return null;
     }
 }

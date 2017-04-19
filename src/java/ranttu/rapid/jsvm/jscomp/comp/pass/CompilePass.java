@@ -3,10 +3,11 @@
  * Copyright (c) 1995-2016 All Rights Reserved.
  * ===> GLORY TO THE FIRST BORN! <===
  */
-package ranttu.rapid.jsvm.jscomp.comp;
+package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
+import ranttu.rapid.jsvm.jscomp.comp.CompilingContext;
 
 import java.util.Stack;
 
@@ -32,9 +33,23 @@ abstract public class CompilePass {
     protected MethodNode       method;
 
     /**
+     * start the compile processing
+     */
+    final public void process() {
+        before();
+        start();
+        after();
+    }
+
+    /**
      * start the compile pass from here
      */
-    abstract public void start();
+    abstract protected void start();
+
+    // ~~~ hooks
+    protected void before() {}
+
+    protected void after() {}
 
     /**
      * set the compiling context

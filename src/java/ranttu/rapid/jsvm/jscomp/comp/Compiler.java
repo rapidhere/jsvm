@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp;
 
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
+import ranttu.rapid.jsvm.jscomp.comp.pass.CompilePass;
 import ranttu.rapid.jsvm.jscomp.comp.pass.GenerateBytecodePass;
 import ranttu.rapid.jsvm.jscomp.comp.pass.IrTransformPass;
 
@@ -63,6 +64,6 @@ public class Compiler {
      */
     private void invokePass(CompilePass pass) {
         pass.setContext(context);
-        pass.start();
+        pass.process();
     }
 }
