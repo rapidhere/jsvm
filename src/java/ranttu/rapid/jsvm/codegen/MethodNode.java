@@ -198,6 +198,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode aaload() {
+        $.instructions.add(new InsnNode(Opcodes.AALOAD));
+        return this;
+    }
+
     public MethodNode load_const(Object o) {
         $.instructions.add(new LdcInsnNode(o));
         return this;

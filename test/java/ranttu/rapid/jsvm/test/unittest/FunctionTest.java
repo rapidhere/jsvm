@@ -25,6 +25,7 @@ public class FunctionTest extends JsvmJunitTestBase {
     public static class FunctionTestData extends BaseCaseData {
         public String jsSource;
         public Object expected;
+        public Object[] parameters;
     }
 
     @Test
@@ -33,7 +34,11 @@ public class FunctionTest extends JsvmJunitTestBase {
         JsModule module = loadModule("FunctionTest", testData.jsSource);
 
         JsFunctionObject func = ReflectionUtil.getFieldValue(module, "func");
-        Object result = func.invoke();
+        if(testData.parameters == null) {
+            testData.parameters = new Object[0];
+        }
+
+        Object result = func.invoke(testData.parameters);
 
         assertEquals(jsValueOf(testData.expected), result);
     }

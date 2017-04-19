@@ -22,6 +22,10 @@ public class IrLiteral extends IrNode {
         return new IrLiteral(LiteralType.STRING, str);
     }
 
+    public static IrLiteral of(int i) {
+        return new IrLiteral(LiteralType.INTEGER, i);
+    }
+
     public String getString() {
         return $$.cast(value);
     }

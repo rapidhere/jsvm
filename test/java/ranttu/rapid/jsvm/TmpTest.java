@@ -25,6 +25,6 @@ public class TmpTest {
     }
 
     public void invoke(Object... args) {
-        System.out.println(args);
+        System.out.println(args[1]);
     }
 }

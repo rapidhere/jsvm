@@ -3,4 +3,14 @@
     function func() {
         return 1;
     }
+  parameters:
   expected: 1
+
+- description: return a
+  jsSource: |
+    function func(a) {
+        return a;
+    }
+  parameters:
+    - 1.1
+  expected: 1.1

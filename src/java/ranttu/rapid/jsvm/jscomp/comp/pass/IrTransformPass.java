@@ -134,14 +134,30 @@ public class IrTransformPass extends CompilePass {
                 .par("this")
                 .par("args");
 
+            // put args into field
+            for(int i = 0;i < function.getParams().size();i ++) {
+                Identifier par = function.getParams().get(i);
+                clazz
+                    .field(par.getName())
+                    .acc(Opcodes.ACC_PRIVATE)
+                    .desc(Object.class);
+
+                // $fieldName = args[i]
+                method.ir(IrStore.field(
+                    IrThis.irthis(),
+                    par.getName(),
+                    IrLoad.array(IrLoad.local("args"), i)
+                ));
+            }
+
             method.ir(visit(function.getBody()));
         });
 
         // load the function
         return IrStore.field(
-                IrThis.irthis(),
-                function.getId().getName(),
-                IrNew.of(funcCls.$.name));
+            IrThis.irthis(),
+            function.getId().getName(),
+            IrNew.of(funcCls.$.name));
     }
 
     private IrNode visit(Literal literal) {
@@ -189,7 +205,7 @@ public class IrTransformPass extends CompilePass {
     }
 
     private IrNode visit(Identifier identifier) {
-        return IrLiteral.of(identifier.getName());
+        return IrLoad.field(IrThis.irthis(), identifier.getName());
     }
 
     private IrNode visit(AssignmentExpression assignExp) {
@@ -198,14 +214,19 @@ public class IrTransformPass extends CompilePass {
 
         // field assignment
         if (assignExp.getLeft().is(Identifier.class)) {
-            return IrStore.field(IrThis.irthis(), visit(assignExp.getLeft()), visit(assignExp.getRight()));
+            return IrStore.field(
+                IrThis.irthis(),
+                resolveProperty(assignExp.getLeft()),
+                visit(assignExp.getRight()));
         }
         // member assignment
-        else if(assignExp.getLeft().is(MemberExpression.class)) {
+        else if (assignExp.getLeft().is(MemberExpression.class)) {
             MemberExpression member = $$.cast(assignExp.getLeft());
 
-            IrNode context = resolveMemberObject(member);
-            return IrStore.field(context, visit(member.getProperty()), visit(assignExp.getRight()));
+            return IrStore.field(
+                visit(member.getObject()),
+                resolveProperty(member.getProperty()),
+                visit(assignExp.getRight()));
         }
         // otherwise, not support
         else {
@@ -213,23 +234,23 @@ public class IrTransformPass extends CompilePass {
         }
     }
 
-    private IrNode resolveMemberObject(MemberExpression member) {
+    private IrNode resolveProperty(Node property) {
         // for identifier, load the field
-        if(member.getObject().is(Identifier.class)) {
-            return IrLoad.field(IrThis.irthis(), visit(member.getObject()));
+        if(property.is(Identifier.class)) {
+            return IrLiteral.of($$.cast(property, Identifier.class).getName());
         }
         // others, common visit
         else {
-            return visit(member.getObject());
+            return visit(property);
         }
     }
 
     private IrNode visit(MemberExpression memExp) {
         $$.should(! memExp.isComputed());
 
-        IrNode context = resolveMemberObject(memExp);
         // load the field
-        return IrLoad.field(context, visit(memExp.getProperty()));
+        return IrLoad.field(
+            visit(memExp.getObject()), resolveProperty(memExp.getProperty()));
     }
 
     private IrNode visit(BlockStatement blockStatement) {

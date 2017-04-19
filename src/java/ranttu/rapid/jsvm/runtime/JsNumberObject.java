@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.runtime;
 
+import ranttu.rapid.jsvm.common.$$;
+
 /**
  * the js number object
  *
@@ -32,8 +34,13 @@ public class JsNumberObject {
 
     @Override
     public boolean equals(Object object) {
-        return object instanceof JsNumberObject
-               && asDouble() == ((JsNumberObject) object).asDouble();
+        if(object instanceof JsNumberObject) {
+            return asDouble() == $$.cast(object, JsNumberObject.class).asDouble();
+        } else if(object instanceof Number) {
+            return asDouble() == $$.cast(object, Number.class).doubleValue();
+        } else {
+            return false;
+        }
     }
 
     @Override

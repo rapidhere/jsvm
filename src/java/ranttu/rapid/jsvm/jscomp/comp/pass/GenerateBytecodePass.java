@@ -9,7 +9,6 @@ import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.FieldType;
 import ranttu.rapid.jsvm.codegen.ir.InvokeType;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
@@ -65,11 +64,26 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrLoad irl) {
-        $$.shouldIn(irl.type, FieldType.FIELD);
-
-        visit(irl.context);
-        visit(irl.key);
-        method.invoke_dynamic(JsIndyType.GET_PROP);
+        switch (irl.type) {
+            case FIELD:
+                visit(irl.context);
+                visit(irl.key);
+                method.invoke_dynamic(JsIndyType.GET_PROP);
+                break;
+            case LOCAL:
+                String name = $$.cast($$.cast(irl.key, IrLiteral.class).value);
+                method.aload(name);
+                break;
+            case ARRAY:
+                visit(irl.context);
+                int idx = $$.cast($$.cast(irl.key, IrLiteral.class).value);
+                method
+                    .load_const(idx)
+                    .aaload();
+                break;
+            default:
+                $$.notSupport();
+        }
     }
 
     @Override

@@ -18,5 +18,7 @@ public enum FieldType {
 
     STATIC_FIELD,
 
-    CONST
+    CONST,
+
+    ARRAY
 }
