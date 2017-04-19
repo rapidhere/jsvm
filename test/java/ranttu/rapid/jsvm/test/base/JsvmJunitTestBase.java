@@ -41,7 +41,7 @@ abstract public class JsvmJunitTestBase extends Assert {
     protected ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader();
 
     // should print the byte code
-    private static boolean         printByteCode        = true;
+    private static boolean         printByteCode        = false;
 
     static {
         String ret = System.getProperty("test.printByteCode", "false");
