@@ -76,10 +76,13 @@ public class ClassNode extends
     }
 
     public ClassNode inner_class(String innerName, String superName, int... acces) {
-        ClassNode cls = new ClassNode().name(
-            $.name + "$" + innerName + ($.innerClasses.size() + 1), superName).acc(acces);
-        $.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerName, cls.$.access));
+        int num = innerClasses.size() + 1;
+        String innerClsName = innerName + num;
+
+        ClassNode cls = new ClassNode().name($.name + "$" + innerClsName, superName).acc(acces);
         innerClasses.put(cls.$.name, cls);
+        $.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
+        cls.$.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
 
         return cls;
     }
@@ -121,8 +124,13 @@ public class ClassNode extends
             Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
-    public MethodNode method_init(Class... args) {
-        return method(MethodConst.INIT).desc(
-            Type.getMethodDescriptor(Type.VOID_TYPE, getTypes(args))).par("this");
+    public MethodNode method_init(ClassNode... types) {
+        Type[] tTypes = new Type[types.length];
+        for (int i = 0; i < types.length; i++) {
+            tTypes[i] = Type.getType(getDescriptor(types[i]));
+        }
+
+        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE, tTypes)).par(
+            "this");
     }
 }

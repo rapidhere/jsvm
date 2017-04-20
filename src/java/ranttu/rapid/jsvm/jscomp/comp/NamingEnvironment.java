@@ -108,10 +108,12 @@ public class NamingEnvironment {
         while (true) {
             Set<String> scope = scopes.get(node);
 
-            if (scope != null && scope.contains(name)) {
-                return nodes;
-            } else if (scope != null) {
+            if (scope != null) {
                 nodes.add(node);
+
+                if (scope.contains(name)) {
+                    return nodes;
+                }
             }
 
             if (node.hasParent()) {

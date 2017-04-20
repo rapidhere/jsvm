@@ -5,6 +5,10 @@
  */
 package ranttu.rapid.jsvm.common;
 
+import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.codegen.CgNode;
+import ranttu.rapid.jsvm.codegen.ClassNode;
+
 import java.util.Optional;
 
 /**
@@ -103,5 +107,10 @@ final public class $$ {
     // string utils
     public static boolean isBlank(String s) {
         return s.trim().length() == 0;
+    }
+
+    // type helper
+    public static Type getType(ClassNode classNode) {
+        return Type.getType(CgNode.getDescriptor(classNode));
     }
 }

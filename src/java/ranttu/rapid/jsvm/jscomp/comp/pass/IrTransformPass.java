@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
@@ -69,7 +70,7 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         clazz
             .field(varName)
-            .acc(Opcodes.ACC_PRIVATE)
+            .acc(Opcodes.ACC_PROTECTED)
             .desc(Object.class);
 
         if(variableDeclarator.getInitExpression().isPresent()) {
@@ -93,24 +94,37 @@ public class IrTransformPass extends AstBasedCompilePass {
         // put the field
         clazz
             .field(function.getId().getName())
-            .acc(Opcodes.ACC_PRIVATE)
+            .acc(Opcodes.ACC_PROTECTED)
             .desc(Object.class);
 
-        String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
+        ClassNode outterCls = clazz;
+        String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, $$.getType(outterCls));
 
         in(funcCls).invoke(() -> {
+            // add $that field
+            clazz
+                .field("$that")
+                .acc(Opcodes.ACC_PROTECTED)
+                .desc(outterCls);
+
             // bind class
             context.namingEnv.bindScopeClass(function, clazz);
 
             // build init command
-            in(funcCls.method_init(Object.class)).invoke(() ->
+            in(funcCls.method_init(outterCls)).invoke(() ->
                 method
                     .par("$that")
                     .ir(
                         IrInvoke.invokeInit(
                             JsFunctionObject.class,
-                            constructorDesc,
-                            IrLoad.local("$that")
+                            Type.getMethodDescriptor(Type.VOID_TYPE)
+                        ),
+                        IrStore.field(
+                            IrThis.irthis(),
+                            "$that",
+                            IrLoad.local("$that"),
+                            clazz.$.name,
+                            CgNode.getDescriptor(outterCls)
                         ),
                         IrReturn.ret()
                     )
@@ -129,14 +143,16 @@ public class IrTransformPass extends AstBasedCompilePass {
                     Identifier par = function.getParams().get(i);
                     clazz
                         .field(par.getName())
-                        .acc(Opcodes.ACC_PRIVATE)
+                        .acc(Opcodes.ACC_PROTECTED)
                         .desc(Object.class);
 
                     // $fieldName = args[i]
-                    method.ir(IrStore.property(
+                    method.ir(IrStore.field(
                         IrThis.irthis(),
                         par.getName(),
-                        IrLoad.array(IrLoad.local("args"), i)
+                        IrLoad.array(IrLoad.local("args"), i),
+                        clazz.$.name,
+                        Type.getDescriptor(Object.class)
                     ));
                 }
 
@@ -208,13 +224,17 @@ public class IrTransformPass extends AstBasedCompilePass {
         List<Node> nodes = context.namingEnv.resolveJumped(identifier, identifier.getName());
 
         IrNode ctx = IrThis.irthis();
-        for(Node n: nodes) {
-            ClassNode cls = context.namingEnv.getScopeClass(n);
+        for(int i = 0;i < nodes.size() - 1;i ++) {
+            ClassNode cls = context.namingEnv.getScopeClass(nodes.get(i));
+            ClassNode nextCls = context.namingEnv.getScopeClass(nodes.get(i + 1));
 
-            ctx = IrLoad.field(ctx, "$that", cls.$.name, Type.getDescriptor(Object.class));
+            ctx = IrLoad.field(ctx, "$that", cls.$.name, CgNode.getDescriptor(nextCls));
         }
 
-        irNode = IrLoad.property(ctx, identifier.getName());
+        Node last = nodes.get(nodes.size() - 1);
+        ClassNode lastCls = context.namingEnv.getScopeClass(last);
+        irNode = IrLoad.field(ctx, identifier.getName(), lastCls.$.name,
+            Type.getDescriptor(Object.class));
     }
 
     @Override
@@ -294,6 +314,8 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         // store the result
         context.rootClassNode = cls;
+        // add naming binding
+        context.namingEnv.bindScopeClass(program, cls);
 
         in(cls).invoke(() -> {
             // add MODULE field

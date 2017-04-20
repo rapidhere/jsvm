@@ -23,3 +23,12 @@
     }
   parameters:
   expected: "hello world"
+
+- description: return local
+  jsSource: |
+    function func() {
+        var a = 1.2;
+        return a;
+    }
+  parameters:
+  expected: 1.2

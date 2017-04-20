@@ -9,6 +9,7 @@ import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.InvokeType;
+import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
@@ -167,5 +168,11 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         } else {
             method.ret();
         }
+    }
+
+    @Override
+    protected void visit(IrCast cast) {
+        visit(cast.from);
+        method.check_cast(cast.name);
     }
 }

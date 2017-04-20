@@ -12,19 +12,19 @@ package ranttu.rapid.jsvm;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    int a = 1;
+    protected int a;
 
-    TmpTest() {
-        invoke(() -> {
-            System.out.println(this.a);
-        });
+    class Inner {
+        Inner() {
+            System.out.println(a);
+        }
     }
 
-    public void invoke(Runnable runnable) {
-        runnable.run();
+    public TmpTest() {
+        new Inner();
     }
 
-    public void invoke(Object... args) {
-        System.out.println(args[1]);
+    public static void main(String args[]) {
+        new TmpTest();
     }
 }
