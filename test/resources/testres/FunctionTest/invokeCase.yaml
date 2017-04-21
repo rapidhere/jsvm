@@ -40,3 +40,18 @@
     }
     a = f1();
   expected: 1.44
+
+- description: invoke chaining
+  jsSource: |
+    var a;
+    function f1() {
+        return f2;
+    }
+    function f2() {
+        function f1() {
+            return "f2-f1";
+        }
+        return f1;
+    }
+    a = f1()()();
+  expected: "f2-f1"
