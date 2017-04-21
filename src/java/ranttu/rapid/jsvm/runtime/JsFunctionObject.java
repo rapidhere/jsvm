@@ -15,5 +15,17 @@ abstract public class JsFunctionObject extends JsObjectObject {
     /**
      * invoke the function object
      */
-    abstract public Object invoke(Object... args);
+    abstract public Object invoke(Object $this, Object... args);
+
+    /**
+     * construct the object
+     */
+    abstract public JsObjectObject construct(Object... args);
+
+
+    protected JsFunctionObject() {
+        JsObjectObject proto = new JsObjectObject();
+        proto.setProperty("constructor", this);
+        setProperty("prototype", proto);
+    }
 }

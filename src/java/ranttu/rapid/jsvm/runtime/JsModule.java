@@ -11,9 +11,12 @@ package ranttu.rapid.jsvm.runtime;
  * @author rapidhere@gmail.com
  * @version $id: JsModule.java, v0.1 2017/4/6 dongwei.dq Exp $
  */
-abstract public class JsModule {
+abstract public class JsModule extends JsRuntime {
     /** the module instance field name */
     public static final String FIELD_MODULE_NAME = "module";
+
+    // ~~~ added js runtime public things
+    protected final JsFunctionObject Object = JsRuntime.Object;
 
     /** cannot create directly */
     protected JsModule() {}
