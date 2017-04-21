@@ -8,6 +8,8 @@ package ranttu.rapid.jsvm.codegen.ir;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.MethodConst;
 
+import java.util.List;
+
 /**
  * @author rapidhere@gmail.com
  * @version $id: IrInvoke.java, v0.1 2017/4/18 dongwei.dq Exp $
@@ -37,7 +39,19 @@ public class IrInvoke extends IrNode {
     }
 
     public static IrInvoke invokeInit(Class clazz) {
-        return invokeInit(clazz,
-            Type.getMethodDescriptor(Type.VOID_TYPE));
+        return invokeInit(clazz, Type.getMethodDescriptor(Type.VOID_TYPE));
+    }
+
+    public static IrInvoke funcCall(IrNode invoker, IrNode... args) {
+        return new IrInvoke(InvokeType.JS_FUNC_CALL, invoker, null, null, args);
+    }
+
+    public static IrInvoke funcCall(IrNode invoker, List<IrNode> args) {
+        IrNode[] t = new IrNode[args.size()];
+        for (int i = 0; i < args.size(); i++) {
+            t[i] = args.get(i);
+        }
+
+        return funcCall(invoker, t);
     }
 }

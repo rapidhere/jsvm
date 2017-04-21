@@ -21,6 +21,7 @@ import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
@@ -39,6 +40,7 @@ import ranttu.rapid.jsvm.runtime.JsNumberObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +55,15 @@ public class IrTransformPass extends AstBasedCompilePass {
     private IrNode visitIr(Node node) {
         visit(node);
         return irNode;
+    }
+
+    @Override
+    protected void visit(CallExpression call) {
+        IrNode callee = visitIr(call.getCallee());
+        List<IrNode> args = new ArrayList<>();
+        call.getArguments().forEach((arg) -> args.add(visitIr(arg)));
+
+        irNode = IrInvoke.funcCall(callee, args);
     }
 
     @Override
@@ -161,13 +172,15 @@ public class IrTransformPass extends AstBasedCompilePass {
         });
 
         // load the function
-        irNode = IrStore.property(
+        irNode = IrStore.field(
             IrThis.irthis(),
             function.getId().getName(),
             IrNew.of(
                 funcCls.$.name,
                 constructorDesc,
-                IrThis.irthis())
+                IrThis.irthis()),
+            clazz.$.name,
+            Type.getDescriptor(Object.class)
         );
     }
 

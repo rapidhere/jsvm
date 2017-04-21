@@ -8,7 +8,6 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.InvokeType;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
@@ -54,16 +53,31 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrInvoke invoke) {
-        $$.shouldIn(invoke.type, InvokeType.SPECIAL);
+        switch (invoke.type) {
+            case SPECIAL:
+                // TODO
+                String invokeType = $$.cast($$.cast(invoke.invoker, IrLiteral.class).value);
+                String invokeName = $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value);
+                method.aload("this");
+                for (IrNode ir: invoke.args) {
+                    visit(ir);
+                }
+                method.invoke_special(invokeType, invokeName, invoke.desc);
+                break;
+            case JS_FUNC_CALL:
+                visit(invoke.invoker);
+                Class clazz[] = new Class[invoke.args.length];
 
-        // TODO
-        String invokeType = $$.cast($$.cast(invoke.invoker, IrLiteral.class).value);
-        String invokeName = $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value);
-        method.aload("this");
-        for (IrNode ir: invoke.args) {
-            visit(ir);
+                for(int i = 0;i < invoke.args.length;i ++) {
+                    clazz[i] = Object.class;
+                    visit(invoke.args[i]);
+                }
+
+                method.invoke_dynamic(JsIndyType.INVOKE, clazz);
+                break;
+            default:
+                $$.notSupport();
         }
-        method.invoke_special(invokeType, invokeName, invoke.desc);
     }
 
     @Override

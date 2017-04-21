@@ -42,4 +42,13 @@ public class FunctionTest extends JsvmJunitTestBase {
 
         assertEquals(jsValueOf(testData.expected), result);
     }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void invokeCase(FunctionTestData testData) {
+        JsModule module = loadModule("FunctionTest", testData.jsSource);
+
+        Object a = ReflectionUtil.getFieldValue(module, "a");
+        assertEquals(jsValueOf(testData.expected), a);
+    }
 }

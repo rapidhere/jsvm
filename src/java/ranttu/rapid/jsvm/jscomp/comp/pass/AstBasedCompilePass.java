@@ -5,9 +5,10 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
-import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.exp.NotSupportedYet;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
@@ -26,7 +27,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
  * @author rapidhere@gmail.com
  * @version $id: AstBasedCompilePass.java, v0.1 2017/4/19 dongwei.dq Exp $
  */
-abstract public class AstBasedCompilePass extends CompilePass{
+abstract public class AstBasedCompilePass extends CompilePass {
     @Override
     protected void start() {
         visit(context.ast.getRoot());
@@ -58,9 +59,16 @@ abstract public class AstBasedCompilePass extends CompilePass{
             visit((BlockStatement) node);
         } else if (node.is(Identifier.class)) {
             visit((Identifier) node);
+        } else if (node.is(CallExpression.class)) {
+            visit((CallExpression) node);
         } else {
-            $$.notSupport();
+            throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(CallExpression call) {
+        visit(call.getCallee());
+        call.getArguments().forEach(this::visit);
     }
 
     protected void visit(VariableDeclaration variableDeclaration) {
@@ -68,7 +76,7 @@ abstract public class AstBasedCompilePass extends CompilePass{
     }
 
     protected void visit(VariableDeclarator variableDeclarator) {
-        if(variableDeclarator.getInitExpression().isPresent()) {
+        if (variableDeclarator.getInitExpression().isPresent()) {
             visit(variableDeclarator.getInitExpression().get());
         }
     }
@@ -77,15 +85,18 @@ abstract public class AstBasedCompilePass extends CompilePass{
         visit(function.getBody());
     }
 
-    protected void visit(Literal literal) {}
+    protected void visit(Literal literal) {
+    }
 
-    protected void visit(ObjectExpression objExp) {}
+    protected void visit(ObjectExpression objExp) {
+    }
 
     protected void visit(ExpressionStatement statement) {
         visit(statement.getExpression());
     }
 
-    protected void visit(Identifier identifier) {}
+    protected void visit(Identifier identifier) {
+    }
 
     protected void visit(AssignmentExpression assignExp) {
         visit(assignExp.getLeft());

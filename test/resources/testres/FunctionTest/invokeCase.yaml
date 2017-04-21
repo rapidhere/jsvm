@@ -1,0 +1,42 @@
+- description: return 1
+  jsSource: |
+    var a;
+    function func() {
+        return 1;
+    }
+    a = func();
+  expected: 1
+
+- description: return b
+  jsSource: |
+    var a;
+    function func(b) {
+        return b;
+    }
+    a = func(1.1);
+  expected: 1.1
+
+- description: invoke internal
+  jsSource: |
+    var a;
+    function func() {
+        var b = "hello world";
+        function finner() {
+            return b;
+        }
+        return finner();
+    }
+    a = func();
+  expected: "hello world"
+
+- description: invoke outter
+  jsSource: |
+    var a;
+    function f1() {
+        return f2(1.44);
+    }
+    function f2(b) {
+        return b;
+    }
+    a = f1();
+  expected: 1.44

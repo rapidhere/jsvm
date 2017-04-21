@@ -12,9 +12,5 @@ package ranttu.rapid.jsvm.codegen.ir;
 public enum InvokeType {
     SPECIAL,
 
-    VIRTUAL,
-
-    STATIC,
-
-    INTERFACE
+    JS_FUNC_CALL
 }
