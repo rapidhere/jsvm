@@ -14,3 +14,10 @@
     a.a = 1;
   expected:
     a: 1
+
+- description: Object function
+  jsSource: |
+    var a = Object();
+    a.a = 1.1;
+  expected:
+    a: 1.1
