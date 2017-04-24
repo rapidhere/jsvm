@@ -4,6 +4,7 @@ import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
+import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
@@ -58,9 +59,14 @@ abstract public class IrBasedCompilePass extends CompilePass {
             visit((IrLiteral) irNode);
         } else if (irNode.is(IrCast.class)) {
             visit((IrCast) irNode);
+        } else if(irNode.is(IrDup.class)) {
+            visit((IrDup) irNode);
         } else {
             $$.notSupport();
         }
+    }
+
+    protected void visit(IrDup irDup) {
     }
 
     protected void visit(IrThis irThis) {

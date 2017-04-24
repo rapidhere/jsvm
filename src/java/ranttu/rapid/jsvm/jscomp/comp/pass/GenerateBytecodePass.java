@@ -9,6 +9,7 @@ import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
+import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
@@ -75,9 +76,23 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
                 method.invoke_dynamic(JsIndyType.INVOKE, clazz);
                 break;
+            case VIRTUAL:
+                visit(invoke.invoker);
+                method
+                    .invoke_virtual(
+                        invoke.className,
+                        $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value),
+                        invoke.desc);
+                break;
             default:
                 $$.notSupport();
         }
+    }
+
+    @Override
+    protected void visit(IrDup dup) {
+        visit(dup.duplicate);
+        method.dup();
     }
 
     @Override

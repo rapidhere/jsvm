@@ -22,10 +22,19 @@ abstract public class JsFunctionObject extends JsObjectObject {
      */
     abstract public JsObjectObject construct(Object... args);
 
+    public JsObjectObject construct() {
+        return construct(new Object[] {});
+    }
 
-    protected JsFunctionObject() {
+    /**
+     * make the object a callable function
+     */
+    final public void makeFunction() {
         JsObjectObject proto = new JsObjectObject();
         proto.setProperty("constructor", this);
         setProperty("prototype", proto);
+    }
+
+    protected JsFunctionObject() {
     }
 }

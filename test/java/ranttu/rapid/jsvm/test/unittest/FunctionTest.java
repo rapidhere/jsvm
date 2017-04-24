@@ -38,7 +38,7 @@ public class FunctionTest extends JsvmJunitTestBase {
             testData.parameters = new Object[0];
         }
 
-        Object result = func.invoke(testData.parameters);
+        Object result = func.invoke(null, testData.parameters);
 
         assertEquals(jsValueOf(testData.expected), result);
     }

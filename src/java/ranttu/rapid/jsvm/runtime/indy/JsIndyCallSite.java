@@ -88,6 +88,6 @@ public class JsIndyCallSite extends MutableCallSite {
     @SuppressWarnings("unused")
     public static Object invoke(Object invoker, Object... args) {
         // TODO
-        return $$.cast(invoker, JsFunctionObject.class).invoke(args);
+        return $$.cast(invoker, JsFunctionObject.class).invoke(null, args);
     }
 }

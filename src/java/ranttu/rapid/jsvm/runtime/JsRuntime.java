@@ -13,7 +13,7 @@ package ranttu.rapid.jsvm.runtime;
  */
 abstract public class JsRuntime {
     // ~~~ Object()
-    private static final class ObjectClass extends JsFunctionObject {
+    protected static final class ObjectClass extends JsFunctionObject {
         @Override
         public Object invoke(Object $this, Object... args) {
             if(args.length == 0) {
@@ -23,6 +23,7 @@ abstract public class JsRuntime {
             }
         }
 
+        @Override
         public JsObjectObject construct(Object... args) {
             JsFunctionObject obj = new ObjectClass();
             if(args.length > 0) {
@@ -34,4 +35,9 @@ abstract public class JsRuntime {
         }
     }
     public static final JsFunctionObject Object = new ObjectClass();
+
+    // ~~~ make functions here
+    static {
+        Object.makeFunction();
+    }
 }

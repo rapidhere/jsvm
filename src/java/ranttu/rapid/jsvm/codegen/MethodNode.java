@@ -172,6 +172,12 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode invoke_virtual(String invokeName, String name, String desc) {
+        $.instructions
+            .add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, invokeName, name, desc, false));
+        return this;
+    }
+
     public MethodNode check_cast(ClassNode cls) {
         return check_cast(cls.$.name);
     }

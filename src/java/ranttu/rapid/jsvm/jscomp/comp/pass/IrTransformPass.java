@@ -10,6 +10,8 @@ import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
+import ranttu.rapid.jsvm.codegen.ir.IrCast;
+import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
@@ -37,7 +39,7 @@ import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsNumberObject;
-import ranttu.rapid.jsvm.runtime.JsObjectObject;
+import ranttu.rapid.jsvm.runtime.JsRuntime;
 import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.util.ArrayList;
@@ -145,8 +147,9 @@ public class IrTransformPass extends AstBasedCompilePass {
             in(funcCls.method("invoke")).invoke(() -> {
                 method
                     .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
-                    .desc(Object.class, Object[].class)
+                    .desc(Object.class, Object.class, Object[].class)
                     .par("this")
+                    .par("$this")
                     .par("args");
 
                 // put args into field
@@ -175,10 +178,14 @@ public class IrTransformPass extends AstBasedCompilePass {
         irNode = IrStore.field(
             IrThis.irthis(),
             function.getId().getName(),
-            IrNew.of(
+            IrInvoke.makeFunc(
                 funcCls.$.name,
-                constructorDesc,
-                IrThis.irthis()),
+                IrDup.dup(
+                    IrNew.of(
+                        funcCls.$.name,
+                        constructorDesc,
+                        IrThis.irthis()))
+            ),
             clazz.$.name,
             Type.getDescriptor(Object.class)
         );
@@ -208,33 +215,35 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(ObjectExpression objExp) {
-        ClassNode objClass = clazz.inner_class("Object", JsObjectObject.class, Opcodes.ACC_PRIVATE,
-            Opcodes.ACC_SUPER);
-
         // load init method
-        in(objClass).in(objClass.method_init()).invoke(() -> {
-            method.ir(IrInvoke.invokeInit(JsObjectObject.class));
+        IrNode ret = IrInvoke.construct(
+            Type.getInternalName(JsRuntime.Object.getClass()),
+            IrCast.of(
+                visitName("Object", objExp),
+                Type.getInternalName(JsRuntime.Object.getClass())
+            ));
 
-            for (Property prop : objExp.getProperties()) {
-                String fieldName = prop.getKeyString();
+        for (Property prop: objExp.getProperties()) {
+            String fieldName = prop.getKeyString();
 
-                method.ir(IrStore.property(
-                        IrThis.irthis(),
-                        fieldName,
-                        visitIr(prop.getValue())));
-            }
-
-            // end init method
-            method.ir(IrReturn.ret());
-        });
+            ret = IrStore.property(
+                IrDup.dup(ret),
+                fieldName,
+                visitIr(prop.getValue())
+            );
+        }
 
         // load inner class
-        irNode = IrNew.of(objClass.$.name);
+        irNode = ret;
     }
 
     @Override
     protected void visit(Identifier identifier) {
-        List<Node> nodes = context.namingEnv.resolveJumped(identifier, identifier.getName());
+        irNode = visitName(identifier.getName(), identifier);
+    }
+
+    private IrNode visitName(String name, Node node) {
+        List<Node> nodes = context.namingEnv.resolveJumped(node, name);
 
         IrNode ctx = IrThis.irthis();
         for(int i = 0;i < nodes.size() - 1;i ++) {
@@ -246,7 +255,7 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         Node last = nodes.get(nodes.size() - 1);
         ClassNode lastCls = context.namingEnv.getScopeClass(last);
-        irNode = IrLoad.field(ctx, identifier.getName(), lastCls.$.name,
+        return IrLoad.field(ctx, name, lastCls.$.name,
             Type.getDescriptor(Object.class));
     }
 

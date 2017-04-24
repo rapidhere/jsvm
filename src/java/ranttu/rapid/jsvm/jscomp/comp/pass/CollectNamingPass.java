@@ -28,6 +28,9 @@ public class CollectNamingPass extends AstBasedCompilePass {
     @Override
     protected void visit(Program program) {
         env.newScope(program);
+        // add runtime
+        env.addVarBinding(program, "Object");
+
         super.visit(program);
     }
 
