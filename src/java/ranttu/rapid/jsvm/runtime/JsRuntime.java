@@ -16,7 +16,7 @@ abstract public class JsRuntime {
     protected static final class ObjectClass extends JsFunctionObject {
         @Override
         public Object invoke(Object $this, Object... args) {
-            if(args.length == 0) {
+            if (args.length == 0) {
                 return construct();
             } else {
                 return args[1];
@@ -26,7 +26,7 @@ abstract public class JsRuntime {
         @Override
         public JsObjectObject construct(Object... args) {
             JsFunctionObject obj = new ObjectClass();
-            if(args.length > 0) {
+            if (args.length > 0) {
                 invoke(obj, args);
             }
             obj.setProperty("__proto__", getProperty("prototype"));
@@ -36,8 +36,28 @@ abstract public class JsRuntime {
     }
     public static final JsFunctionObject Object = new ObjectClass();
 
+    // ~~~ Function()
+    // NOTE: not for directly usage
+    protected static final class FunctionClass extends JsFunctionObject {
+        @Override
+        public Object invoke(Object $this, Object... args) {
+            throw new RuntimeException("not supported");
+        }
+
+        @Override
+        public JsObjectObject construct(Object... args) {
+            throw new RuntimeException("not supported");
+        }
+    }
+    public static final JsFunctionObject Function = new FunctionClass();
+
     // ~~~ make functions here
     static {
         Object.makeFunction();
+
+        Function.makeFunction();
+        // Function.prototype.__proto__ = Object.prototype
+        ((JsObjectObject) Function.getProperty("prototype")).setProperty("__proto__",
+            Object.getProperty("prototype"));
     }
 }

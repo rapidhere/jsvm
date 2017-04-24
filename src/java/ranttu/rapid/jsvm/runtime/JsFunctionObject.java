@@ -32,7 +32,9 @@ abstract public class JsFunctionObject extends JsObjectObject {
     final public void makeFunction() {
         JsObjectObject proto = new JsObjectObject();
         proto.setProperty("constructor", this);
+
         setProperty("prototype", proto);
+        setProperty("__proto__", JsRuntime.Function.getProperty("prototype"));
     }
 
     protected JsFunctionObject() {
