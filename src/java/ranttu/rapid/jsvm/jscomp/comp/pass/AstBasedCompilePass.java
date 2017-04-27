@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
@@ -64,9 +65,15 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit((CallExpression) node);
         } else if (node.is(ThisExpression.class)) {
             visit(node.as(ThisExpression.class));
+        } else if (node.is(FunctionExpression.class)) {
+            visit(node.as(FunctionExpression.class));
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(FunctionExpression functionExpression) {
+        visit(functionExpression.getBody());
     }
 
     protected void visit(ThisExpression thisExp) {
@@ -96,6 +103,10 @@ abstract public class AstBasedCompilePass extends CompilePass {
     }
 
     protected void visit(ObjectExpression objExp) {
+        objExp.getProperties().forEach((property) -> {
+            visit(property.getKey());
+            visit(property.getValue());
+        });
     }
 
     protected void visit(ExpressionStatement statement) {

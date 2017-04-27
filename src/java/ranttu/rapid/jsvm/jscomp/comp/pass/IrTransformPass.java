@@ -10,7 +10,6 @@ import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrBlock;
-import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
@@ -24,7 +23,9 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
@@ -111,12 +112,28 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     @Override
+    protected void visit(FunctionExpression function) {
+        irNode = onFunction(function);
+    }
+
+    @Override
     protected void visit(FunctionDeclaration function) {
+        clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED)
+            .desc(Object.class);
+
+        IrNode funcIr = onFunction(function);
+
+        // store the function
+        irNode = IrStore.field(
+            IrThis.irthis(),
+            function.getId().getName(),
+            funcIr,
+            clazz.$.name, Type.getDescriptor(Object.class));
+    }
+
+    private IrNode onFunction(Function function) {
         ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class,
             Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
-
-        // put the field
-        clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         ClassNode outterCls = clazz;
         String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, $$.getType(outterCls));
@@ -158,13 +175,9 @@ public class IrTransformPass extends AstBasedCompilePass {
                 });
         });
 
-        // load the function
-        irNode = IrStore.field(
-            IrThis.irthis(),
-            function.getId().getName(),
-            IrInvoke.makeFunc(funcCls.$.name,
-                IrDup.dup(IrNew.of(funcCls.$.name, constructorDesc, IrThis.irthis()))),
-            clazz.$.name, Type.getDescriptor(Object.class));
+        // load function Object
+        return IrInvoke.makeFunc(funcCls.$.name,
+            IrDup.dup(IrNew.of(funcCls.$.name, constructorDesc, IrThis.irthis())));
     }
 
     @Override
@@ -190,11 +203,9 @@ public class IrTransformPass extends AstBasedCompilePass {
     protected void visit(ObjectExpression objExp) {
         // load init method
         IrNode ret = IrInvoke.construct(
-            Type.getInternalName(JsRuntime.Object.getClass()),
-            IrCast.of(
-                IrLoad.staticField(JsRuntime.class, "Object",
-                    Type.getDescriptor(JsFunctionObject.class)),
-                Type.getInternalName(JsRuntime.Object.getClass())));
+            Type.getInternalName(JsFunctionObject.class),
+            IrLoad.staticField(JsRuntime.class, "Object",
+                Type.getDescriptor(JsFunctionObject.class)));
 
         for (Property prop : objExp.getProperties()) {
             String fieldName = prop.getKeyString();

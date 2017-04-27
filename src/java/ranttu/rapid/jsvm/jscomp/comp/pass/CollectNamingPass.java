@@ -5,7 +5,9 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
@@ -50,6 +52,17 @@ public class CollectNamingPass extends AstBasedCompilePass {
             env.addVarBinding(fun, par.getName());
         }
 
+        super.visit(fun);
+    }
+
+    @Override
+    protected void visit(FunctionExpression fun) {
+        $$.should(! fun.getId().isPresent());
+        env.newScope(fun);
+
+        for(Identifier par: fun.getParams()) {
+            env.addVarBinding(fun, par.getName());
+        }
         super.visit(fun);
     }
 }

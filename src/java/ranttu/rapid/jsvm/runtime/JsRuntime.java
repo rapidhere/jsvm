@@ -19,7 +19,7 @@ abstract public class JsRuntime {
             if (args.length == 0) {
                 return construct();
             } else {
-                return args[1];
+                return args[0];
             }
         }
 

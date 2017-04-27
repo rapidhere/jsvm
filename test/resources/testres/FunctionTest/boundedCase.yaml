@@ -47,3 +47,28 @@
     }
     var a = func("hello world").f();
   expected: "hello world"
+
+- description: bounded func-exp
+  jsSource: |
+    var obj = {
+        f: function() {
+            return this.o.val;
+        },
+        o: {
+            val: 1.01
+        }
+    };
+    var a = obj.f();
+  expected: 1.01
+
+- description: bounded and unbounded
+  jsSource: |
+    var obj = {
+        f: function() {
+            return this.val;
+        },
+        val: 2
+    };
+    var val = 1, ff = obj.f,
+        a = ff();
+  expected: 1

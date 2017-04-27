@@ -60,4 +60,19 @@ public class FunctionTest extends JsvmJunitTestBase {
         Object a = ReflectionUtil.getFieldValue(module, "a");
         assertEquals(jsValueOf(testData.expected), a);
     }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void functionExpCase(FunctionTestData testData) {
+        JsModule module = loadModule("FunctionExpressionTest", testData.jsSource);
+
+        JsFunctionObject func = ReflectionUtil.getFieldValue(module, "func");
+        if(testData.parameters == null) {
+            testData.parameters = new Object[0];
+        }
+
+        Object result = func.invoke(null, testData.parameters);
+
+        assertEquals(jsValueOf(testData.expected), result);
+    }
 }

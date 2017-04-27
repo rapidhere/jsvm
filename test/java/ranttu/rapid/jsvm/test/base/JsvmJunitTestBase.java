@@ -131,6 +131,7 @@ abstract public class JsvmJunitTestBase extends Assert {
     // ~~~ data provider
     protected static class BaseCaseData {
         public String description;
+        public boolean skip = false;
 
         public String toString() {
             return description;
@@ -149,11 +150,11 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         List<List<Object>> result = new ArrayList<>();
 
-        for (BaseCaseData d : data) {
+        data.stream().filter(d -> !d.skip).forEach(d -> {
             ArrayList l = new ArrayList();
             l.add(d);
             result.add(l);
-        }
+        });
 
         return result;
     }

@@ -1,0 +1,39 @@
+- description: return 1
+  jsSource: |
+    var func = function () {
+        return 1;
+    };
+  parameters:
+  expected: 1
+
+- description: return a
+  jsSource: |
+    var func = function(a) {
+        return a;
+    };
+  parameters:
+    - 1.1
+  expected: 1.1
+
+- description: return outter a
+  jsSource: |
+    var a = "hello world",
+        func = function(b) {
+            return a;
+        };
+  parameters:
+    - 1.2
+  expected: 'hello world'
+
+- description: nested
+  jsSource: |
+    var func = function() {
+       var f = function() {
+           var obj = Object();
+           obj.val = 2;
+           return Object(obj);
+       };
+       return f().val;
+    };
+  parameters:
+  expected: 2
