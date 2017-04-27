@@ -7,6 +7,7 @@ package ranttu.rapid.jsvm.jscomp.ast.asttype;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ArrayExpression;
@@ -264,6 +265,14 @@ public interface Node {
     // ~~~ type helpers
     default boolean is(Class<? extends Node> clazz) {
         return clazz.isAssignableFrom(getClass());
+    }
+
+    default <T extends Node> T as(Class<T> clazz) {
+        return $$.cast(this, clazz);
+    }
+
+    default <T extends Node> T as() {
+        return $$.cast(this);
     }
 
     // ~~~ es tree types

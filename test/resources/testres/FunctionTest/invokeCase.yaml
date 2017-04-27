@@ -55,3 +55,22 @@
     }
     a = f1()()();
   expected: "f2-f1"
+
+
+- description: return object
+  jsSource: |
+    function func() {
+        return {val: 1}
+    }
+    var a = func().val;
+  expected: 1
+
+- description: return object-construct
+  jsSource: |
+    function func() {
+        var obj = Object();
+        obj.val = 1.2;
+        return obj;
+    }
+    var a = func().val;
+  expected: 1.2

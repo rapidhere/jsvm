@@ -13,6 +13,6 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
  */
 public class NoSuchName extends CompileError {
     public NoSuchName(Node node, String id) {
-        super(node, "no such name in: " + id);
+        super(node, "no such name `" + id + "` in: " + node);
     }
 }

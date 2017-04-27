@@ -1,0 +1,49 @@
+- description: return 1
+  jsSource: |
+    function func() {
+        return 1;
+    }
+    var obj = {
+       f: func
+    };
+    var a = obj.f();
+  expected: 1
+
+- description: return bounded a
+  jsSource: |
+    function func() {
+        return this.a;
+    }
+    var obj = {
+        f: func,
+        a: 1.1
+    };
+    var a = obj.f();
+  expected: 1.1
+
+- description: return unbounded a
+  jsSource: |
+    function func(a) {
+        return a;
+    }
+    var obj = {
+        f: func,
+        a: 1.1
+    };
+    var a = obj.f(1.2);
+  expected: 1.2
+
+- description: inner bound
+  jsSource: |
+    function func(a) {
+        function innerFunc() {
+            return this.prop
+        }
+
+        return {
+            prop: a,
+            f: innerFunc
+        };
+    }
+    var a = func("hello world").f();
+  expected: "hello world"

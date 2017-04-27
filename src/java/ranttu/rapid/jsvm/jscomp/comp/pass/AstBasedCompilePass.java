@@ -17,6 +17,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
@@ -61,9 +62,15 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit((Identifier) node);
         } else if (node.is(CallExpression.class)) {
             visit((CallExpression) node);
+        } else if (node.is(ThisExpression.class)) {
+            visit(node.as(ThisExpression.class));
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(ThisExpression thisExp) {
+
     }
 
     protected void visit(CallExpression call) {

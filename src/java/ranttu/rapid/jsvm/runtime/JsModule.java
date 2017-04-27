@@ -16,7 +16,11 @@ abstract public class JsModule extends JsRuntime {
     public static final String FIELD_MODULE_NAME = "module";
 
     // ~~~ added js runtime public things
-    protected final Object Object = JsRuntime.Object;
+    // NOTE:
+    //    Temp put these field as public field for non-module inner class access
+    public final Object Object = JsRuntime.Object;
+
+    public final Object Function = JsRuntime.Function;
 
     /** cannot create directly */
     protected JsModule() {}

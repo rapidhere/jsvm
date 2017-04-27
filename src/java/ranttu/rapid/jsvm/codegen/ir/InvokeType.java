@@ -13,5 +13,6 @@ public enum InvokeType {
     SPECIAL,
     VIRTUAL,
 
-    JS_FUNC_CALL,
+    UNBOUNDED_FUNC_CALL,
+    BOUNDED_FUNC_CALL
 }

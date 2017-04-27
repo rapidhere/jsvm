@@ -80,9 +80,12 @@ public class ClassNode extends
         String innerClsName = innerName + num;
 
         ClassNode cls = new ClassNode().name($.name + "$" + innerClsName, superName).acc(acces);
+        cls.parent = this;
         innerClasses.put(cls.$.name, cls);
-        $.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
-        cls.$.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
+
+        for(ClassNode it = cls;it != null;it = it.parent) {
+            it.$.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
+        }
 
         return cls;
     }

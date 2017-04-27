@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
+import jdk.internal.org.objectweb.asm.Type;
+
 /**
  * load instruction
  *
@@ -13,12 +15,12 @@ package ranttu.rapid.jsvm.codegen.ir;
  */
 public class IrLoad extends IrNode {
     public FieldType type;
-    public IrNode context;
-    public IrNode key;
+    public IrNode    context;
+    public IrNode    key;
 
     // for get_field instruction only
-    public String className;
-    public String desc;
+    public String    className;
+    public String    desc;
 
     public IrLoad(FieldType type, IrNode context, IrNode key) {
         this.type = type;
@@ -39,6 +41,13 @@ public class IrLoad extends IrNode {
         ir.className = className;
         ir.desc = desc;
         return ir;
+    }
+
+    public static IrLoad staticField(Class clazz, String fieldName, String desc) {
+        IrLoad load = new IrLoad(FieldType.STATIC_FIELD, IrLiteral.of(Type.getInternalName(clazz)),
+            IrLiteral.of(fieldName));
+        load.desc = desc;
+        return load;
     }
 
     public static IrLoad array(IrNode context, int idx) {

@@ -154,15 +154,9 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode invoke_dynamic(JsIndyType indyType) {
-        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(),
-            MethodConst.INDY_JSOBJ_FACTORY));
-        return this;
-    }
-
-    public MethodNode invoke_dynamic(JsIndyType indyType, Class...clazz) {
-        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(clazz),
-            MethodConst.INDY_JSOBJ_FACTORY));
+    public MethodNode invoke_dynamic(JsIndyType indyType, Class... clazz) {
+        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType
+            .getDescriptor(clazz), MethodConst.INDY_JSOBJ_FACTORY));
         return this;
     }
 
@@ -205,6 +199,11 @@ public class MethodNode
 
     public MethodNode load(String className, String name, String desc) {
         $.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, className, name, desc));
+        return this;
+    }
+
+    public MethodNode load_static(String className, String name, String desc) {
+        $.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, className, name, desc));
         return this;
     }
 

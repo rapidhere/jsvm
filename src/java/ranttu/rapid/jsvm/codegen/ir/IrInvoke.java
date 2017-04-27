@@ -44,17 +44,30 @@ public class IrInvoke extends IrNode {
         return invokeInit(clazz, Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
-    public static IrInvoke funcCall(IrNode invoker, IrNode... args) {
-        return new IrInvoke(InvokeType.JS_FUNC_CALL, invoker, null, null, args);
+    public static IrInvoke unboundedInvoke(IrNode invoker, IrNode... args) {
+        return new IrInvoke(InvokeType.UNBOUNDED_FUNC_CALL, invoker, null, null, args);
     }
 
-    public static IrInvoke funcCall(IrNode invoker, List<IrNode> args) {
+    public static IrInvoke unboundedInvoke(IrNode invoker, List<IrNode> args) {
         IrNode[] t = new IrNode[args.size()];
         for (int i = 0; i < args.size(); i++) {
             t[i] = args.get(i);
         }
 
-        return funcCall(invoker, t);
+        return unboundedInvoke(invoker, t);
+    }
+
+    public static IrInvoke boundedInvoke(IrNode invoker, IrNode invokeName, IrNode... args) {
+        return new IrInvoke(InvokeType.BOUNDED_FUNC_CALL, invoker, invokeName, null, args);
+    }
+
+    public static IrInvoke boundedInvoke(IrNode invoker, IrNode invokeName, List<IrNode> args) {
+        IrNode[] t = new IrNode[args.size()];
+        for (int i = 0; i < args.size(); i++) {
+            t[i] = args.get(i);
+        }
+
+        return boundedInvoke(invoker, invokeName, t);
     }
 
     public static IrInvoke makeFunc(String className, IrNode funcObj) {
@@ -63,10 +76,7 @@ public class IrInvoke extends IrNode {
     }
 
     public static IrInvoke construct(String className, IrNode funcObj) {
-        return invokeVirtual(
-            funcObj,
-            className,
-            "construct",
+        return invokeVirtual(funcObj, className, "construct",
             Type.getMethodDescriptor(Type.getType(JsObjectObject.class)));
     }
 

@@ -27,6 +27,7 @@ public class JsIndyCallSite extends MutableCallSite {
     private static MethodHandle SET_PROP;
     private static MethodHandle GET_PROP;
     private static MethodHandle INVOKE;
+    private static MethodHandle BOUNDED_INVOKE;
 
     static {
         try {
@@ -39,7 +40,13 @@ public class JsIndyCallSite extends MutableCallSite {
             INVOKE = MethodHandles
                 .lookup()
                 .findStatic(JsIndyCallSite.class, "invoke",
-                    MethodType.methodType(Object.class, Object.class, Object[].class))
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
+                .asVarargsCollector(Object[].class);
+
+            BOUNDED_INVOKE = MethodHandles
+                .lookup()
+                .findStatic(JsIndyCallSite.class, "boundedInvoke",
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
                 .asVarargsCollector(Object[].class);
         } catch (NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
@@ -59,8 +66,11 @@ public class JsIndyCallSite extends MutableCallSite {
             case GET_PROP:
                 setTarget(GET_PROP);
                 break;
-            case INVOKE:
+            case UNBOUNDED_INVOKE:
                 setTarget(INVOKE.asType(type()));
+                break;
+            case BOUNDED_INVOKE:
+                setTarget(BOUNDED_INVOKE.asType(type()));
                 break;
         }
     }
@@ -86,8 +96,15 @@ public class JsIndyCallSite extends MutableCallSite {
     }
 
     @SuppressWarnings("unused")
-    public static Object invoke(Object invoker, Object... args) {
+    public static Object invoke(Object invoker, Object context, Object... args) {
         // TODO
-        return $$.cast(invoker, JsFunctionObject.class).invoke(null, args);
+        return $$.cast(invoker, JsFunctionObject.class).invoke(context, args);
+    }
+
+    @SuppressWarnings("unused")
+    public static Object boundedInvoke(Object context, Object name, Object... args) {
+        // TODO
+        Object invoker = getProperty(context, name.toString());
+        return invoke(invoker, context, args);
     }
 }

@@ -8,6 +8,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
+import ranttu.rapid.jsvm.codegen.ir.InvokeType;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
@@ -65,16 +66,26 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 }
                 method.invoke_special(invokeType, invokeName, invoke.desc);
                 break;
-            case JS_FUNC_CALL:
+            case UNBOUNDED_FUNC_CALL:
+            case BOUNDED_FUNC_CALL:
                 visit(invoke.invoker);
-                Class clazz[] = new Class[invoke.args.length];
+                if(invoke.type == InvokeType.BOUNDED_FUNC_CALL) {
+                    visit(invoke.invokeName);
+                } else {
+                    method.aload("this");
+                }
 
+                Class clazz[] = new Class[invoke.args.length];
                 for(int i = 0;i < invoke.args.length;i ++) {
                     clazz[i] = Object.class;
                     visit(invoke.args[i]);
                 }
 
-                method.invoke_dynamic(JsIndyType.INVOKE, clazz);
+                if(invoke.type == InvokeType.BOUNDED_FUNC_CALL) {
+                    method.invoke_dynamic(JsIndyType.BOUNDED_INVOKE, clazz);
+                } else {
+                    method.invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, clazz);
+                }
                 break;
             case VIRTUAL:
                 visit(invoke.invoker);
@@ -119,6 +130,13 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 method
                     .load_const(idx)
                     .aaload();
+                break;
+            case STATIC_FIELD:
+                method
+                    .load_static(
+                        $$.cast($$.cast(irl.context, IrLiteral.class).value),
+                        $$.cast($$.cast(irl.key, IrLiteral.class).value),
+                        irl.desc);
                 break;
             default:
                 $$.notSupport();

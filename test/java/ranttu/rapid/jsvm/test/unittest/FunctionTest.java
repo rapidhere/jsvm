@@ -51,4 +51,13 @@ public class FunctionTest extends JsvmJunitTestBase {
         Object a = ReflectionUtil.getFieldValue(module, "a");
         assertEquals(jsValueOf(testData.expected), a);
     }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void boundedCase(FunctionTestData testData) {
+        JsModule module = loadModule("BoundedFunctionTest", testData.jsSource);
+
+        Object a = ReflectionUtil.getFieldValue(module, "a");
+        assertEquals(jsValueOf(testData.expected), a);
+    }
 }

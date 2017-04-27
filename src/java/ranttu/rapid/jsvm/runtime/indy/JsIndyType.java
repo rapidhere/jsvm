@@ -13,25 +13,25 @@ public enum JsIndyType {
 
     GET_PROP(Object.class, Object.class, String.class),
 
-    INVOKE(Object.class, Object[].class),
-    ;
+    // ret, invoker, name
+    BOUNDED_INVOKE(Object.class, Object.class, Object.class),
 
-    private String desc;
-    private Class retType;
+    // ret, invoker, context
+    UNBOUNDED_INVOKE(Object.class, Object.class, Object.class);
 
-    JsIndyType(Class retType, Class...parsType) {
-        desc = Type.getMethodDescriptor(retType, parsType);
+    private Class   retType;
+    private Class[] parsType;
+
+    JsIndyType(Class retType, Class... parsType) {
         this.retType = retType;
+        this.parsType = parsType;
     }
 
-    public String getDescriptor() {
-        return desc;
-    }
 
-    public String getDescriptor(Class...clazz) {
-        Class[] pars = new Class[clazz.length + 1];
-        pars[0] = Object.class;
-        System.arraycopy(clazz, 0, pars, 1, clazz.length);
+    public String getDescriptor(Class... clazz) {
+        Class[] pars = new Class[clazz.length + parsType.length];
+        System.arraycopy(parsType, 0, pars, 0, parsType.length);
+        System.arraycopy(clazz, 0, pars, parsType.length, clazz.length);
         return Type.getMethodDescriptor(retType, pars);
     }
 }

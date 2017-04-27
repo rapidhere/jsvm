@@ -30,6 +30,7 @@ public class CollectNamingPass extends AstBasedCompilePass {
         env.newScope(program);
         // add runtime
         env.addVarBinding(program, "Object");
+        env.addVarBinding(program, "Function");
 
         super.visit(program);
     }
