@@ -9,40 +9,12 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.ir.IrBlock;
-import ranttu.rapid.jsvm.codegen.ir.IrDup;
-import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
-import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
-import ranttu.rapid.jsvm.codegen.ir.IrLoad;
-import ranttu.rapid.jsvm.codegen.ir.IrNew;
-import ranttu.rapid.jsvm.codegen.ir.IrNode;
-import ranttu.rapid.jsvm.codegen.ir.IrReturn;
-import ranttu.rapid.jsvm.codegen.ir.IrStore;
-import ranttu.rapid.jsvm.codegen.ir.IrThis;
+import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
-import ranttu.rapid.jsvm.runtime.JsFunctionObject;
-import ranttu.rapid.jsvm.runtime.JsModule;
-import ranttu.rapid.jsvm.runtime.JsNumberObject;
-import ranttu.rapid.jsvm.runtime.JsRuntime;
-import ranttu.rapid.jsvm.runtime.JsStringObject;
+import ranttu.rapid.jsvm.runtime.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +31,25 @@ public class IrTransformPass extends AstBasedCompilePass {
     private IrNode visitIr(Node node) {
         visit(node);
         return irNode;
+    }
+
+    @Override
+    protected void visit(BinaryExpression binExp) {
+        IrNode left = visitIr(binExp.getLeft()),
+                right = visitIr(binExp.getRight());
+
+        switch (binExp.getOperator()) {
+            case INSTANCE_OF:
+                irNode = IrInvoke.invokeVirtual(
+                        IrCast.of(left, Type.getInternalName(JsObjectObject.class)),
+                        Type.getInternalName(JsObjectObject.class),
+                        "instanceOf",
+                        Type.getMethodDescriptor(Type.getType(Boolean.class), Type.getType(Object.class)),
+                        right);
+                break;
+            default:
+                $$.notSupport();
+        }
     }
 
     @Override

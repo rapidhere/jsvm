@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.runtime;
 
+import ranttu.rapid.jsvm.common.$$;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,5 +29,24 @@ public class JsObjectObject {
 
     public boolean hasProperty(String name) {
         return properties.containsKey(name);
+    }
+
+    public Boolean instanceOf(Object obj) {
+        Object prototype = $$.cast(obj, JsObjectObject.class).getProperty("prototype");
+
+        if(prototype == null) {
+            return false;
+        }
+
+        JsObjectObject curProto = $$.cast(getProperty("__proto__"));
+
+        while(curProto != null) {
+            if(curProto == prototype) {
+                return true;
+            }
+            curProto = $$.cast(curProto.getProperty("__proto__"));
+        }
+
+        return false;
     }
 }

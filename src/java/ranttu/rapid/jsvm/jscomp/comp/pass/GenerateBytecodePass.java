@@ -89,6 +89,9 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 break;
             case VIRTUAL:
                 visit(invoke.invoker);
+                for(IrNode ir: invoke.args) {
+                    visit(ir);
+                }
                 method
                     .invoke_virtual(
                         invoke.className,

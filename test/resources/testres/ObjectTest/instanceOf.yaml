@@ -1,10 +1,36 @@
 - description: Object instance
   jsSource: |
-    return {} instanceof Object
+    return {} instanceof Object;
   expected: true
 
 - description: Function instance
   jsSource: |
-    function f() {}
-    return f instanceof Function
+    function f() { return 1; }
+    return f instanceof Function;
+  expected: true
+
+- description: Function instance2
+  jsSource: |
+    function f() { return 1; }
+    return f instanceof Object;
+  expected: true
+
+- description: Object native1
+  jsSource: |
+    return Object instanceof Object;
+  expected: true
+
+- description: Object native2
+  jsSource: |
+    return Object instanceof Function;
+  expected: true
+
+- description: Function native1
+  jsSource: |
+    return Function instanceof Object;
+  expected: true
+
+- description: Function native2
+  jsSource: |
+    return Function instanceof Function;
   expected: true

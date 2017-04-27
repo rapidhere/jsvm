@@ -25,7 +25,7 @@ abstract public class JsRuntime {
 
         @Override
         public JsObjectObject construct(Object... args) {
-            JsFunctionObject obj = new ObjectClass();
+            JsObjectObject obj = new JsObjectObject();
             if (args.length > 0) {
                 invoke(obj, args);
             }
@@ -53,11 +53,12 @@ abstract public class JsRuntime {
 
     // ~~~ make functions here
     static {
-        Object.makeFunction();
-
+        //~~~ must construct Function first
         Function.makeFunction();
+
+        Object.makeFunction();
         // Function.prototype.__proto__ = Object.prototype
         ((JsObjectObject) Function.getProperty("prototype")).setProperty("__proto__",
-            Object.getProperty("prototype"));
+                Object.getProperty("prototype"));
     }
 }
