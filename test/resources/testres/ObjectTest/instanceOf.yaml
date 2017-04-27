@@ -1,0 +1,10 @@
+- description: Object instance
+  jsSource: |
+    return {} instanceof Object
+  expected: true
+
+- description: Function instance
+  jsSource: |
+    function f() {}
+    return f instanceof Function
+  expected: true
