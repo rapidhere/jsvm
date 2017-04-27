@@ -21,3 +21,19 @@
     a.a = 1.1;
   expected:
     a: 1.1
+
+- description: nested expression
+  jsSource: |
+    var obj = {
+        a: {
+          val: 1
+        },
+        b: {
+          a: {
+             val: 2
+          }
+        }
+    };
+    var a = obj.b.a;
+  expected:
+    val: 2
