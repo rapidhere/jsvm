@@ -61,4 +61,9 @@
     }
     Func.prototype.f = function() {
         return this.val;
-    }
+    };
+
+    var a = new Func();
+    return a.f();
+  expected:
+    some: 'thing'
