@@ -20,10 +20,11 @@ abstract public class JsFunctionObject extends JsObjectObject {
     /**
      * construct the object
      */
-    abstract public JsObjectObject construct(Object... args);
-
-    public JsObjectObject construct() {
-        return construct(new Object[] {});
+    public JsObjectObject construct(Object... args) {
+        JsObjectObject obj = JsRuntime.Object.construct();
+        invoke(obj, args);
+        obj.setProperty("__proto__", getProperty("prototype"));
+        return obj;
     }
 
     /**
@@ -32,6 +33,7 @@ abstract public class JsFunctionObject extends JsObjectObject {
     final public void makeFunction() {
         JsObjectObject proto = new JsObjectObject();
         proto.setProperty("constructor", this);
+        proto.setProperty("__proto__", JsRuntime.Object.getProperty("prototype"));
 
         setProperty("prototype", proto);
         setProperty("__proto__", JsRuntime.Function.getProperty("prototype"));

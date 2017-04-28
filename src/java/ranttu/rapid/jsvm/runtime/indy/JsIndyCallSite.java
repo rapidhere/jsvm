@@ -28,6 +28,7 @@ public class JsIndyCallSite extends MutableCallSite {
     private static MethodHandle GET_PROP;
     private static MethodHandle INVOKE;
     private static MethodHandle BOUNDED_INVOKE;
+    private static MethodHandle CONSTRUCT;
 
     static {
         try {
@@ -48,6 +49,11 @@ public class JsIndyCallSite extends MutableCallSite {
                 .findStatic(JsIndyCallSite.class, "boundedInvoke",
                     MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
                 .asVarargsCollector(Object[].class);
+
+            CONSTRUCT = MethodHandles
+                .lookup()
+                .findStatic(JsIndyCallSite.class, "construct",
+                    MethodType.methodType(Object.class, Object.class, Object[].class));
         } catch (NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -71,6 +77,9 @@ public class JsIndyCallSite extends MutableCallSite {
                 break;
             case BOUNDED_INVOKE:
                 setTarget(BOUNDED_INVOKE.asType(type()));
+                break;
+            case CONSTRUCT:
+                setTarget(CONSTRUCT.asType(type()));
                 break;
         }
     }
@@ -106,5 +115,11 @@ public class JsIndyCallSite extends MutableCallSite {
         // TODO
         Object invoker = getProperty(context, name.toString());
         return invoke(invoker, context, args);
+    }
+
+    @SuppressWarnings("unused")
+    public static Object construct(Object invoker, Object...args) {
+        JsFunctionObject func = $$.cast(invoker);
+        return func.construct(args);
     }
 }

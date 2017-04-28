@@ -55,6 +55,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrInvoke invoke) {
+        Class clazz[];
         switch (invoke.type) {
             case SPECIAL:
                 // TODO
@@ -75,7 +76,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                     method.aload("this");
                 }
 
-                Class clazz[] = new Class[invoke.args.length];
+                clazz = new Class[invoke.args.length];
                 for(int i = 0;i < invoke.args.length;i ++) {
                     clazz[i] = Object.class;
                     visit(invoke.args[i]);
@@ -97,6 +98,16 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                         invoke.className,
                         $$.cast($$.cast(invoke.invokeName, IrLiteral.class).value),
                         invoke.desc);
+                break;
+            case CONSTRUCT:
+                visit(invoke.invoker);
+                clazz = new Class[invoke.args.length];
+                for(int i = 0;i < invoke.args.length;i ++) {
+                    clazz[i] = Object.class;
+                    visit(invoke.args[i]);
+                }
+
+                method.invoke_dynamic(JsIndyType.CONSTRUCT, clazz);
                 break;
             default:
                 $$.notSupport();

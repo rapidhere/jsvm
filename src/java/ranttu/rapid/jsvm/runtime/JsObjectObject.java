@@ -20,15 +20,21 @@ public class JsObjectObject {
     protected Map<String, Object> properties = new HashMap<>();
 
     public Object getProperty(String name) {
-        return properties.get(name);
+        if(properties.containsKey(name)) {
+            return properties.get(name);
+        } else {
+            JsObjectObject proto = $$.cast(properties.get("__proto__"));
+
+            if(proto != null) {
+                return proto.getProperty(name);
+            }
+        }
+
+        return null;
     }
 
     public void setProperty(String name, Object val) {
         properties.put(name, val);
-    }
-
-    public boolean hasProperty(String name) {
-        return properties.containsKey(name);
     }
 
     public Boolean instanceOf(Object obj) {

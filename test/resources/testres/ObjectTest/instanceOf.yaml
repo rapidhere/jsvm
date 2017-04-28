@@ -34,3 +34,46 @@
   jsSource: |
     return Function instanceof Function;
   expected: true
+
+- description: new Object 1
+  jsSource: |
+    function f() { return 1; }
+    var obj = new f();
+    return obj instanceof f;
+  expected: true
+
+- description: new Object 2
+  jsSource: |
+    function f() { return 1; }
+    var obj = new f();
+    return obj instanceof Function;
+  expected: false
+
+- description: new Object 3
+  jsSource: |
+    function f() { return 1; }
+    var obj = new f();
+    return obj instanceof Object;
+  expected: true
+
+- description: prototype 1
+  jsSource: |
+    return Object.prototype instanceof Object;
+  expected: false
+
+- description: prototype 2
+  jsSource: |
+    return Function.prototype instanceof Function;
+  expected: false
+
+- description: prototype 3
+  jsSource: |
+    function f() { return 1; }
+    return f.prototype instanceof Function;
+  expected: false
+
+- description: prototype 4
+  jsSource: |
+    function f() { return 1; }
+    return f.prototype instanceof Object;
+  expected: true

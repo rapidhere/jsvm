@@ -17,7 +17,10 @@ public enum JsIndyType {
     BOUNDED_INVOKE(Object.class, Object.class, Object.class),
 
     // ret, invoker, context
-    UNBOUNDED_INVOKE(Object.class, Object.class, Object.class);
+    UNBOUNDED_INVOKE(Object.class, Object.class, Object.class),
+
+    CONSTRUCT(Object.class, Object.class)
+    ;
 
     private Class   retType;
     private Class[] parsType;

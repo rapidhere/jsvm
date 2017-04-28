@@ -6,7 +6,23 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.exp.NotSupportedYet;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 /**
@@ -47,6 +63,8 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit((BlockStatement) node);
         } else if (node.is(Identifier.class)) {
             visit((Identifier) node);
+        } else if(node.is(NewExpression.class)) {
+            visit(node.as(NewExpression.class));
         } else if (node.is(CallExpression.class)) {
             visit((CallExpression) node);
         } else if (node.is(ThisExpression.class)) {
@@ -58,6 +76,11 @@ abstract public class AstBasedCompilePass extends CompilePass {
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(NewExpression newExp) {
+        visit(newExp.getCallee());
+        newExp.getArguments().forEach(this::visit);
     }
 
     protected void visit(BinaryExpression binaryExpression) {

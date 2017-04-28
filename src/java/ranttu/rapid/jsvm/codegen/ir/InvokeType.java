@@ -14,5 +14,7 @@ public enum InvokeType {
     VIRTUAL,
 
     UNBOUNDED_FUNC_CALL,
-    BOUNDED_FUNC_CALL
+    BOUNDED_FUNC_CALL,
+
+    CONSTRUCT
 }

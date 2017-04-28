@@ -7,7 +7,6 @@ package ranttu.rapid.jsvm.codegen.ir;
 
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.MethodConst;
-import ranttu.rapid.jsvm.runtime.JsObjectObject;
 
 import java.util.List;
 
@@ -75,9 +74,8 @@ public class IrInvoke extends IrNode {
             Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
-    public static IrInvoke construct(String className, IrNode funcObj) {
-        return invokeVirtual(funcObj, className, "construct",
-            Type.getMethodDescriptor(Type.getType(JsObjectObject.class)));
+    public static IrInvoke construct(IrNode invoker, IrNode...args) {
+        return new IrInvoke(InvokeType.CONSTRUCT, invoker, null, null, args);
     }
 
     public static IrInvoke invokeVirtual(IrNode invoker, String className, String name,

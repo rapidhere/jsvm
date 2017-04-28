@@ -53,12 +53,16 @@ abstract public class JsRuntime {
 
     // ~~~ make functions here
     static {
-        //~~~ must construct Function first
-        Function.makeFunction();
+        JsObjectObject objProto = new JsObjectObject();
+        JsObjectObject funcProto = new JsObjectObject();
 
-        Object.makeFunction();
-        // Function.prototype.__proto__ = Object.prototype
-        ((JsObjectObject) Function.getProperty("prototype")).setProperty("__proto__",
-                Object.getProperty("prototype"));
+        objProto.setProperty("constructor", Object);
+        Object.setProperty("prototype", objProto);
+        Object.setProperty("__proto__", funcProto);
+
+        funcProto.setProperty("__proto__", objProto);
+        funcProto.setProperty("constructor", Function);
+        Function.setProperty("prototype", funcProto);
+        Function.setProperty("__proto__", funcProto);
     }
 }

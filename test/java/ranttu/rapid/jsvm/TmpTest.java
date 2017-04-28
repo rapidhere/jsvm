@@ -11,19 +11,13 @@ package ranttu.rapid.jsvm;
  * @author rapidhere@gmail.com
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
-public class TmpTest extends Base{
+public class TmpTest {
     protected int a;
-    public TmpTest() {}
-
-    private class Inner {
-        private class InnerInner {
-            InnerInner() {
-                System.out.println(b);
-            }
-        }
+    public TmpTest() {
+        f(1, 2, 3);
     }
-}
 
-class Base {
-    protected int b;
+    public void f(Object...args) {
+
+    }
 }

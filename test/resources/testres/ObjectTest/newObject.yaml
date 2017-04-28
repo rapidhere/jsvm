@@ -1,0 +1,64 @@
+- description: new Object
+  jsSource: |
+    var a = new Object();
+    a.val = 1.1;
+    a.inof = (a instanceof Object);
+    return a;
+  expected:
+    val: 1.1
+    inof: true
+
+- description: new Func
+  jsSource: |
+    function Func() {
+        this.val = 1.1
+        return 0;
+    }
+    var a = new Func();
+    a.inof = a instanceof Func;
+    return a;
+  expected:
+    val: 1.1
+    inof: true
+
+- description: new with args
+  jsSource: |
+    function Func(a, b) {
+        this.valA = a;
+        this.valB = b;
+        return 0;
+    }
+    var a = new Func('hello', 'world');
+    a.inof = a instanceof Object;
+    return a;
+  expected:
+    valA: hello
+    valB: world
+    inof: true
+
+- description: new with prototype
+  jsSource: |
+    function Func(a, b) {
+        this.valA = a;
+        this.valB = b;
+        return 0;
+    }
+    Func.prototype.common = 1.1;
+    var a = new Func(1, 2, 1.1);
+    return a;
+  expected:
+    valA: 1
+    valB: 2
+    common: 1.1
+
+- description: new with func
+  jsSource: |
+    function Func() {
+        this.val = {
+          some: 'thing'
+        };
+        return 0;
+    }
+    Func.prototype.f = function() {
+        return this.val;
+    }
