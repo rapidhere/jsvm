@@ -179,6 +179,10 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                         Type.getMethodDescriptor(Type.getType(Double.class), Type.DOUBLE_TYPE)
                     );
                 break;
+            case BOOLEAN:
+                method.load_static(Type.getInternalName(Boolean.class),
+                    literal.getBoolean() ? "TRUE" : "FALSE", Type.getDescriptor(Boolean.class));
+                break;
             default:
                 $$.notSupport();
         }

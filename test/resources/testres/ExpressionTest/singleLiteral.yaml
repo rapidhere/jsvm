@@ -14,11 +14,10 @@
   jsSource: var a = "hello world!";
   expected: "hello world!"
 
-# TODO: not support yet
-#- description: boolean_true
-#  jsSource: var a = true;
-#  expected: true
-#
-#- description: boolean_false
-#  jsSource: var a = false;
-#  expected: false
+- description: boolean_true
+  jsSource: var a = true;
+  expected: true
+
+- description: boolean_false
+  jsSource: var a = false;
+  expected: false

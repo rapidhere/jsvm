@@ -1,6 +1,5 @@
 package ranttu.rapid.jsvm.codegen.ir;
 
-
 import ranttu.rapid.jsvm.common.$$;
 
 /**
@@ -11,7 +10,7 @@ import ranttu.rapid.jsvm.common.$$;
  */
 public class IrLiteral extends IrNode {
     public LiteralType type;
-    public Object value;
+    public Object      value;
 
     public IrLiteral(LiteralType type, Object obj) {
         this.type = type;
@@ -30,6 +29,10 @@ public class IrLiteral extends IrNode {
         return new IrLiteral(LiteralType.DOUBLE, d);
     }
 
+    public static IrLiteral of(boolean b) {
+        return new IrLiteral(LiteralType.BOOLEAN, b);
+    }
+
     public String getString() {
         return $$.cast(value);
     }
@@ -39,6 +42,10 @@ public class IrLiteral extends IrNode {
     }
 
     public double getDouble() {
+        return $$.cast(value);
+    }
+
+    public boolean getBoolean() {
         return $$.cast(value);
     }
 }

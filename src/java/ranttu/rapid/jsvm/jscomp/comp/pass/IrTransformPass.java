@@ -219,6 +219,8 @@ public class IrTransformPass extends AstBasedCompilePass {
             irNode = IrLiteral.of(literal.getString());
         } else if (literal.isDouble()) {
             irNode = IrLiteral.of(literal.getDouble());
+        } else if(literal.isBoolean()) {
+            irNode = IrLiteral.of(literal.getBoolean());
         } else {
             irNode = $$.notSupport();
         }
