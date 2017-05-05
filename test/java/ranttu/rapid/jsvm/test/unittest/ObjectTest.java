@@ -52,7 +52,7 @@ public class ObjectTest extends JsvmJunitTestBase {
             return;
         }
         for (String key : expected.keySet()) {
-            Object value = jsValueOf(expected.get(key));
+            Object value = expected.get(key);
             assertEquals("property: " + key, value, object.getProperty(key));
         }
     }

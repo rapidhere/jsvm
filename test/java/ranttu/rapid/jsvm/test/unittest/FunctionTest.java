@@ -40,7 +40,7 @@ public class FunctionTest extends JsvmJunitTestBase {
 
         Object result = func.invoke(null, testData.parameters);
 
-        assertEquals(jsValueOf(testData.expected), result);
+        assertEquals(testData.expected, result);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class FunctionTest extends JsvmJunitTestBase {
         JsModule module = loadModule("FunctionTest", testData.jsSource);
 
         Object a = ReflectionUtil.getFieldValue(module, "a");
-        assertEquals(jsValueOf(testData.expected), a);
+        assertEquals(testData.expected, a);
     }
 
     @Test
@@ -58,7 +58,7 @@ public class FunctionTest extends JsvmJunitTestBase {
         JsModule module = loadModule("BoundedFunctionTest", testData.jsSource);
 
         Object a = ReflectionUtil.getFieldValue(module, "a");
-        assertEquals(jsValueOf(testData.expected), a);
+        assertEquals(testData.expected, a);
     }
 
     @Test
@@ -73,6 +73,6 @@ public class FunctionTest extends JsvmJunitTestBase {
 
         Object result = func.invoke(null, testData.parameters);
 
-        assertEquals(jsValueOf(testData.expected), result);
+        assertEquals(testData.expected, result);
     }
 }

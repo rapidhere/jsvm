@@ -154,6 +154,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode invoke_static(String className, String name, String desc) {
+        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, className, name, desc, false));
+        return this;
+    }
+
     public MethodNode invoke_dynamic(JsIndyType indyType, Class... clazz) {
         $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType
             .getDescriptor(clazz), MethodConst.INDY_JSOBJ_FACTORY));

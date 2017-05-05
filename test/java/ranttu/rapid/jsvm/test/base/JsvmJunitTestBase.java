@@ -19,8 +19,6 @@ import ranttu.rapid.jsvm.jscomp.comp.Compiler;
 import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
 import ranttu.rapid.jsvm.jscomp.parser.Parser;
 import ranttu.rapid.jsvm.runtime.JsModule;
-import ranttu.rapid.jsvm.runtime.JsNumberObject;
-import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -166,15 +164,5 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         return clazz.getClassLoader().getResourceAsStream(
             "testres/" + className + "/" + methodName + ".yaml");
-    }
-
-    protected static Object jsValueOf(Object v) {
-        if (v instanceof Number) {
-            return new JsNumberObject($$.cast(v));
-        } else if (v instanceof String) {
-            return new JsStringObject($$.cast(v));
-        } else {
-            return v;
-        }
     }
 }

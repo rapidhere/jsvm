@@ -3,7 +3,7 @@
  * Copyright (c) 1995-2017 All Rights Reserved.
  * ===> GLORY TO THE FIRST BORN! <===
  */
-package ranttu.rapid.jsvm;
+package ranttu.rapid.jsvm.test;
 
 /**
  * ONLY FOR OUTLINE-USAGE
@@ -12,12 +12,15 @@ package ranttu.rapid.jsvm;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest {
-    protected int a;
     public TmpTest() {
-        f(1, 2, 3);
+        if (f(0)) {
+            f(1);
+        } else {
+            f(2);
+        }
     }
 
-    public void f(Object...args) {
-
+    public boolean f(Object o) {
+        return Boolean.valueOf(o.toString());
     }
 }

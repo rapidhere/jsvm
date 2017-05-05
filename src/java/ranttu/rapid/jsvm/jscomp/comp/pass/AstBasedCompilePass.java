@@ -14,6 +14,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
@@ -63,7 +64,7 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit((BlockStatement) node);
         } else if (node.is(Identifier.class)) {
             visit((Identifier) node);
-        } else if(node.is(NewExpression.class)) {
+        } else if (node.is(NewExpression.class)) {
             visit(node.as(NewExpression.class));
         } else if (node.is(CallExpression.class)) {
             visit((CallExpression) node);
@@ -73,8 +74,18 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit(node.as(FunctionExpression.class));
         } else if (node.is(BinaryExpression.class)) {
             visit(node.as(BinaryExpression.class));
+        } else if (node.is(IfStatement.class)) {
+            visit(node.as(IfStatement.class));
         } else {
             throw new NotSupportedYet(node);
+        }
+    }
+
+    protected void visit(IfStatement ifs) {
+        visit(ifs.getTest());
+        visit(ifs.getConsequent());
+        if (ifs.getAlternate().isPresent()) {
+            visit(ifs.getAlternate().get());
         }
     }
 

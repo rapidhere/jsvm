@@ -43,10 +43,8 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
-import ranttu.rapid.jsvm.runtime.JsNumberObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsRuntime;
-import ranttu.rapid.jsvm.runtime.JsStringObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -216,17 +214,11 @@ public class IrTransformPass extends AstBasedCompilePass {
     @Override
     protected void visit(Literal literal) {
         if (literal.isInt()) {
-            irNode = IrNew.of(JsNumberObject.class,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE),
-                IrLiteral.of(literal.getInt()));
+            irNode = IrLiteral.of(literal.getInt());
         } else if (literal.isString()) {
-            irNode = IrNew.of(JsStringObject.class,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)),
-                IrLiteral.of(literal.getString()));
+            irNode = IrLiteral.of(literal.getString());
         } else if (literal.isDouble()) {
-            irNode = IrNew.of(JsNumberObject.class,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.DOUBLE_TYPE),
-                IrLiteral.of(literal.getDouble()));
+            irNode = IrLiteral.of(literal.getDouble());
         } else {
             irNode = $$.notSupport();
         }

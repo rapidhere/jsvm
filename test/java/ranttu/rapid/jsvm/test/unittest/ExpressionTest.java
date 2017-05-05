@@ -37,7 +37,7 @@ public class ExpressionTest extends JsvmJunitTestBase {
         JsModule module = loadModule(clsName, testData.jsSource);
 
         assertEquals(clsName, module.getClass().getSimpleName());
-        assertEquals(jsValueOf(testData.expected), ReflectionUtil.getFieldValue(module, "a"));
+        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class ExpressionTest extends JsvmJunitTestBase {
             return;
         }
         for (String key : expected.keySet()) {
-            Object value = jsValueOf(expected.get(key));
+            Object value = expected.get(key);
             assertEquals("property: " + key, value, object.getProperty(key));
         }
     }
@@ -62,7 +62,7 @@ public class ExpressionTest extends JsvmJunitTestBase {
         String clsName = "AssignmentExpressionTest";
         JsModule module = loadModule(clsName, testData.jsSource);
 
-        assertEquals(jsValueOf(testData.expected), ReflectionUtil.getFieldValue(module, "a"));
+        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
     }
 
     // ~~~ not working yet
