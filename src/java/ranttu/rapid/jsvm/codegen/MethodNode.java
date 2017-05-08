@@ -17,7 +17,6 @@ import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.ParameterNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
-import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
@@ -26,6 +25,7 @@ import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +41,7 @@ public class MethodNode
     private Map<String, LocalVariableNode> locals     = new HashMap<>();
     private Map<String, ParameterNode>     parameters = new HashMap<>();
 
-    private IrBlock                        root       = IrBlock.of();
+    private List<IrNode>                   irNodes    = new ArrayList<>();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -77,12 +77,12 @@ public class MethodNode
         return this;
     }
 
-    public IrBlock ir() {
-        return root;
+    public List<IrNode> ir() {
+        return irNodes;
     }
 
     public MethodNode ir(IrNode... ir) {
-        Collections.addAll(this.root.irs, ir);
+        Collections.addAll(this.irNodes, ir);
         return this;
     }
 
@@ -159,9 +159,20 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode invoke_dynamic(JsIndyType indyType, Class... clazz) {
+    public MethodNode invoke_dynamic(JsIndyType indyType, int numberOfArgs) {
+        Class[] extraArgs = new Class[numberOfArgs];
+        for (int i = 0; i < numberOfArgs; i++) {
+            extraArgs[i] = Object.class;
+        }
+
         $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType
-            .getDescriptor(clazz), MethodConst.INDY_JSOBJ_FACTORY));
+            .getDescriptor(extraArgs), MethodConst.INDY_JSOBJ_FACTORY));
+        return this;
+    }
+
+    public MethodNode invoke_dynamic(JsIndyType indyType) {
+        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(),
+            MethodConst.INDY_JSOBJ_FACTORY));
         return this;
     }
 
@@ -191,9 +202,8 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode store_static(FieldNode field) {
-        $.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, parent.$.name, field.$.name,
-            field.$.desc));
+    public MethodNode store_static(String className, String name, String desc) {
+        $.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, className, name, desc));
         return this;
     }
 

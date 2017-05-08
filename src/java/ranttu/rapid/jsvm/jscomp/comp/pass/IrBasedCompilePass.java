@@ -2,7 +2,6 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
@@ -37,13 +36,11 @@ abstract public class IrBasedCompilePass extends CompilePass {
     }
 
     protected void visit(MethodNode methodNode) {
-        in(methodNode).invoke(() -> visit(methodNode.ir()));
+        in(methodNode).invoke(() -> methodNode.ir().forEach(this::visit));
     }
 
     protected void visit(IrNode irNode) {
-        if (irNode.is(IrBlock.class)) {
-            visit((IrBlock) irNode);
-        } else if (irNode.is(IrReturn.class)) {
+        if (irNode.is(IrReturn.class)) {
             visit((IrReturn) irNode);
         } else if (irNode.is(IrNew.class)) {
             visit((IrNew) irNode);
@@ -72,10 +69,6 @@ abstract public class IrBasedCompilePass extends CompilePass {
     protected void visit(IrThis irThis) {
     }
 
-    protected void visit(IrBlock block) {
-        block.irs.forEach(this::visit);
-    }
-
     protected void visit(IrNew irNew) {
     }
 
@@ -92,9 +85,6 @@ abstract public class IrBasedCompilePass extends CompilePass {
     }
 
     protected void visit(IrReturn irReturn) {
-        if (irReturn.exp.isPresent()) {
-            visit(irReturn.exp.get());
-        }
     }
 
     protected void visit(IrCast cast) {

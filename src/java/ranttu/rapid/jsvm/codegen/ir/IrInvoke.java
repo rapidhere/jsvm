@@ -7,8 +7,7 @@ package ranttu.rapid.jsvm.codegen.ir;
 
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.MethodConst;
-
-import java.util.List;
+import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 
 /**
  * @author rapidhere@gmail.com
@@ -16,72 +15,60 @@ import java.util.List;
  */
 public class IrInvoke extends IrNode {
     public InvokeType type;
-    public IrNode     invoker;
-    public IrNode     invokeName;
 
-    public String     className;
+    // for bounded/unbounded/construct invoke only
+    public int        numberOfArgs;
+
+    // for java invoke only
+    public String     invokeeName;
     public String     desc;
-    public IrNode[]   args;
+    public String     className;
 
-    public IrInvoke(InvokeType type, IrNode invoker, IrNode invokeName, String desc, IrNode... args) {
-        this.type = type;
-        this.invoker = invoker;
-        this.invokeName = invokeName;
-        this.desc = desc;
-        this.args = args;
+    public static IrInvoke invokeInit(String className, String desc) {
+        IrInvoke irInvoke = new IrInvoke();
+        irInvoke.type = InvokeType.SPECIAL;
+        irInvoke.invokeeName = MethodConst.INIT;
+        irInvoke.desc = desc;
+        irInvoke.className = className;
+
+        return irInvoke;
     }
 
-    public static IrInvoke invokeInit(IrNode invoker, String desc, IrNode... args) {
-        return new IrInvoke(InvokeType.SPECIAL, invoker, IrLiteral.of(MethodConst.INIT), desc, args);
+    public static IrInvoke unboundedInvoke(int numberOfArgs) {
+        IrInvoke irInvoke = new IrInvoke();
+        irInvoke.type = InvokeType.UNBOUNDED_FUNC_CALL;
+        irInvoke.numberOfArgs = numberOfArgs;
+
+        return irInvoke;
     }
 
-    public static IrInvoke invokeInit(Class clazz, String desc, IrNode... args) {
-        return invokeInit(IrLiteral.of(Type.getInternalName(clazz)), desc, args);
+    public static IrInvoke boundedInvoke(int numberOfArgs) {
+        IrInvoke irInvoke = new IrInvoke();
+        irInvoke.type = InvokeType.BOUNDED_FUNC_CALL;
+        irInvoke.numberOfArgs = numberOfArgs;
+
+        return irInvoke;
     }
 
-    public static IrInvoke invokeInit(Class clazz) {
-        return invokeInit(clazz, Type.getMethodDescriptor(Type.VOID_TYPE));
-    }
-
-    public static IrInvoke unboundedInvoke(IrNode invoker, IrNode... args) {
-        return new IrInvoke(InvokeType.UNBOUNDED_FUNC_CALL, invoker, null, null, args);
-    }
-
-    public static IrInvoke unboundedInvoke(IrNode invoker, List<IrNode> args) {
-        IrNode[] t = new IrNode[args.size()];
-        for (int i = 0; i < args.size(); i++) {
-            t[i] = args.get(i);
-        }
-
-        return unboundedInvoke(invoker, t);
-    }
-
-    public static IrInvoke boundedInvoke(IrNode invoker, IrNode invokeName, IrNode... args) {
-        return new IrInvoke(InvokeType.BOUNDED_FUNC_CALL, invoker, invokeName, null, args);
-    }
-
-    public static IrInvoke boundedInvoke(IrNode invoker, IrNode invokeName, List<IrNode> args) {
-        IrNode[] t = new IrNode[args.size()];
-        for (int i = 0; i < args.size(); i++) {
-            t[i] = args.get(i);
-        }
-
-        return boundedInvoke(invoker, invokeName, t);
-    }
-
-    public static IrInvoke makeFunc(String className, IrNode funcObj) {
-        return invokeVirtual(funcObj, className, "makeFunction",
+    public static IrInvoke makeFunc() {
+        return invokeVirtual(Type.getInternalName(JsFunctionObject.class), "makeFunction",
             Type.getMethodDescriptor(Type.VOID_TYPE));
     }
 
-    public static IrInvoke construct(IrNode invoker, IrNode...args) {
-        return new IrInvoke(InvokeType.CONSTRUCT, invoker, null, null, args);
+    public static IrInvoke construct(int numberOfArgs) {
+        IrInvoke irInvoke = new IrInvoke();
+        irInvoke.type = InvokeType.CONSTRUCT;
+        irInvoke.numberOfArgs = numberOfArgs;
+
+        return irInvoke;
     }
 
-    public static IrInvoke invokeVirtual(IrNode invoker, String className, String name,
-                                         String desc, IrNode... args) {
-        IrInvoke invoke = new IrInvoke(InvokeType.VIRTUAL, invoker, IrLiteral.of(name), desc, args);
+    public static IrInvoke invokeVirtual(String className, String name, String desc) {
+        IrInvoke invoke = new IrInvoke();
+        invoke.type = InvokeType.VIRTUAL;
         invoke.className = className;
+        invoke.invokeeName = name;
+        invoke.desc = desc;
 
         return invoke;
     }

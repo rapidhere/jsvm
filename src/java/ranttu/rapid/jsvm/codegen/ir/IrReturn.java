@@ -5,24 +5,20 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
-import java.util.Optional;
-
 /**
  * @author rapidhere@gmail.com
  * @version $id: IrReturn.java, v0.1 2017/4/18 dongwei.dq Exp $
  */
 public class IrReturn extends IrNode {
-    public Optional<IrNode> exp;
-
-    public IrReturn(IrNode exp) {
-        this.exp = Optional.ofNullable(exp);
-    }
+    public boolean hasReturnValue = false;
 
     public static IrReturn ret() {
-        return new IrReturn(null);
+        return new IrReturn();
     }
 
-    public static IrReturn ret(IrNode exp) {
-        return new IrReturn(exp);
+    public static IrReturn retWithValue() {
+        IrReturn irReturn = new IrReturn();
+        irReturn.hasReturnValue = true;
+        return irReturn;
     }
 }

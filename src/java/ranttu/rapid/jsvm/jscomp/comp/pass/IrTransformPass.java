@@ -9,7 +9,6 @@ import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.ir.IrBlock;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
@@ -23,7 +22,6 @@ import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
@@ -37,8 +35,8 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
@@ -46,7 +44,6 @@ import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.runtime.JsRuntime;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,36 +53,29 @@ import java.util.List;
  * @version $id: IrTransformPass.java, v0.1 2017/4/18 dongwei.dq Exp $
  */
 public class IrTransformPass extends AstBasedCompilePass {
-    private IrNode irNode;
-
-    private IrNode visitIr(Node node) {
-        visit(node);
-        return irNode;
+    private void ir(IrNode... irs) {
+        method.ir(irs);
     }
 
     @Override
     protected void visit(NewExpression newExp) {
-        IrNode[] args = new IrNode[newExp.getArguments().size()];
-        for(int i = 0;i < newExp.getArguments().size();i ++) {
-            args[i] = visitIr(newExp.getArguments().get(i));
-        }
-
-        irNode = IrInvoke.construct(visitIr(newExp.getCallee()), args);
+        super.visit(newExp);
+        ir(IrInvoke.construct(newExp.getArguments().size()));
     }
 
     @Override
     protected void visit(BinaryExpression binExp) {
-        IrNode left = visitIr(binExp.getLeft()),
-                right = visitIr(binExp.getRight());
-
         switch (binExp.getOperator()) {
             case INSTANCE_OF:
-                irNode = IrInvoke.invokeVirtual(
-                        IrCast.of(left, Type.getInternalName(JsObjectObject.class)),
-                        Type.getInternalName(JsObjectObject.class),
-                        "instanceOf",
-                        Type.getMethodDescriptor(Type.getType(Boolean.class), Type.getType(Object.class)),
-                        right);
+                visit(binExp.getLeft());
+                ir(IrCast.cast(JsObjectObject.class));
+                visit(binExp.getRight());
+
+                ir(IrInvoke.invokeVirtual(
+                    Type.getInternalName(JsObjectObject.class),
+                    "instanceOf",
+                    Type.getMethodDescriptor(Type.getType(Boolean.class), Type.getType(Object.class))
+                ));
                 break;
             default:
                 $$.notSupport();
@@ -94,38 +84,41 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(ThisExpression thisExp) {
-        irNode = IrLoad.local("$this");
+        ir(IrLoad.local("$this"));
     }
 
     @Override
     protected void visit(CallExpression call) {
-        List<IrNode> args = new ArrayList<>();
-        call.getArguments().forEach((arg) -> args.add(visitIr(arg)));
-
         // named invoke
         if (call.getCallee().is(MemberExpression.class)) {
             MemberExpression mem = call.getCallee().as();
-            IrNode context = visitIr(mem.getObject());
-            IrNode name = resolveProperty(mem.getProperty());
 
-            irNode = IrInvoke.boundedInvoke(context, name, args);
+            // visit invokee
+            visit(mem.getObject());
+
+            // put invoke name on the stack
+            resolvePropertyName(mem.getProperty());
+
+            // put args on the stack
+            call.getArguments().forEach(this::visit);
+
+            // bounded invoke
+            ir(IrInvoke.boundedInvoke(call.getArguments().size()));
         }
         // anonymous invoke
         else {
-            IrNode callee = visitIr(call.getCallee());
+            // visit invokee
+            visit(call.getCallee());
 
-            irNode = IrInvoke.unboundedInvoke(callee, args);
+            // put context
+            ir(IrThis.irthis());
+
+            // put args on the stack
+            call.getArguments().forEach(this::visit);
+
+            // unbounded invoke
+            ir(IrInvoke.unboundedInvoke(call.getArguments().size()));
         }
-    }
-
-    @Override
-    protected void visit(VariableDeclaration variableDeclaration) {
-        IrBlock ret = IrBlock.of();
-
-        variableDeclaration.getDeclarations().forEach(
-            (declarator) -> ret.irs.add(visitIr(declarator)));
-
-        irNode = ret;
     }
 
     @Override
@@ -135,34 +128,37 @@ public class IrTransformPass extends AstBasedCompilePass {
         clazz.field(varName).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         if (variableDeclarator.getInitExpression().isPresent()) {
-            irNode = IrStore.field(IrThis.irthis(), varName, visitIr(variableDeclarator
-                .getInitExpression().get()), clazz.$.name, clazz.field(varName).$.desc);
-        } else {
-            irNode = IrBlock.of();
+            // store to the context
+            ir(IrThis.irthis());
+            super.visit(variableDeclarator);
+            ir(IrStore.field(clazz.$.name, varName, clazz.field(varName).$.desc));
         }
     }
 
     @Override
     protected void visit(FunctionExpression function) {
-        irNode = onFunction(function);
+        onFunction(function);
     }
 
     @Override
     protected void visit(FunctionDeclaration function) {
-        clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED)
-            .desc(Object.class);
-
-        IrNode funcIr = onFunction(function);
+        clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         // store the function
-        irNode = IrStore.field(
-            IrThis.irthis(),
+        ir(IrThis.irthis());
+        onFunction(function);
+        ir(IrStore.field(
+            clazz.$.name,
             function.getId().getName(),
-            funcIr,
-            clazz.$.name, Type.getDescriptor(Object.class));
+            Type.getDescriptor(Object.class)
+        ));
     }
 
-    private IrNode onFunction(Function function) {
+    /**
+     * put a invokable function object on the stack
+     */
+    private void onFunction(Function function) {
+        // new function class
         ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class,
             Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
 
@@ -177,18 +173,32 @@ public class IrTransformPass extends AstBasedCompilePass {
             context.namingEnv.bindScopeClass(function, clazz);
 
             // build init command
-            in(funcCls.method_init(outterCls)).invoke(
-                () -> method.par("$that").ir(
-                    IrInvoke.invokeInit(JsFunctionObject.class,
-                        Type.getMethodDescriptor(Type.VOID_TYPE)),
-                    IrStore.field(IrThis.irthis(), "$that", IrLoad.local("$that"), clazz.$.name,
-                        CgNode.getDescriptor(outterCls)), IrReturn.ret()));
+            in(funcCls.method_init(outterCls)).invoke(() ->
+                // $that parameter
+                method.par("$that")
+                    .ir(
+                        // super class init
+                        IrThis.irthis(),
+                        IrInvoke.invokeInit(
+                            Type.getInternalName(JsFunctionObject.class),
+                            Type.getMethodDescriptor(Type.VOID_TYPE)),
+                        // store field $that
+                        IrThis.irthis(),
+                        IrLoad.local("$that"),
+                        IrStore.field(clazz.$.name, "$that", CgNode.getDescriptor(outterCls)),
+                        // ret
+                        IrReturn.ret()
+                    )
+
+            );
 
             // build invoke function
             in(funcCls.method("invoke")).invoke(
                 () -> {
                     method.acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
-                        .desc(Object.class, Object.class, Object[].class).par("this").par("$this")
+                        .desc(Object.class, Object.class, Object[].class)
+                        .par("this")
+                        .par("$this")
                         .par("args");
 
                     // put args into field
@@ -197,71 +207,97 @@ public class IrTransformPass extends AstBasedCompilePass {
                         clazz.field(par.getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
                         // $fieldName = args[i]
-                        method.ir(IrStore.field(IrThis.irthis(), par.getName(),
-                            IrLoad.array(IrLoad.local("args"), i), clazz.$.name,
-                            Type.getDescriptor(Object.class)));
+                        ir(
+                            IrThis.irthis(),
+                            IrLoad.local("args"),
+                            IrLoad.array(i),
+                            IrStore.field(clazz.$.name, par.getName(), Type.getDescriptor(Object.class))
+                        );
                     }
 
-                    method.ir(visitIr(function.getBody()));
+                    // compile body
+                    visit(function.getBody());
                 });
         });
 
-        // load function Object
-        return IrInvoke.makeFunc(funcCls.$.name,
-            IrDup.dup(IrNew.of(funcCls.$.name, constructorDesc, IrThis.irthis())));
+        // create function object and call makeFunction
+        ir(
+            IrNew.newObject(funcCls.$.name),
+            IrDup.dup(),
+            IrThis.irthis(),
+            IrInvoke.invokeInit(funcCls.$.name, constructorDesc),
+            IrDup.dup(),
+            IrInvoke.makeFunc()
+        );
     }
 
     @Override
     protected void visit(Literal literal) {
         if (literal.isInt()) {
-            irNode = IrLiteral.of(literal.getInt());
+            ir(IrLiteral.of(literal.getInt()));
         } else if (literal.isString()) {
-            irNode = IrLiteral.of(literal.getString());
+            ir(IrLiteral.of(literal.getString()));
         } else if (literal.isDouble()) {
-            irNode = IrLiteral.of(literal.getDouble());
-        } else if(literal.isBoolean()) {
-            irNode = IrLiteral.of(literal.getBoolean());
+            ir(IrLiteral.of(literal.getDouble()));
+        } else if (literal.isBoolean()) {
+            ir(IrLiteral.of(literal.getBoolean()));
         } else {
-            irNode = $$.notSupport();
+            $$.notSupport();
         }
     }
 
     @Override
     protected void visit(ObjectExpression objExp) {
         // load init method
-        IrNode ret = IrInvoke.construct(
-            IrLoad.staticField(JsRuntime.class, "Object",
-                Type.getDescriptor(JsFunctionObject.class)));
+        ir(
+            IrLoad.staticField(JsRuntime.class, "Object", Type.getDescriptor(JsFunctionObject.class)),
+            IrInvoke.construct(0)
+        );
+
+        // now we get a empty object
+        // then put all properties in to object
 
         for (Property prop : objExp.getProperties()) {
-            String fieldName = prop.getKeyString();
-
-            ret = IrStore.property(IrDup.dup(ret), fieldName, visitIr(prop.getValue()));
+            // object.key = value
+            ir(
+                IrDup.dup(),
+                IrLiteral.of(prop.getKeyString())
+            );
+            visit(prop.getValue());
+            ir(IrStore.property());
         }
 
-        // load inner class
-        irNode = ret;
+        // then the constructed object is leaved on stack
+    }
+
+    // resolve property as a string on stack
+    private void resolvePropertyName(Expression exp) {
+        if(exp.is(Identifier.class)) {
+            ir(IrLiteral.of(exp.as(Identifier.class).getName()));
+        }
     }
 
     @Override
     protected void visit(Identifier identifier) {
-        irNode = visitName(identifier.getName(), identifier);
+        visitName(identifier.getName(), identifier);
     }
 
-    private IrNode visitName(String name, Node node) {
+    private void visitName(String name, Node node) {
         List<Node> nodes = context.namingEnv.resolveJumped(node, name);
 
-        IrNode ctx = IrThis.irthis();
+        ir(IrThis.irthis());
+        // jump to real context
         for (int i = 0; i < nodes.size() - 1; i++) {
             ClassNode cls = context.namingEnv.getScopeClass(nodes.get(i));
             ClassNode nextCls = context.namingEnv.getScopeClass(nodes.get(i + 1));
 
-            ctx = IrLoad.field(ctx, "$that", cls.$.name, CgNode.getDescriptor(nextCls));
+            // this.$that
+            ir(IrLoad.field(cls.$.name, "$that", CgNode.getDescriptor(nextCls)));
         }
 
         Node last = nodes.get(nodes.size() - 1);
         ClassNode lastCls = context.namingEnv.getScopeClass(last);
-        return IrLoad.field(ctx, name, lastCls.$.name, Type.getDescriptor(Object.class));
+        ir(IrLoad.field(lastCls.$.name, name, Type.getDescriptor(Object.class)));
     }
 
     @Override
@@ -273,30 +309,22 @@ public class IrTransformPass extends AstBasedCompilePass {
         if (assignExp.getLeft().is(Identifier.class)) {
             String key = $$.cast(assignExp.getLeft(), Identifier.class).getName();
 
-            irNode = IrStore.field(IrThis.irthis(), key, visitIr(assignExp.getRight()),
-                clazz.$.name, clazz.field(key).$.desc);
+            ir(IrThis.irthis());
+            visit(assignExp.getRight());
+            ir(IrStore.field(clazz.$.name, key, clazz.field(key).$.desc));
         }
         // member assignment
         else if (assignExp.getLeft().is(MemberExpression.class)) {
             MemberExpression member = $$.cast(assignExp.getLeft());
 
-            irNode = IrStore.property(visitIr(member.getObject()),
-                resolveProperty(member.getProperty()), visitIr(assignExp.getRight()));
+            visit(member.getObject());
+            resolvePropertyName(member.getProperty());
+            visit(assignExp.getRight());
+            ir(IrStore.property());
         }
         // otherwise, not support
         else {
-            irNode = $$.notSupport();
-        }
-    }
-
-    private IrNode resolveProperty(Node property) {
-        // for identifier, load the field
-        if (property.is(Identifier.class)) {
-            return IrLiteral.of($$.cast(property, Identifier.class).getName());
-        }
-        // others, common visit
-        else {
-            return visitIr(property);
+            $$.notSupport();
         }
     }
 
@@ -305,24 +333,18 @@ public class IrTransformPass extends AstBasedCompilePass {
         $$.should(!memExp.isComputed());
 
         // load the field
-        irNode = IrLoad
-            .property(visitIr(memExp.getObject()), resolveProperty(memExp.getProperty()));
-    }
-
-    @Override
-    protected void visit(BlockStatement blockStatement) {
-        IrBlock ret = IrBlock.of();
-        blockStatement.getBody().forEach((statement) -> ret.irs.add(visitIr(statement)));
-
-        irNode = ret;
+        visit(memExp.getObject());
+        resolvePropertyName(memExp.getProperty());
+        ir(IrLoad.property());
     }
 
     @Override
     protected void visit(ReturnStatement returnStatement) {
         if (returnStatement.getArgument().isPresent()) {
-            irNode = IrReturn.ret(visitIr(returnStatement.getArgument().get()));
+            visit(returnStatement.getArgument().get());
+            ir(IrReturn.retWithValue());
         } else {
-            irNode = IrReturn.ret();
+            ir(IrReturn.ret());
         }
     }
 
@@ -339,24 +361,35 @@ public class IrTransformPass extends AstBasedCompilePass {
         in(cls).invoke(() -> {
             // add MODULE field
             clazz.field(JsModule.FIELD_MODULE_NAME)
-                    .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
-                    .desc(clazz)
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
+                .desc(clazz)
                 .end()
 
                 // init MODULE field
                 .method_clinit()
-                .ir(IrStore.staticField(clazz.$.name, JsModule.FIELD_MODULE_NAME,
-                    IrNew.of(clazz.$.name)), IrReturn.ret());
+                // MODULE = new this();
+                .ir(
+                    IrNew.newObject(clazz.$.name),
+                    IrDup.dup(),
+                    IrInvoke.invokeInit(clazz.$.name, Type.getMethodDescriptor(Type.VOID_TYPE)),
+                    IrStore.staticField(clazz.$.name, JsModule.FIELD_MODULE_NAME, CgNode.getDescriptor(clazz)),
+                    IrReturn.ret()
+                );
 
             // generate init method
             in(clazz.method_init()).invoke(() -> {
-                method.ir(IrInvoke.invokeInit(JsModule.class));
+                ir(
+                    IrThis.irthis(),
+                    IrInvoke.invokeInit(
+                        Type.getInternalName(JsModule.class),
+                        Type.getMethodDescriptor(Type.VOID_TYPE))
+                );
 
                 // generate body
-                program.getBody().forEach(statement -> method.ir(visitIr(statement)));
+                program.getBody().forEach(this::visit);
 
                 // end init method generate
-                method.ir(IrReturn.ret());
+                ir(IrReturn.ret());
             });
         });
     }

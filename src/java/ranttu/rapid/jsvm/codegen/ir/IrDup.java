@@ -12,12 +12,7 @@ package ranttu.rapid.jsvm.codegen.ir;
  * @version $id: IrDup.java, v0.1 2017/4/24 dongwei.dq Exp $
  */
 public class IrDup extends IrNode {
-    public IrNode duplicate;
-
-    public static IrDup dup(IrNode dup) {
-        IrDup d = new IrDup();
-        d.duplicate = dup;
-
-        return d;
+    public static IrDup dup() {
+        return new IrDup();
     }
 }

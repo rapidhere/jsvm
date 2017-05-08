@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
+import jdk.internal.org.objectweb.asm.Type;
+
 /**
  * a cast node
  *
@@ -12,14 +14,16 @@ package ranttu.rapid.jsvm.codegen.ir;
  * @version $id: IrCast.java, v0.1 2017/4/20 dongwei.dq Exp $
  */
 public class IrCast extends IrNode {
-    public IrNode from;
     public String name;
 
-    public static IrCast of(IrNode from, String name) {
+    public static IrCast cast(String name) {
         IrCast cast = new IrCast();
-        cast.from = from;
         cast.name = name;
 
         return cast;
+    }
+
+    public static IrCast cast(Class clazz) {
+        return cast(Type.getInternalName(clazz));
     }
 }
