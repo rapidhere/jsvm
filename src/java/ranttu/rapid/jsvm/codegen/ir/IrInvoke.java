@@ -24,6 +24,16 @@ public class IrInvoke extends IrNode {
     public String     desc;
     public String     className;
 
+    public static IrInvoke invokeStatic(String className, String name, String desc) {
+        IrInvoke irInvoke = new IrInvoke();
+        irInvoke.type = InvokeType.STATIC;
+        irInvoke.className = className;
+        irInvoke.invokeeName = name;
+        irInvoke.desc = desc;
+
+        return irInvoke;
+    }
+
     public static IrInvoke invokeInit(String className, String desc) {
         IrInvoke irInvoke = new IrInvoke();
         irInvoke.type = InvokeType.SPECIAL;

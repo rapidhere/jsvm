@@ -51,6 +51,28 @@ abstract public class JsRuntime {
     }
     public static final JsFunctionObject Function = new FunctionClass();
 
+    // ~~~ helpers
+
+    /**
+     * cast a object to a boolean value
+     */
+    public static int castToBooleanValue(Object bool) {
+        boolean result = false;
+        if(bool != null) {
+            if(bool instanceof Boolean) {
+                result = (Boolean) bool;
+            } else if(bool instanceof Number) {
+                result = ((Number)bool).intValue() != 0;
+            } else if(bool instanceof String) {
+                result = ((String)bool).length() != 0;
+            } else {
+                result = true;
+            }
+        }
+
+        return result ? 1 : 0;
+    }
+
     // ~~~ make functions here
     static {
         JsObjectObject objProto = new JsObjectObject();

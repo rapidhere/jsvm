@@ -10,9 +10,9 @@ import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
 import jdk.internal.org.objectweb.asm.tree.InvokeDynamicInsnNode;
+import jdk.internal.org.objectweb.asm.tree.JumpInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import jdk.internal.org.objectweb.asm.tree.LdcInsnNode;
-import jdk.internal.org.objectweb.asm.tree.LocalVariableNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.ParameterNode;
 import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
@@ -24,9 +24,7 @@ import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * a method node
@@ -37,9 +35,6 @@ import java.util.Map;
 public class MethodNode
                        extends
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
-    private Map<String, LabelNode>         labels     = new HashMap<>();
-    private Map<String, LocalVariableNode> locals     = new HashMap<>();
-    private Map<String, ParameterNode>     parameters = new HashMap<>();
 
     private List<IrNode>                   irNodes    = new ArrayList<>();
 
@@ -70,13 +65,6 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode stack(int size) {
-        $.maxStack = size;
-        $.maxLocals = locals.size() + parameters.size();
-
-        return this;
-    }
-
     public List<IrNode> ir() {
         return irNodes;
     }
@@ -92,7 +80,6 @@ public class MethodNode
             sum += a;
 
         ParameterNode parNode = new ParameterNode(name, sum);
-        parameters.put(name, parNode);
         $.parameters.add(parNode);
 
         return this;
@@ -100,25 +87,13 @@ public class MethodNode
 
     //~ inst goes here
 
-    public MethodNode label(String name) {
-        if (!labels.containsKey(name)) {
-            LabelNode label = new LabelNode();
-            labels.put(name, label);
-            $.instructions.add(label);
-        } else {
-            throw new AssertionError("should label with same name: " + name);
-        }
-
+    public MethodNode put_label(LabelNode labelNode) {
+        $.instructions.add(labelNode);
         return this;
     }
 
     public MethodNode add(@SuppressWarnings("unused") Class<? extends Integer> unused) {
         $.instructions.add(new InsnNode(Opcodes.IADD));
-        return this;
-    }
-
-    public MethodNode sub(@SuppressWarnings("unused") Class<? extends Integer> unused) {
-        $.instructions.add(new InsnNode(Opcodes.ISUB));
         return this;
     }
 
@@ -143,14 +118,18 @@ public class MethodNode
         return $$.shouldNotReach();
     }
 
-    public MethodNode dup() {
-        $.instructions.add(new InsnNode(Opcodes.DUP));
+    public MethodNode jump(LabelNode label) {
+        $.instructions.add(new JumpInsnNode(Opcodes.GOTO, label));
         return this;
     }
 
-    public MethodNode invoke_init(String name, String desc) {
-        $.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, name, MethodConst.INIT, desc,
-            false));
+    public MethodNode jump_if_eq(LabelNode label) {
+        $.instructions.add(new JumpInsnNode(Opcodes.IFEQ, label));
+        return this;
+    }
+
+    public MethodNode dup() {
+        $.instructions.add(new InsnNode(Opcodes.DUP));
         return this;
     }
 
@@ -186,10 +165,6 @@ public class MethodNode
         $.instructions
             .add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, invokeName, name, desc, false));
         return this;
-    }
-
-    public MethodNode check_cast(ClassNode cls) {
-        return check_cast(cls.$.name);
     }
 
     public MethodNode check_cast(String internalName) {
@@ -230,15 +205,6 @@ public class MethodNode
     public MethodNode load_const(Object o) {
         $.instructions.add(new LdcInsnNode(o));
         return this;
-    }
-
-    public MethodNode load_null() {
-        $.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
-        return this;
-    }
-
-    public MethodNode load_const(boolean bool) {
-        return load_const(bool ? 1 : 0);
     }
 
     public MethodNode load_const(int i) {

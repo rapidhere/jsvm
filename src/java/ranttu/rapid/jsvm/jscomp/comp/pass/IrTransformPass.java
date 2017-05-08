@@ -12,6 +12,8 @@ import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
+import ranttu.rapid.jsvm.codegen.ir.IrJump;
+import ranttu.rapid.jsvm.codegen.ir.IrLabel;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
 import ranttu.rapid.jsvm.codegen.ir.IrNew;
@@ -27,6 +29,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
@@ -55,6 +58,39 @@ import java.util.List;
 public class IrTransformPass extends AstBasedCompilePass {
     private void ir(IrNode... irs) {
         method.ir(irs);
+    }
+
+    @Override
+    protected void visit(IfStatement ifStatement) {
+        visit(ifStatement.getTest());
+
+
+        // get boolean value
+        ir(IrInvoke.invokeStatic(
+            Type.getInternalName(JsRuntime.class),
+            "castToBooleanValue",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class))
+        ));
+
+        // have alternate statement
+        if (ifStatement.getAlternate().isPresent()) {
+            IrLabel altLabel = IrLabel.label(), endLabel = IrLabel.label();
+
+            ir(IrJump.eq(altLabel.label));
+            visit(ifStatement.getConsequent());
+            ir(IrJump.j(endLabel.label));
+
+            ir(altLabel);
+            visit(ifStatement.getAlternate().get());
+
+            ir(endLabel);
+        } else {
+            IrLabel endLabel = IrLabel.label();
+
+            ir(IrJump.eq(endLabel.label));
+            visit(ifStatement.getConsequent());
+            ir(endLabel);
+        }
     }
 
     @Override

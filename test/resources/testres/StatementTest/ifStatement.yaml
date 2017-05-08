@@ -1,0 +1,59 @@
+- description: if true
+  jsSource: |
+    var a = 0;
+    if (true) {
+        a = 1;
+    }
+  expected: 1
+
+- description: if 1
+  jsSource: |
+    var a = 0;
+    if (1) {
+        a = 1;
+    }
+  expected: 1
+
+- description: if else
+  jsSource: |
+    if (false) {
+        var a = 0;
+    } else {
+        a = 1;
+    }
+  expected: 1
+
+- description: if else if
+  jsSource: |
+    if (false) {
+        var a = 0;
+    } else if (false) {
+        a = 1;
+    } else {
+        a = 2;
+    }
+  expected: 2
+
+- description: if else if 2
+  jsSource: |
+    if (0) {
+        var a = 0;
+    } else if(1) {
+        a = 1;
+    } else {
+        a = 2;
+    }
+  expected: 1
+
+# TODO:
+#- description: if with redudant value on stack
+#  jsSource:
+#    function f() {
+#        return 1;
+#    }
+#
+#    if(1) {
+#        var a = 1;
+#        f();
+#    }
+#  expected: 1

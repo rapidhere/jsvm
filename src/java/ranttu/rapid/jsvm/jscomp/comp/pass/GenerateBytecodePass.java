@@ -8,10 +8,11 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
 import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
+import ranttu.rapid.jsvm.codegen.ir.IrJump;
+import ranttu.rapid.jsvm.codegen.ir.IrLabel;
 import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
 import ranttu.rapid.jsvm.codegen.ir.IrLoad;
 import ranttu.rapid.jsvm.codegen.ir.IrNew;
@@ -39,24 +40,37 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
     protected void visit(ClassNode classNode) {
         super.visit(classNode);
 
-        ClassWriter cw = new ClassWriter(0);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.$.accept(cw);
         context.byteCodes.put(classNode.$.name, cw.toByteArray());
     }
 
     @Override
-    protected void visit(MethodNode methodNode) {
-        super.visit(methodNode);
+    protected void visit(IrLabel label) {
+        method.put_label(label.label);
+    }
 
-        // TODO: calc stack size and local size
-        methodNode.stack(16);
+    @Override
+    protected void visit(IrJump irJump) {
+        switch (irJump.type) {
+            case DIRECT:
+                method.jump(irJump.label);
+                break;
+            case IF_EQ:
+                method.jump_if_eq(irJump.label);
+                break;
+            default:
+                $$.notSupport();
+        }
     }
 
     @Override
     protected void visit(IrInvoke invoke) {
         switch (invoke.type) {
+            case STATIC:
+                method.invoke_static(invoke.className, invoke.invokeeName, invoke.desc);
+                break;
             case SPECIAL:
-                // TODO
                 method.invoke_special(invoke.className, invoke.invokeeName, invoke.desc);
                 break;
             case UNBOUNDED_FUNC_CALL:

@@ -7,15 +7,10 @@ package ranttu.rapid.jsvm.codegen.ir;
 
 /**
  * @author rapidhere@gmail.com
- * @version $id: InvokeType.java, v0.1 2017/4/18 dongwei.dq Exp $
+ * @version $id: JumpType.java, v0.1 2017/5/8 dongwei.dq Exp $
  */
-public enum InvokeType {
-    SPECIAL,
-    VIRTUAL,
-    STATIC,
+public enum JumpType {
+    IF_EQ,
 
-    UNBOUNDED_FUNC_CALL,
-    BOUNDED_FUNC_CALL,
-
-    CONSTRUCT
+    DIRECT
 }
