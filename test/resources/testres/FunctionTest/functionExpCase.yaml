@@ -37,3 +37,18 @@
     };
   parameters:
   expected: 2
+
+- description: function as first-class
+  jsSource: |
+    var sum = function(a, b) {
+        return a + b;
+    };
+    var firstArg2 = function(f) {
+        return function(b) {
+            return f(2, b);
+        };
+    };
+    var func = firstArg2(sum);
+  parameters:
+    - 3
+  expected: 5.0
