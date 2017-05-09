@@ -40,6 +40,7 @@ import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
+import ranttu.rapid.jsvm.jscomp.ast.enums.BinaryOperator;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
@@ -111,9 +112,21 @@ public class IrTransformPass extends AstBasedCompilePass {
                     $$.getMethodDescriptor(Boolean.class, Object.class)
                 ));
                 break;
+            case ADD:
+            case SUBTRACT:
+            case STRONG_EQUAL:
+                visit(binExp.getLeft());
+                visit(binExp.getRight());
+                invokeBinMathOp(binExp.getOperator());
+                break;
             default:
                 $$.notSupport();
         }
+    }
+
+    private void invokeBinMathOp(BinaryOperator op) {
+        ir(IrInvoke.invokeStatic($$.getInternalName(JsRuntime.class), op.name(),
+            $$.getMethodDescriptor(Object.class, Object.class, Object.class)));
     }
 
     @Override

@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.runtime;
 
+import ranttu.rapid.jsvm.common.$$;
+
 /**
  * runtime defines
  *
@@ -56,6 +58,7 @@ abstract public class JsRuntime {
     /**
      * cast a object to a boolean value
      */
+    @SuppressWarnings("unused")
     public static int castToBooleanValue(Object bool) {
         boolean result = false;
         if(bool != null) {
@@ -71,6 +74,32 @@ abstract public class JsRuntime {
         }
 
         return result ? 1 : 0;
+    }
+
+    // ~~~ arithmetic operators
+    @SuppressWarnings("unused")
+    public static Object ADD(Object a, Object b) {
+        double da = $$.cast(a, Number.class).doubleValue();
+        double db = $$.cast(b, Number.class).doubleValue();
+
+        return da + db;
+    }
+
+    @SuppressWarnings("unused")
+    public static Object SUBTRACT(Object a, Object b) {
+        double da = $$.cast(a, Number.class).doubleValue();
+        double db = $$.cast(b, Number.class).doubleValue();
+
+        return da - db;
+    }
+
+    @SuppressWarnings("unused")
+    public static Object STRONG_EQUAL(Object a, Object b) {
+        if (a instanceof Number && b instanceof Number) {
+            return ((Number) a).doubleValue() == ((Number) b).doubleValue();
+        } else {
+            return false;
+        }
     }
 
     // ~~~ make functions here

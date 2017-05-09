@@ -5,10 +5,8 @@
  */
 package ranttu.rapid.jsvm.test.unittest;
 
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsModule;
@@ -23,7 +21,6 @@ import java.util.Map;
  * @author rapidhere@gmail.com
  * @version $id: ExpressionTest.java, v0.1 2017/4/8 dongwei.dq Exp $
  */
-@RunWith(DataProviderRunner.class)
 public class ExpressionTest extends JsvmJunitTestBase {
     public static class ExpressionTestData extends BaseCaseData {
         public String jsSource;
@@ -65,14 +62,13 @@ public class ExpressionTest extends JsvmJunitTestBase {
         assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
     }
 
-    // ~~~ not working yet
-    //    @Test
-    //    @UseDataProvider("yamlDataProvider")
-    //    public void binaryArithmeticOp(ExpressionTestData testData) throws Exception {
-    //        String clsName = "JsModuleTest";
-    //        JsModule module = loadModule(clsName, testData.jsSource);
-    //
-    //        assertEquals(clsName, module.getClass().getSimpleName());
-    //        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "res"));
-    //    }
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void binaryArithmeticOp(ExpressionTestData testData) throws Exception {
+        String clsName = "JsModuleTest";
+        JsModule module = loadModule(clsName, testData.jsSource);
+
+        assertEquals(clsName, module.getClass().getSimpleName());
+        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "res"));
+    }
 }

@@ -5,10 +5,8 @@
  */
 package ranttu.rapid.jsvm.test.unittest;
 
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
@@ -22,7 +20,6 @@ import java.util.Map;
  * @author rapidhere@gmail.com
  * @version $id: ObjectTest.java, v0.1 2017/4/27 dongwei.dq Exp $
  */
-@RunWith(DataProviderRunner.class)
 public class ObjectTest extends JsvmJunitTestBase {
     public static class ObjectTestData extends BaseCaseData {
         public String jsSource;

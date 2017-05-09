@@ -8,9 +8,11 @@ package ranttu.rapid.jsvm.test.base;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import jdk.internal.org.objectweb.asm.ClassReader;
 import jdk.internal.org.objectweb.asm.util.TraceClassVisitor;
 import org.junit.Assert;
+import org.junit.runner.RunWith;
 import org.junit.runners.model.FrameworkMethod;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
@@ -33,6 +35,7 @@ import java.util.Map;
  * @author rapidhere@gmail.com
  * @version $id: JsvmJunitTestBase.java, v0.1 2017/4/8 dongwei.dq Exp $
  */
+@RunWith(DataProviderRunner.class)
 abstract public class JsvmJunitTestBase extends Assert {
 
     // the class loader

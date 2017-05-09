@@ -1,3 +1,15 @@
-- description: plus
+- description: add
   jsSource: var res = 1 + 1;
-  expected: 2
+  expected: 2.0
+
+- description: subtract
+  jsSource: var res = 100 - 1;
+  expected: 99.0
+
+- description: eqeqeq
+  jsSource: var res = 1 === 2;
+  expected: false
+
+- description: eqeqeq2
+  jsSource: var res = 1 === 1;
+  expected: true
