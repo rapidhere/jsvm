@@ -20,6 +20,7 @@ import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
+import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
@@ -41,6 +42,28 @@ import java.util.List;
 public class IrTransformPass extends AstBasedCompilePass {
     private void ir(IrNode... irs) {
         method.ir(irs);
+    }
+
+    @Override
+    protected void visit(ExportNamedDeclaration exportNamedDeclaration) {
+        Declaration declaration = exportNamedDeclaration.getDeclaration();
+        visit(declaration);
+
+        // resolve name
+        if (declaration.is(FunctionDeclaration.class)) {
+            makeDeclarationPublic(
+                declaration.as(FunctionDeclaration.class).getId().getName());
+        } else if(declaration.is(VariableDeclaration.class)) {
+            for (VariableDeclarator declarator: declaration.as(VariableDeclaration.class).getDeclarations()) {
+                makeDeclarationPublic(declarator.getId().getName());
+            }
+        } else {
+            $$.notSupport();
+        }
+    }
+
+    private void makeDeclarationPublic(String name) {
+        clazz.getClosureClass().field(name).acc(Opcodes.ACC_PUBLIC);
     }
 
     @Override

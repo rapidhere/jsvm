@@ -10,46 +10,7 @@ import org.json.JSONObject;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.exp.ESTreeLoadFailed;
 import ranttu.rapid.jsvm.jscomp.ast.Location;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ArrayExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BaseAstNode;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BreakStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.CatchClause;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ConditionalExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ContinueStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.DoWhileStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.EmptyStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ForInStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ForOfStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ForStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.LabeledStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.SequenceExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.SuperExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchCase;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.SwitchStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ThrowStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.TryStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.UnaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.WhileStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.WithStatement;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -127,6 +88,9 @@ public interface Node {
             String type = jsonObject.getString("type");
 
             switch (type) {
+                case ES_EXPORT_NAMED_DECLARATION:
+                    ret = new ExportNamedDeclaration(jsonObject);
+                    break;
                 case ES_TYPE_PROGRAM:
                     ret = new Program(jsonObject);
                     break;
@@ -296,5 +260,6 @@ public interface Node {
             ES_TYPE_MEMBER_EXP = "MemberExpression", ES_TYPE_COND_EXP = "ConditionalExpression",
             ES_TYPE_CALL_EXP = "CallExpression", ES_TYPE_NEW_EXP = "NewExpression",
             ES_TYPE_SEQ_EXP = "SequenceExpression", ES_TYPE_FOR_OF_STM = "ForOfStatement",
-            ES_TYPE_SUPER = "Super", ES_TYPE_LITERAL = "Literal";
+            ES_TYPE_SUPER = "Super", ES_TYPE_LITERAL = "Literal",
+            ES_EXPORT_NAMED_DECLARATION = "ExportNamedDeclaration";
 }

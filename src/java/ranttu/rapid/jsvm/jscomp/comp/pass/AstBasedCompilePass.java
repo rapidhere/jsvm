@@ -61,9 +61,15 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit(node.as(IfStatement.class));
         } else if (node.is(WhileStatement.class)) {
             visit(node.as(WhileStatement.class));
+        } else if (node.is(ExportNamedDeclaration.class)) {
+            visit(node.as(ExportNamedDeclaration.class));
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(ExportNamedDeclaration exportNamedDeclaration) {
+        visit(exportNamedDeclaration.getDeclaration());
     }
 
     protected void visit(WhileStatement whileStatement) {

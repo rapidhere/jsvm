@@ -7,9 +7,14 @@ package ranttu.rapid.jsvm.test.unittest;
 
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
+
+import java.lang.reflect.Field;
 
 /**
  * @author rapidhere@gmail.com
@@ -28,5 +33,20 @@ public class StatementTest extends JsvmJunitTestBase {
         Object ret = ReflectionUtil.getFieldValue(module, "a");
 
         assertEquals(testData.expected, ret);
+    }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void exportStatement(StatementTestData testData) throws Exception {
+        JsModule module = loadModule("ExportTestCase", testData.jsSource);
+
+        Field fieldA = module.getClass().getDeclaredField("a");
+        Object ret = fieldA.get(module);
+
+        if (ret instanceof JsFunctionObject) {
+            assertEquals(testData.expected, $$.cast(ret, JsFunctionObject.class).invoke(this));
+        } else {
+            assertEquals(testData.expected, ret);
+        }
     }
 }
