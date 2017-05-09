@@ -6,24 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.exp.NotSupportedYet;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BlockStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ExpressionStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
 /**
@@ -76,9 +59,16 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit(node.as(BinaryExpression.class));
         } else if (node.is(IfStatement.class)) {
             visit(node.as(IfStatement.class));
+        } else if (node.is(WhileStatement.class)) {
+            visit(node.as(WhileStatement.class));
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(WhileStatement whileStatement) {
+        visit(whileStatement.getTest());
+        visit(whileStatement.getBody());
     }
 
     protected void visit(IfStatement ifs) {

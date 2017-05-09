@@ -19,23 +19,7 @@ import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
 import ranttu.rapid.jsvm.common.$$;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.CallExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Function;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.IfStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Literal;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.MemberExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.NewExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ObjectExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.Property;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ReturnStatement;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.ThisExpression;
-import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
+import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
@@ -60,9 +44,32 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     @Override
+    protected void visit(WhileStatement whileStatement) {
+        IrLabel beginLabel = IrLabel.label(), endLabel = IrLabel.label();
+
+        ir(beginLabel);
+
+        // test expression
+        visit(whileStatement.getTest());
+        // get boolean value
+        ir(IrInvoke.invokeStatic(
+            $$.getInternalName(JsRuntime.class),
+            "castToBooleanValue",
+            $$.getMethodDescriptor(int.class, Object.class)
+        ));
+        ir(IrJump.eq(endLabel.label));
+
+        // body expression
+        visit(whileStatement.getBody());
+        ir(IrJump.j(beginLabel.label));
+
+        ir(endLabel);
+    }
+
+
+    @Override
     protected void visit(IfStatement ifStatement) {
         visit(ifStatement.getTest());
-
 
         // get boolean value
         ir(IrInvoke.invokeStatic(

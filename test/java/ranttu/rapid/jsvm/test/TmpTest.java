@@ -13,12 +13,20 @@ package ranttu.rapid.jsvm.test;
  */
 public class TmpTest {
     public TmpTest() {
+        while(f(new Runnable() {
+            @Override
+            public void run() {
 
+            }
+        })) {
+            System.out.print("233");
+        }
     }
 
-    public void f(Runnable run) {
+    public boolean f(Runnable run) {
         int i = 1;
         System.out.println(i);
         run.run();
+        return false;
     }
 }
