@@ -18,7 +18,6 @@ import ranttu.rapid.jsvm.codegen.ir.IrNew;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
-import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.AssignmentExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.BinaryExpression;
@@ -41,6 +40,7 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.ast.enums.BinaryOperator;
+import ranttu.rapid.jsvm.runtime.JsClosure;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
@@ -158,7 +158,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             visit(call.getCallee());
 
             // put context
-            ir(IrThis.irthis());
+            ir(IrLoad.thiz());
 
             // put args on the stack
             call.getArguments().forEach(this::visit);
@@ -176,9 +176,11 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         if (variableDeclarator.getInitExpression().isPresent()) {
             // store to the context
-            ir(IrThis.irthis());
+            ir(IrLoad.closure());
             super.visit(variableDeclarator);
-            ir(IrStore.field(clazz.$.name, varName, clazz.field(varName).$.desc));
+
+            ClassNode closure = clazz.getClosureClass();
+            ir(IrStore.field(closure.$.name, varName, closure.field(varName).$.desc));
         }
     }
 
@@ -192,7 +194,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         // store the function
-        ir(IrThis.irthis());
+        ir(IrLoad.closure());
         onFunction(function);
         ir(IrStore.field(
             clazz.$.name,
@@ -213,11 +215,27 @@ public class IrTransformPass extends AstBasedCompilePass {
         String constructorDesc = $$.getMethodDescriptor(void.class, outterCls);
 
         in(funcCls).invoke(() -> {
+            // add closure class
+            ClassNode closureClass = clazz.inner_class(
+                "Closure", JsClosure.class, Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER, Opcodes.ACC_SYNTHETIC);
+
             // add $that field
             clazz.field("$that").acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC).desc(outterCls);
+            closureClass.field("$that").acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC).desc(outterCls);
 
             // bind class
-            context.namingEnv.bindScopeClass(function, clazz);
+            context.namingEnv.bindScopeClass(function, closureClass);
+
+            // closure init
+            in(closureClass).in(closureClass.method_init()).invoke(() ->
+                method.ir(
+                    // super class init
+                    IrLoad.thiz(),
+                    IrInvoke.invokeInit($$.getInternalName(JsClosure.class), $$.getMethodDescriptor(void.class)),
+                    // ret
+                    IrReturn.ret()
+                )
+            );
 
             // build init command
             in(funcCls.method_init(outterCls)).invoke(() ->
@@ -225,12 +243,12 @@ public class IrTransformPass extends AstBasedCompilePass {
                 method.par("$that")
                     .ir(
                         // super class init
-                        IrThis.irthis(),
+                        IrLoad.thiz(),
                         IrInvoke.invokeInit(
                             $$.getInternalName(JsFunctionObject.class),
                             $$.getMethodDescriptor(void.class)),
                         // store field $that
-                        IrThis.irthis(),
+                        IrLoad.thiz(),
                         IrLoad.local("$that"),
                         IrStore.field(clazz.$.name, "$that", $$.getDescriptor(outterCls)),
                         // ret
@@ -248,17 +266,33 @@ public class IrTransformPass extends AstBasedCompilePass {
                         .par("$this")
                         .par("args");
 
+                    // construct closure
+                    method.local("closure")
+                        .ir(
+                            // new closure
+                            IrNew.newObject(closureClass.$.name),
+                            IrDup.dup(),
+                            IrInvoke.invokeInit(closureClass.$.name, $$.getMethodDescriptor(void.class)),
+                            // closure.$that = this.$that
+                            IrDup.dup(),
+                            IrLoad.thiz(),
+                            IrLoad.field(clazz.$.name, "$that", $$.getDescriptor(outterCls)),
+                            IrStore.field(closureClass.$.name, "$that", $$.getDescriptor(outterCls)),
+                            // store to local
+                            IrStore.local("closure")
+                        );
+
                     // put args into field
                     for (int i = 0; i < function.getParams().size(); i++) {
                         Identifier par = function.getParams().get(i);
-                        clazz.field(par.getName()).acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC).desc(Object.class);
+                        closureClass.field(par.getName()).acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC).desc(Object.class);
 
-                        // $fieldName = args[i]
+                        // closure.fieldName = args[i]
                         ir(
-                            IrThis.irthis(),
+                            IrLoad.local("closure"),
                             IrLoad.local("args"),
                             IrLoad.array(i),
-                            IrStore.field(clazz.$.name, par.getName(), $$.getDescriptor(Object.class))
+                            IrStore.field(closureClass.$.name, par.getName(), $$.getDescriptor(Object.class))
                         );
                     }
 
@@ -271,7 +305,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         ir(
             IrNew.newObject(funcCls.$.name),
             IrDup.dup(),
-            IrThis.irthis(),
+            IrLoad.closure(),
             IrInvoke.invokeInit(funcCls.$.name, constructorDesc),
             IrDup.dup(),
             IrInvoke.makeFunc()
@@ -332,7 +366,7 @@ public class IrTransformPass extends AstBasedCompilePass {
     private void visitName(String name, Node node) {
         List<Node> nodes = context.namingEnv.resolveJumped(node, name);
 
-        ir(IrThis.irthis());
+        ir(IrLoad.local("closure"));
         // jump to real context
         for (int i = 0; i < nodes.size() - 1; i++) {
             ClassNode cls = context.namingEnv.getScopeClass(nodes.get(i));
@@ -351,14 +385,15 @@ public class IrTransformPass extends AstBasedCompilePass {
     protected void visit(AssignmentExpression assignExp) {
         // only support normal assign now
         $$.shouldIn(assignExp.getOperator(), AssignmentOperator.ASSIGN);
+        ClassNode closure = clazz.getClosureClass();
 
         // field assignment
         if (assignExp.getLeft().is(Identifier.class)) {
             String key = $$.cast(assignExp.getLeft(), Identifier.class).getName();
 
-            ir(IrThis.irthis());
+            ir(IrLoad.closure());
             visit(assignExp.getRight());
-            ir(IrStore.field(clazz.$.name, key, clazz.field(key).$.desc));
+            ir(IrStore.field(closure.$.name, key, closure.field(key).$.desc));
         }
         // member assignment
         else if (assignExp.getLeft().is(MemberExpression.class)) {
@@ -426,12 +461,19 @@ public class IrTransformPass extends AstBasedCompilePass {
             // generate init method
             in(clazz.method_init()).invoke(() -> {
                 ir(
-                    IrThis.irthis(),
+                    IrLoad.thiz(),
                     IrInvoke.invokeInit(
                         $$.getInternalName(JsModule.class),
                         $$.getMethodDescriptor(void.class)
                     )
                 );
+
+                // add closure
+                method.local("closure")
+                    .ir(
+                        IrLoad.thiz(),
+                        IrStore.local("closure")
+                    );
 
                 // generate body
                 program.getBody().forEach(this::visit);

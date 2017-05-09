@@ -43,4 +43,12 @@ public class IrStore extends IrNode {
 
         return ir;
     }
+
+    public static IrStore local(String name) {
+        IrStore ir = new IrStore();
+        ir.type = FieldType.LOCAL;
+        ir.key = name;
+
+        return ir;
+    }
 }

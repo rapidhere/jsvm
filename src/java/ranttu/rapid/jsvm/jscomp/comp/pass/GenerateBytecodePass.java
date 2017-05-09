@@ -17,7 +17,6 @@ import ranttu.rapid.jsvm.codegen.ir.IrLoad;
 import ranttu.rapid.jsvm.codegen.ir.IrNew;
 import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
-import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
@@ -154,6 +153,9 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             case STATIC_FIELD:
                 method.store_static(irs.className, irs.key, irs.desc);
                 break;
+            case LOCAL:
+                method.astore(irs.key);
+                break;
             default:
                 $$.notSupport();
         }
@@ -162,11 +164,6 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
     @Override
     protected void visit(IrNew irNew) {
         method.new_class(irNew.className);
-    }
-
-    @Override
-    protected void visit(IrThis irThis) {
-        method.aload("this");
     }
 
     @Override

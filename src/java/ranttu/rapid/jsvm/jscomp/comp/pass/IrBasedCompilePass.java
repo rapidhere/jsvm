@@ -13,7 +13,6 @@ import ranttu.rapid.jsvm.codegen.ir.IrNew;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.codegen.ir.IrReturn;
 import ranttu.rapid.jsvm.codegen.ir.IrStore;
-import ranttu.rapid.jsvm.codegen.ir.IrThis;
 import ranttu.rapid.jsvm.common.$$;
 
 /**
@@ -48,8 +47,6 @@ abstract public class IrBasedCompilePass extends CompilePass {
             visit((IrNew) irNode);
         } else if (irNode.is(IrStore.class)) {
             visit((IrStore) irNode);
-        } else if (irNode.is(IrThis.class)) {
-            visit((IrThis) irNode);
         } else if (irNode.is(IrLoad.class)) {
             visit((IrLoad) irNode);
         } else if (irNode.is(IrInvoke.class)) {
@@ -76,9 +73,6 @@ abstract public class IrBasedCompilePass extends CompilePass {
     }
 
     protected void visit(IrDup irDup) {
-    }
-
-    protected void visit(IrThis irThis) {
     }
 
     protected void visit(IrNew irNew) {

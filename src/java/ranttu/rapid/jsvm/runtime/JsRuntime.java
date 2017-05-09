@@ -13,7 +13,7 @@ import ranttu.rapid.jsvm.common.$$;
  * @author rapidhere@gmail.com
  * @version $id: JsRuntime.java, v0.1 2017/4/21 dongwei.dq Exp $
  */
-abstract public class JsRuntime {
+abstract public class JsRuntime extends JsClosure {
     // ~~~ Object()
     protected static final class ObjectClass extends JsFunctionObject {
         @Override

@@ -33,6 +33,20 @@ public class ClassNode extends
         super(null);
     }
 
+    public ClassNode getClosureClass() {
+        if(parent == null) {
+            return this;
+        } else {
+            for(String name: innerClasses.keySet()) {
+                if(name.contains("Closure")) {
+                    return innerClasses.get(name);
+                }
+            }
+        }
+
+        return $$.shouldNotReach();
+    }
+
     @Override
     protected jdk.internal.org.objectweb.asm.tree.ClassNode constructInnerNode() {
         jdk.internal.org.objectweb.asm.tree.ClassNode inner = new jdk.internal.org.objectweb.asm.tree.ClassNode();

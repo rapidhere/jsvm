@@ -63,4 +63,12 @@ public class IrLoad extends IrNode {
         irLoad.key = name;
         return irLoad;
     }
+
+    public static IrLoad closure() {
+        return local("closure");
+    }
+
+    public static IrLoad thiz() {
+        return local("this");
+    }
 }

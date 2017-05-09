@@ -36,7 +36,8 @@ public class MethodNode
                        extends
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
 
-    private List<IrNode>                   irNodes    = new ArrayList<>();
+    private List<IrNode> irNodes            = new ArrayList<>();
+    private List<String> localVariableNames = new ArrayList<>();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -85,6 +86,16 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode local(String name) {
+        for (String n : localVariableNames) {
+            if (n.equals(name)) {
+                return this;
+            }
+        }
+        localVariableNames.add(name);
+        return this;
+    }
+
     //~ inst goes here
 
     public MethodNode put_label(LabelNode labelNode) {
@@ -103,15 +114,19 @@ public class MethodNode
     }
 
     public MethodNode aload(String name) {
+        return aload(getLocalNameIndex(name));
+    }
+
+    public int getLocalNameIndex(String name) {
         for (int i = 0; i < $.parameters.size(); i++) {
             if ($.parameters.get(i).name.equals(name)) {
-                return aload(i);
+                return i;
             }
         }
 
-        for (int i = 0; i < $.localVariables.size(); i++) {
-            if ($.localVariables.get(i).name.equals(name)) {
-                return aload(i + $.parameters.size());
+        for (int i = 0; i < localVariableNames.size(); i++) {
+            if (localVariableNames.get(i).equals(name)) {
+                return i + $.parameters.size();
             }
         }
 
@@ -189,6 +204,11 @@ public class MethodNode
 
     public MethodNode load(String className, String name, String desc) {
         $.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, className, name, desc));
+        return this;
+    }
+
+    public MethodNode astore(String name) {
+        $.instructions.add(new VarInsnNode(Opcodes.ASTORE, getLocalNameIndex(name)));
         return this;
     }
 

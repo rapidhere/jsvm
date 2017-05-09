@@ -13,14 +13,12 @@ package ranttu.rapid.jsvm.test;
  */
 public class TmpTest {
     public TmpTest() {
-        if (f(0)) {
-            f(1);
-        } else {
-            f(2);
-        }
+
     }
 
-    public boolean f(Object o) {
-        return Boolean.valueOf(o.toString());
+    public void f(Runnable run) {
+        int i = 1;
+        System.out.println(i);
+        run.run();
     }
 }
