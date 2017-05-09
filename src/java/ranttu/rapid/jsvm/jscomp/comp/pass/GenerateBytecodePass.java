@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
-import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
@@ -126,17 +125,17 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 break;
             case INTEGER:
                 method.load_const(literal.getInt()).invoke_static(
-                    Type.getInternalName(Integer.class), "valueOf",
-                    Type.getMethodDescriptor(Type.getType(Integer.class), Type.INT_TYPE));
+                    $$.getInternalName(Integer.class), "valueOf",
+                    $$.getMethodDescriptor(Integer.class, int.class));
                 break;
             case DOUBLE:
                 method.load_const(literal.getDouble()).invoke_static(
-                    Type.getInternalName(Double.class), "valueOf",
-                    Type.getMethodDescriptor(Type.getType(Double.class), Type.DOUBLE_TYPE));
+                    $$.getInternalName(Double.class), "valueOf",
+                    $$.getMethodDescriptor(Double.class, double.class));
                 break;
             case BOOLEAN:
-                method.load_static(Type.getInternalName(Boolean.class),
-                    literal.getBoolean() ? "TRUE" : "FALSE", Type.getDescriptor(Boolean.class));
+                method.load_static($$.getInternalName(Boolean.class),
+                    literal.getBoolean() ? "TRUE" : "FALSE", $$.getDescriptor(Boolean.class));
                 break;
             default:
                 $$.notSupport();

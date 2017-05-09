@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
-import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 
@@ -61,8 +61,8 @@ public class IrInvoke extends IrNode {
     }
 
     public static IrInvoke makeFunc() {
-        return invokeVirtual(Type.getInternalName(JsFunctionObject.class), "makeFunction",
-            Type.getMethodDescriptor(Type.VOID_TYPE));
+        return invokeVirtual($$.getInternalName(JsFunctionObject.class), "makeFunction",
+            $$.getMethodDescriptor(void.class));
     }
 
     public static IrInvoke construct(int numberOfArgs) {

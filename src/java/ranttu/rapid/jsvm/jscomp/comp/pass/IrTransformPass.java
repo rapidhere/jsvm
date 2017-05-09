@@ -6,8 +6,6 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
-import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.IrCast;
 import ranttu.rapid.jsvm.codegen.ir.IrDup;
@@ -67,9 +65,9 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         // get boolean value
         ir(IrInvoke.invokeStatic(
-            Type.getInternalName(JsRuntime.class),
+            $$.getInternalName(JsRuntime.class),
             "castToBooleanValue",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class))
+            $$.getMethodDescriptor(int.class, Object.class)
         ));
 
         // have alternate statement
@@ -108,9 +106,9 @@ public class IrTransformPass extends AstBasedCompilePass {
                 visit(binExp.getRight());
 
                 ir(IrInvoke.invokeVirtual(
-                    Type.getInternalName(JsObjectObject.class),
+                    $$.getInternalName(JsObjectObject.class),
                     "instanceOf",
-                    Type.getMethodDescriptor(Type.getType(Boolean.class), Type.getType(Object.class))
+                    $$.getMethodDescriptor(Boolean.class, Object.class)
                 ));
                 break;
             default:
@@ -186,7 +184,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         ir(IrStore.field(
             clazz.$.name,
             function.getId().getName(),
-            Type.getDescriptor(Object.class)
+            $$.getDescriptor(Object.class)
         ));
     }
 
@@ -199,7 +197,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
 
         ClassNode outterCls = clazz;
-        String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, $$.getType(outterCls));
+        String constructorDesc = $$.getMethodDescriptor(void.class, outterCls);
 
         in(funcCls).invoke(() -> {
             // add $that field
@@ -216,12 +214,12 @@ public class IrTransformPass extends AstBasedCompilePass {
                         // super class init
                         IrThis.irthis(),
                         IrInvoke.invokeInit(
-                            Type.getInternalName(JsFunctionObject.class),
-                            Type.getMethodDescriptor(Type.VOID_TYPE)),
+                            $$.getInternalName(JsFunctionObject.class),
+                            $$.getMethodDescriptor(void.class)),
                         // store field $that
                         IrThis.irthis(),
                         IrLoad.local("$that"),
-                        IrStore.field(clazz.$.name, "$that", CgNode.getDescriptor(outterCls)),
+                        IrStore.field(clazz.$.name, "$that", $$.getDescriptor(outterCls)),
                         // ret
                         IrReturn.ret()
                     )
@@ -247,7 +245,7 @@ public class IrTransformPass extends AstBasedCompilePass {
                             IrThis.irthis(),
                             IrLoad.local("args"),
                             IrLoad.array(i),
-                            IrStore.field(clazz.$.name, par.getName(), Type.getDescriptor(Object.class))
+                            IrStore.field(clazz.$.name, par.getName(), $$.getDescriptor(Object.class))
                         );
                     }
 
@@ -286,7 +284,7 @@ public class IrTransformPass extends AstBasedCompilePass {
     protected void visit(ObjectExpression objExp) {
         // load init method
         ir(
-            IrLoad.staticField(JsRuntime.class, "Object", Type.getDescriptor(JsFunctionObject.class)),
+            IrLoad.staticField(JsRuntime.class, "Object", $$.getDescriptor(JsFunctionObject.class)),
             IrInvoke.construct(0)
         );
 
@@ -328,12 +326,12 @@ public class IrTransformPass extends AstBasedCompilePass {
             ClassNode nextCls = context.namingEnv.getScopeClass(nodes.get(i + 1));
 
             // this.$that
-            ir(IrLoad.field(cls.$.name, "$that", CgNode.getDescriptor(nextCls)));
+            ir(IrLoad.field(cls.$.name, "$that", $$.getDescriptor(nextCls)));
         }
 
         Node last = nodes.get(nodes.size() - 1);
         ClassNode lastCls = context.namingEnv.getScopeClass(last);
-        ir(IrLoad.field(lastCls.$.name, name, Type.getDescriptor(Object.class)));
+        ir(IrLoad.field(lastCls.$.name, name, $$.getDescriptor(Object.class)));
     }
 
     @Override
@@ -407,8 +405,8 @@ public class IrTransformPass extends AstBasedCompilePass {
                 .ir(
                     IrNew.newObject(clazz.$.name),
                     IrDup.dup(),
-                    IrInvoke.invokeInit(clazz.$.name, Type.getMethodDescriptor(Type.VOID_TYPE)),
-                    IrStore.staticField(clazz.$.name, JsModule.FIELD_MODULE_NAME, CgNode.getDescriptor(clazz)),
+                    IrInvoke.invokeInit(clazz.$.name, $$.getMethodDescriptor(void.class)),
+                    IrStore.staticField(clazz.$.name, JsModule.FIELD_MODULE_NAME, $$.getDescriptor(clazz)),
                     IrReturn.ret()
                 );
 
@@ -417,8 +415,9 @@ public class IrTransformPass extends AstBasedCompilePass {
                 ir(
                     IrThis.irthis(),
                     IrInvoke.invokeInit(
-                        Type.getInternalName(JsModule.class),
-                        Type.getMethodDescriptor(Type.VOID_TYPE))
+                        $$.getInternalName(JsModule.class),
+                        $$.getMethodDescriptor(void.class)
+                    )
                 );
 
                 // generate body

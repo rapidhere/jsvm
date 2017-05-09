@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
-import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.$$;
 
 /**
  * a cast node
@@ -24,6 +24,6 @@ public class IrCast extends IrNode {
     }
 
     public static IrCast cast(Class clazz) {
-        return cast(Type.getInternalName(clazz));
+        return cast($$.getInternalName(clazz));
     }
 }

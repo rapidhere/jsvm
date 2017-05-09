@@ -7,9 +7,9 @@ package ranttu.rapid.jsvm.common;
 
 import jdk.internal.org.objectweb.asm.Handle;
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyFactory;
 
+import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
@@ -29,11 +29,9 @@ public interface MethodConst {
                                   // the invoke type, STATIC or SPECIAL or something else
                                   Opcodes.H_INVOKESTATIC,
                                   // the internal name of factory class
-                                  Type.getInternalName(INDY_FACTORY_CLASS),
+                                  $$.getInternalName(INDY_FACTORY_CLASS),
                                   // the factory method name
                                   "callsite",
                                   // the factory method desc
-                                  Type.getMethodDescriptor(ReflectionUtil.getMethod(
-                                      JsIndyFactory.class, "callsite", MethodHandles.Lookup.class,
-                                      String.class, MethodType.class)));
+                                  $$.getMethodDescriptor(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class));
 }

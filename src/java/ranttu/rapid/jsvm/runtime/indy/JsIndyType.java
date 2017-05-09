@@ -1,6 +1,6 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
-import jdk.nashorn.internal.codegen.types.Type;
+import ranttu.rapid.jsvm.common.$$;
 
 /**
  * invoke dynamic call type
@@ -35,6 +35,6 @@ public enum JsIndyType {
         Class[] pars = new Class[clazz.length + parsType.length];
         System.arraycopy(parsType, 0, pars, 0, parsType.length);
         System.arraycopy(clazz, 0, pars, parsType.length, clazz.length);
-        return Type.getMethodDescriptor(retType, pars);
+        return $$.getMethodDescriptor(retType, pars);
     }
 }

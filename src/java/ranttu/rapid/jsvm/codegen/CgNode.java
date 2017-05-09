@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
-import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.$$;
 
 import static ranttu.rapid.jsvm.common.$$.notSupport;
 
@@ -38,19 +38,19 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
     }
 
     public THIS desc(ClassNode classNode) {
-        return desc(getDescriptor(classNode));
+        return desc($$.getDescriptor(classNode));
     }
 
     public THIS desc(Class clazz) {
-        return desc(Type.getDescriptor(clazz));
+        return desc($$.getDescriptor(clazz));
     }
 
     public THIS desc(Class retType, Class... pars) {
-        return desc(Type.getMethodDescriptor(Type.getType(retType), getTypes(pars)));
+        return desc($$.getMethodDescriptor(retType, pars));
     }
 
     public THIS name(String internalName, Class clazz) {
-        return name(internalName, Type.getInternalName(clazz));
+        return name(internalName, $$.getInternalName(clazz));
     }
 
     // ~~~ abstract interface
@@ -65,41 +65,11 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return notSupport();
     }
 
-    public THIS name(String internalName) {
-        return notSupport();
-    }
-
     public THIS desc(String desc) {
         return notSupport();
     }
 
     public P end() {
         return parent;
-    }
-
-    // ~~~ helpers
-
-    public static String getDescriptor(ClassNode classNode) {
-        return "L" + classNode.$.name + ";";
-    }
-
-    public static Type[] getTypes(Class t1, Class ...types) {
-        Type[] ret = new Type[types.length + 1];
-        ret[0] = Type.getType(t1);
-
-        for(int i = 0;i < types.length;i ++) {
-            ret[i + 1] = Type.getType(types[i]);
-        }
-
-        return ret;
-    }
-
-    public static Type[] getTypes(Class... types) {
-        Type[] ret = new Type[types.length];
-        for(int i = 0;i < types.length;i ++) {
-            ret[i] = Type.getType(types[i]);
-        }
-
-        return ret;
     }
 }

@@ -6,7 +6,6 @@
 package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
@@ -68,7 +67,7 @@ public class ClassNode extends
 
     // ~~~ inner classes
     public ClassNode inner_class(String innerName, Class superClass, int... acces) {
-        return inner_class(innerName, Type.getInternalName(superClass), acces);
+        return inner_class(innerName, $$.getInternalName(superClass), acces);
     }
 
     public Collection<ClassNode> innerClasses() {
@@ -83,8 +82,9 @@ public class ClassNode extends
         cls.parent = this;
         innerClasses.put(cls.$.name, cls);
 
-        for(ClassNode it = cls;it != null;it = it.parent) {
-            it.$.innerClasses.add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
+        for (ClassNode it = cls; it != null; it = it.parent) {
+            it.$.innerClasses
+                .add(new InnerClassNode(cls.$.name, $.name, innerClsName, cls.$.access));
         }
 
         return cls;
@@ -124,16 +124,10 @@ public class ClassNode extends
 
     public MethodNode method_clinit() {
         return method(MethodConst.CLINIT).acc(Opcodes.ACC_STATIC).desc(
-            Type.getMethodDescriptor(Type.VOID_TYPE));
+            $$.getMethodDescriptor(void.class));
     }
 
     public MethodNode method_init(ClassNode... types) {
-        Type[] tTypes = new Type[types.length];
-        for (int i = 0; i < types.length; i++) {
-            tTypes[i] = Type.getType(getDescriptor(types[i]));
-        }
-
-        return method(MethodConst.INIT).desc(Type.getMethodDescriptor(Type.VOID_TYPE, tTypes)).par(
-            "this");
+        return method(MethodConst.INIT).desc($$.getMethodDescriptor(void.class, types)).par("this");
     }
 }

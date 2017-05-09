@@ -5,7 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
-import jdk.internal.org.objectweb.asm.Type;
+import ranttu.rapid.jsvm.common.$$;
 
 /**
  * load instruction
@@ -44,7 +44,7 @@ public class IrLoad extends IrNode {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.STATIC_FIELD;
         irLoad.key = fieldName;
-        irLoad.className = Type.getInternalName(clazz);
+        irLoad.className = $$.getInternalName(clazz);
         irLoad.desc = desc;
         return irLoad;
     }

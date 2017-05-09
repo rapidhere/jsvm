@@ -6,10 +6,7 @@
 package ranttu.rapid.jsvm.common;
 
 import jdk.internal.org.objectweb.asm.Type;
-import ranttu.rapid.jsvm.codegen.CgNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-
-import java.util.Optional;
 
 /**
  * utils
@@ -40,8 +37,8 @@ final public class $$ {
     // ~~~ collections
     @SafeVarargs
     public static <T> boolean in(T o, T... others) {
-        for(T other: others) {
-            if(other.equals(o)) {
+        for (T other : others) {
+            if (other.equals(o)) {
                 return true;
             }
         }
@@ -69,13 +66,13 @@ final public class $$ {
 
     // ~~~ assert utils
     public static void should(boolean b) {
-        if(! b) {
+        if (!b) {
             throw new AssertionError();
         }
     }
 
     @SafeVarargs
-    public static  <T> void shouldIn(T o, T ...others) {
+    public static <T> void shouldIn(T o, T... others) {
         should(in(o, others));
     }
 
@@ -88,29 +85,55 @@ final public class $$ {
         return s;
     }
 
-    public static <T> T notNull(T o) {
-        if (o == null) {
-            throw new AssertionError("object cannot be null");
-        }
-
-        return o;
-    }
-
-    public static <T> T present(Optional<T> op) {
-        if(op.isPresent()) {
-            return op.get();
-        }
-
-        throw new AssertionError("object must present");
-    }
-
     // string utils
     public static boolean isBlank(String s) {
         return s.trim().length() == 0;
     }
 
-    // type helper
-    public static Type getType(ClassNode classNode) {
-        return Type.getType(CgNode.getDescriptor(classNode));
+    //~~~ byte code helpers
+
+    /**
+     * get a internal name from a Class Object/ ClassNode / String
+     */
+    public static String getInternalName(Object o) {
+        if (o instanceof Class) {
+            return Type.getInternalName(cast(o, Class.class));
+        } else if (o instanceof ClassNode) {
+            return cast(o, ClassNode.class).$.name;
+        } else {
+            return cast(o);
+        }
+    }
+
+    /**
+     * get a descriptor from a Class Object / ClassNode / String
+     */
+    public static String getDescriptor(Object o) {
+        if (o instanceof Class) {
+            return Type.getDescriptor(cast(o, Class.class));
+        } else if (o instanceof ClassNode) {
+            return "L" + cast(o, ClassNode.class).$.name + ";";
+        } else {
+            return cast(o);
+        }
+    }
+
+    /**
+     * get the type of a Class Object / String
+     */
+    public static Type getType(Object o) {
+        return Type.getType(getDescriptor(o));
+    }
+
+    /**
+     * get the method descriptor, any parameters can be Class Object/ ClassNode / String
+     */
+    public static String getMethodDescriptor(Object retType, Object...parameterTypes) {
+        Type[] types = new Type[parameterTypes.length];
+        for(int i = 0;i < types.length;i ++) {
+            types[i] = getType(parameterTypes[i]);
+        }
+
+        return Type.getMethodDescriptor(getType(retType), types);
     }
 }
