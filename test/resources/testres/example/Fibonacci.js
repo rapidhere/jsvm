@@ -1,11 +1,14 @@
 function fib(n) {
+    var ret;
     if(n === 0) {
-        return 0;
+        ret = 0;
     } else if (n === 1) {
-        return 1;
+        ret = 1;
     } else {
-        return fib(n - 1) + fib(n - 2);
+        ret = fib(n - 1) + fib(n - 2);
     }
+
+    return ret;
 }
 
 function entry(n) {
