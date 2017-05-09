@@ -203,7 +203,7 @@ public class IrTransformPass extends AstBasedCompilePass {
 
         in(funcCls).invoke(() -> {
             // add $that field
-            clazz.field("$that").acc(Opcodes.ACC_PROTECTED).desc(outterCls);
+            clazz.field("$that").acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC).desc(outterCls);
 
             // bind class
             context.namingEnv.bindScopeClass(function, clazz);
@@ -240,7 +240,7 @@ public class IrTransformPass extends AstBasedCompilePass {
                     // put args into field
                     for (int i = 0; i < function.getParams().size(); i++) {
                         Identifier par = function.getParams().get(i);
-                        clazz.field(par.getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
+                        clazz.field(par.getName()).acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC).desc(Object.class);
 
                         // $fieldName = args[i]
                         ir(
@@ -397,7 +397,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         in(cls).invoke(() -> {
             // add MODULE field
             clazz.field(JsModule.FIELD_MODULE_NAME)
-                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC, Opcodes.ACC_SYNTHETIC)
                 .desc(clazz)
                 .end()
 
