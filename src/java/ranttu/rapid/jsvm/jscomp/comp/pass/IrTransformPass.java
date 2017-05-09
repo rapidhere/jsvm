@@ -172,14 +172,14 @@ public class IrTransformPass extends AstBasedCompilePass {
     protected void visit(VariableDeclarator variableDeclarator) {
         String varName = variableDeclarator.getId().getName();
 
-        clazz.field(varName).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
+        ClassNode closure = clazz.getClosureClass();
+
+        closure.field(varName).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         if (variableDeclarator.getInitExpression().isPresent()) {
             // store to the context
             ir(IrLoad.closure());
             super.visit(variableDeclarator);
-
-            ClassNode closure = clazz.getClosureClass();
             ir(IrStore.field(closure.$.name, varName, closure.field(varName).$.desc));
         }
     }
@@ -191,13 +191,14 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(FunctionDeclaration function) {
-        clazz.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
+        ClassNode closure = clazz.getClosureClass();
+        closure.field(function.getId().getName()).acc(Opcodes.ACC_PROTECTED).desc(Object.class);
 
         // store the function
         ir(IrLoad.closure());
         onFunction(function);
         ir(IrStore.field(
-            clazz.$.name,
+            closure.$.name,
             function.getId().getName(),
             $$.getDescriptor(Object.class)
         ));
@@ -211,7 +212,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class,
             Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
 
-        ClassNode outterCls = clazz;
+        ClassNode outterCls = clazz.getClosureClass();
         String constructorDesc = $$.getMethodDescriptor(void.class, outterCls);
 
         in(funcCls).invoke(() -> {
@@ -250,7 +251,9 @@ public class IrTransformPass extends AstBasedCompilePass {
                         // store field $that
                         IrLoad.thiz(),
                         IrLoad.local("$that"),
-                        IrStore.field(clazz.$.name, "$that", $$.getDescriptor(outterCls)),
+                        IrStore.field(
+                            clazz.$.name, "$that",
+                            $$.getDescriptor(outterCls)),
                         // ret
                         IrReturn.ret()
                     )

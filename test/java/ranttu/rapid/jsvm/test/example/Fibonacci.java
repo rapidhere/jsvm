@@ -26,7 +26,12 @@ public class Fibonacci extends JsvmExampleTestBase {
     protected List<Object[]> args() {
         return ImmutableList.of(
             new Object[] {0},
-            new Object[] {1}
+            new Object[] {1},
+            new Object[] {2},
+            new Object[] {3},
+            new Object[] {20},
+            new Object[] {25},
+            new Object[] {30}
         );
     }
 }
