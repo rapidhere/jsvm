@@ -45,7 +45,7 @@ abstract public class CgNode<T, P extends CgNode, THIS> {
         return desc($$.getDescriptor(clazz));
     }
 
-    public THIS desc(Class retType, Class... pars) {
+    public THIS desc(Class retType, Object... pars) {
         return desc($$.getMethodDescriptor(retType, pars));
     }
 
