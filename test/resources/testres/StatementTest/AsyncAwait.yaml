@@ -1,0 +1,7 @@
+- description: return 1
+  jsSource:
+      async function a() {
+          var ret = await f();
+          return ret;
+      }
+  expected: 1

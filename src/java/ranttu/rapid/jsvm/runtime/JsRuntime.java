@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.runtime;
 
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.runtime.async.Promise;
 
 /**
  * runtime defines
@@ -52,6 +53,9 @@ abstract public class JsRuntime extends JsClosure {
         }
     }
     public static final JsFunctionObject Function = new FunctionClass();
+
+    // ~~~ Promise
+    public static final Class<Promise> Promise = Promise.class;
 
     // ~~~ helpers
 

@@ -35,7 +35,7 @@ public class AcornJSParser implements Parser {
 
             // add a entry point
             engine.eval("function parse(source) { return JSON.stringify(acorn.parse.call("
-                        + "acorn, source, {locations:true, sourceType: 'module'})); }");
+                        + "acorn, source, {locations:true, sourceType: 'module', ecmaVersion: 8})); }");
         } catch (ScriptException e) {
             throw new CompileError("wrong with acorn compile env", e);
         }

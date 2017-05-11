@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.ast.astnode;
 
 import org.json.JSONObject;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
@@ -26,6 +27,7 @@ abstract public class Function extends BaseAstNode {
     private List<Identifier> params = new ArrayList<>();
     private BlockStatement body;
     private boolean generator;
+    private boolean async;
 
     public Function(JSONObject jsonObject) {
         super(jsonObject);
@@ -42,6 +44,10 @@ abstract public class Function extends BaseAstNode {
         jsonObject.getJSONArray("params").forEach((child) ->
             params.add(Node.of(this, (JSONObject) child)));
         generator = jsonObject.getBoolean("generator");
+        async = jsonObject.getBoolean("async");
+
+        // generator function is not supported yet
+        $$.should(! isGenerator());
     }
 
     public Optional<Identifier> getIdOptional() {
@@ -59,4 +65,6 @@ abstract public class Function extends BaseAstNode {
     public boolean isGenerator() {
         return generator;
     }
+
+    public boolean isAsync() { return async;}
 }

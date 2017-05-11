@@ -29,6 +29,15 @@ public class ExpressionTest extends JsvmJunitTestBase {
 
     @Test
     @UseDataProvider("yamlDataProvider")
+    public void promise(ExpressionTestData testData) throws Exception {
+        String clsName = "PromiseTest";
+        JsModule module = loadModule(clsName, testData.jsSource);
+
+        assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
+    }
+
+    @Test
+    @UseDataProvider("yamlDataProvider")
     public void singleLiteral(ExpressionTestData testData) throws Exception {
         String clsName = "JsModuleTest";
         JsModule module = loadModule(clsName, testData.jsSource);

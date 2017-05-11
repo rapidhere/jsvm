@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.runtime;
 
+import ranttu.rapid.jsvm.jscomp.ExportName;
+
 /**
  * a js module
  *
@@ -18,9 +20,14 @@ abstract public class JsModule extends JsRuntime {
     // ~~~ added js runtime public things
     // NOTE:
     //    Temp put these field as public field for non-module inner class access
+    @ExportName
     public final Object Object = JsRuntime.Object;
 
+    @ExportName
     public final Object Function = JsRuntime.Function;
+
+    @ExportName
+    public final Object Promise = JsRuntime.Promise;
 
     /** cannot create directly */
     protected JsModule() {}

@@ -6,12 +6,16 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.jscomp.ExportName;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionDeclaration;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.FunctionExpression;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Identifier;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.Program;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.VariableDeclarator;
 import ranttu.rapid.jsvm.jscomp.comp.NamingEnvironment;
+import ranttu.rapid.jsvm.runtime.JsModule;
+
+import java.lang.reflect.Field;
 
 /**
  * the pass that collect names
@@ -30,9 +34,13 @@ public class CollectNamingPass extends AstBasedCompilePass {
     @Override
     protected void visit(Program program) {
         env.newScope(program);
+
         // add runtime
-        env.addVarBinding(program, "Object");
-        env.addVarBinding(program, "Function");
+        for(Field field: JsModule.class.getDeclaredFields()) {
+            if(field.isAnnotationPresent(ExportName.class)) {
+                env.addVarBinding(program, field.getName());
+            }
+        }
 
         super.visit(program);
     }

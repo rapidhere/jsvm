@@ -20,6 +20,10 @@ final public class ReflectionUtil {
     private ReflectionUtil() {
     }
 
+    public static boolean isSingleAbstractMethod(Class clazz) {
+        return clazz.getMethods().length == 1 && clazz.isInterface();
+    }
+
     public static Field getField(Object instance, String fieldName) {
         Class clazz = instance.getClass();
 

@@ -25,13 +25,10 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.ast.enums.BinaryOperator;
-import ranttu.rapid.jsvm.runtime.JsClosure;
-import ranttu.rapid.jsvm.runtime.JsFunctionObject;
-import ranttu.rapid.jsvm.runtime.JsModule;
-import ranttu.rapid.jsvm.runtime.JsObjectObject;
-import ranttu.rapid.jsvm.runtime.JsRuntime;
+import ranttu.rapid.jsvm.runtime.*;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * the pass transform the ast-tree to ir-tree
@@ -42,6 +39,17 @@ import java.util.List;
 public class IrTransformPass extends AstBasedCompilePass {
     private void ir(IrNode... irs) {
         method.ir(irs);
+    }
+
+    @Override
+    protected  void visit(AwaitExpression awaitExpression) {
+        // TODO: await expression context check
+        super.visit(awaitExpression);
+
+        // cast to Future Object and put it on the stack
+        ir(IrCast.cast(Future.class));
+
+
     }
 
     @Override
@@ -238,9 +246,14 @@ public class IrTransformPass extends AstBasedCompilePass {
      * put a invokable function object on the stack
      */
     private void onFunction(Function function) {
-        // new function class
-        ClassNode funcCls = clazz.inner_class("Function", JsFunctionObject.class,
-            Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
+        //~~~ new function class
+        ClassNode funcCls;
+        if(! function.isAsync()) {
+            funcCls = clazz.inner_class("Function", JsFunctionObject.class);
+        } else {
+            funcCls = clazz.inner_class("Function", JsAsyncFunctionObject.class);
+        }
+        funcCls.acc(Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
 
         ClassNode outterCls = clazz.getClosureClass();
         String constructorDesc = $$.getMethodDescriptor(void.class, outterCls);
@@ -393,10 +406,12 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(Identifier identifier) {
-        visitName(identifier.getName(), identifier);
+        ClassNode clazz = visitName(identifier.getName(), identifier);
+        ir(IrLoad.field(
+            clazz.$.name, identifier.getName(), $$.getDescriptor(Object.class)));
     }
 
-    private void visitName(String name, Node node) {
+    private ClassNode visitName(String name, Node node) {
         List<Node> nodes = context.namingEnv.resolveJumped(node, name);
 
         ir(IrLoad.local("closure"));
@@ -410,23 +425,21 @@ public class IrTransformPass extends AstBasedCompilePass {
         }
 
         Node last = nodes.get(nodes.size() - 1);
-        ClassNode lastCls = context.namingEnv.getScopeClass(last);
-        ir(IrLoad.field(lastCls.$.name, name, $$.getDescriptor(Object.class)));
+        return context.namingEnv.getScopeClass(last);
     }
 
     @Override
     protected void visit(AssignmentExpression assignExp) {
         // only support normal assign now
         $$.shouldIn(assignExp.getOperator(), AssignmentOperator.ASSIGN);
-        ClassNode closure = clazz.getClosureClass();
 
         // field assignment
         if (assignExp.getLeft().is(Identifier.class)) {
             String key = $$.cast(assignExp.getLeft(), Identifier.class).getName();
+            ClassNode clazz = visitName(key, assignExp);
 
-            ir(IrLoad.closure());
             visit(assignExp.getRight());
-            ir(IrStore.field(closure.$.name, key, closure.field(key).$.desc));
+            ir(IrStore.field(clazz.$.name, key, clazz.field(key).$.desc));
         }
         // member assignment
         else if (assignExp.getLeft().is(MemberExpression.class)) {

@@ -11,7 +11,6 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
-import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
 
 import java.lang.reflect.Field;
@@ -49,4 +48,14 @@ public class StatementTest extends JsvmJunitTestBase {
             assertEquals(testData.expected, ret);
         }
     }
+
+    // ~~ not supported yet
+//    @Test
+//    @UseDataProvider("yamlDataProvider")
+//    public void AsyncAwait(StatementTestData testData) {
+//        JsModule module = loadModule("AsyncAwaitTestCase", testData.jsSource);
+//
+//        JsAsyncFunctionObject function = ReflectionUtil.getFieldValue(module, "func");
+//
+//    }
 }
