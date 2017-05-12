@@ -1,0 +1,8 @@
+- description: import Map
+  jsSource:
+      import * as HashMap from "java.util.HashMap";
+
+      var map = new HashMap();
+      map.put('key', 1);
+      export var a = map.get('key');
+  expected: 1

@@ -23,8 +23,6 @@ public class TmpTest implements Callable {
     }
 
     public Object call() {
-        int a = 100, b = 200;
-        int c = a + b;
-        return jsFunctionObject.invoke(null);
+        return jsFunctionObject.invoke(TmpTest.class);
     }
 }

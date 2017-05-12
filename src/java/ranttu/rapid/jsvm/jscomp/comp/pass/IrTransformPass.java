@@ -42,14 +42,32 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     @Override
+    protected void visit(ImportDeclaration importDeclaration) {
+        ClassNode closure = clazz.getClosureClass();
+        String classPath = importDeclaration.getSource().getString();
+        String name = importDeclaration.getNamespace().getName();
+
+        // add closure field
+        closure.field(name)
+            .acc(Opcodes.ACC_PROTECTED, Opcodes.ACC_SYNTHETIC)
+            .desc(Object.class);
+
+        // TODO: only support java class import now
+        ir(
+            IrLoad.closure(),
+            // load class
+            IrLoad.ldc($$.getType(classPath)),
+            IrStore.field(closure.$.name, name, $$.getDescriptor(Object.class))
+        );
+    }
+
+    @Override
     protected  void visit(AwaitExpression awaitExpression) {
         // TODO: await expression context check
         super.visit(awaitExpression);
 
         // cast to Future Object and put it on the stack
         ir(IrCast.cast(Future.class));
-
-
     }
 
     @Override

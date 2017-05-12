@@ -88,6 +88,9 @@ public interface Node {
             String type = jsonObject.getString("type");
 
             switch (type) {
+                case ES_IMPORT_DECLARATION:
+                    ret = new ImportDeclaration(jsonObject);
+                    break;
                 case ES_AWAIT_EXPRESSION:
                     ret = new AwaitExpression(jsonObject);
                     break;
@@ -265,5 +268,5 @@ public interface Node {
             ES_TYPE_SEQ_EXP = "SequenceExpression", ES_TYPE_FOR_OF_STM = "ForOfStatement",
             ES_TYPE_SUPER = "Super", ES_TYPE_LITERAL = "Literal",
             ES_EXPORT_NAMED_DECLARATION = "ExportNamedDeclaration",
-            ES_AWAIT_EXPRESSION = "AwaitExpression";
+            ES_AWAIT_EXPRESSION = "AwaitExpression", ES_IMPORT_DECLARATION = "ImportDeclaration";
 }

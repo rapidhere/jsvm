@@ -49,6 +49,17 @@ public class StatementTest extends JsvmJunitTestBase {
         }
     }
 
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void importStatement(StatementTestData testData) throws Exception {
+        JsModule module = loadModule("ImportTestCase", testData.jsSource);
+
+        Field fieldA = module.getClass().getDeclaredField("a");
+        Object ret = fieldA.get(module);
+
+        assertEquals(testData.expected, ret);
+    }
+
     // ~~ not supported yet
 //    @Test
 //    @UseDataProvider("yamlDataProvider")

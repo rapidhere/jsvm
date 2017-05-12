@@ -30,6 +30,7 @@ final public class $$ {
     /**
      * cast object into a required type
      */
+    @SuppressWarnings("unchecked")
     public static <T> T cast(Object o, @SuppressWarnings("unused") Class<T> clazz) {
         return (T) o;
     }
@@ -101,7 +102,7 @@ final public class $$ {
         } else if (o instanceof ClassNode) {
             return cast(o, ClassNode.class).$.name;
         } else {
-            return cast(o);
+            return cast(o, String.class).replace('.', '/');
         }
     }
 
@@ -114,7 +115,13 @@ final public class $$ {
         } else if (o instanceof ClassNode) {
             return "L" + cast(o, ClassNode.class).$.name + ";";
         } else {
-            return cast(o);
+            String ret = cast(o);
+            if(ret.startsWith("L") && ret.endsWith(";")) {
+                return ret;
+            } else {
+                ret = getInternalName(ret);
+                return "L" + ret + ";";
+            }
         }
     }
 

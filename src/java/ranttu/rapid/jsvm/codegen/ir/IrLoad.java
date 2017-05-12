@@ -24,6 +24,9 @@ public class IrLoad extends IrNode {
     // for array instruction only
     public int       index;
 
+    // for ldc instruction only
+    public Object    constVal;
+
     public static IrLoad property() {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.PROP;
@@ -40,7 +43,7 @@ public class IrLoad extends IrNode {
         return irLoad;
     }
 
-    public static IrLoad staticField(Class clazz, String fieldName, String desc) {
+    public static IrLoad staticField(Object clazz, String fieldName, String desc) {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.STATIC_FIELD;
         irLoad.key = fieldName;
@@ -61,6 +64,14 @@ public class IrLoad extends IrNode {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.LOCAL;
         irLoad.key = name;
+        return irLoad;
+    }
+
+    public static IrLoad ldc(Object constVal) {
+        IrLoad irLoad = new IrLoad();
+        irLoad.type = FieldType.CONST;
+        irLoad.constVal = constVal;
+
         return irLoad;
     }
 

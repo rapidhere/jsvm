@@ -49,7 +49,7 @@ abstract public class JsvmExampleTestBase extends JsvmJunitTestBase {
 
     abstract protected List<Object[]> args();
 
-    private String getTestSource() throws IOException {
+    protected String getTestSource() throws IOException {
         Class clazz = getClass();
         String className = clazz.getSimpleName();
 

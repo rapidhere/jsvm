@@ -111,6 +111,9 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             case STATIC_FIELD:
                 method.load_static(irl.className, irl.key, irl.desc);
                 break;
+            case CONST:
+                method.load_const(irl.constVal);
+                break;
             default:
                 $$.notSupport();
         }
