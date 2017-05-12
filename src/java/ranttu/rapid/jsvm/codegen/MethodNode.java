@@ -5,18 +5,9 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
+import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.tree.FieldInsnNode;
-import jdk.internal.org.objectweb.asm.tree.InsnNode;
-import jdk.internal.org.objectweb.asm.tree.IntInsnNode;
-import jdk.internal.org.objectweb.asm.tree.InvokeDynamicInsnNode;
-import jdk.internal.org.objectweb.asm.tree.JumpInsnNode;
-import jdk.internal.org.objectweb.asm.tree.LabelNode;
-import jdk.internal.org.objectweb.asm.tree.LdcInsnNode;
-import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
-import jdk.internal.org.objectweb.asm.tree.ParameterNode;
-import jdk.internal.org.objectweb.asm.tree.TypeInsnNode;
-import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
+import jdk.internal.org.objectweb.asm.tree.*;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
@@ -42,6 +33,7 @@ public class MethodNode
     public MethodNode(ClassNode parent, String name) {
         super(parent);
         $.name = name;
+        $.tryCatchBlocks = new ArrayList<>();
     }
 
     @Override
@@ -52,6 +44,16 @@ public class MethodNode
         inner.parameters = new ArrayList<>();
 
         return inner;
+    }
+
+    public MethodNode try_catch(LabelNode start, LabelNode end, LabelNode handler, String excName) {
+        $.tryCatchBlocks.add(new TryCatchBlockNode(start, end, handler, excName));
+        return this;
+    }
+
+    public MethodNode swap() {
+        $.instructions.add(new InsnNode(Opcodes.SWAP));
+        return this;
     }
 
     @Override

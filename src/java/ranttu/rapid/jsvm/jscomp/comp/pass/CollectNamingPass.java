@@ -41,6 +41,13 @@ public class CollectNamingPass extends AstBasedCompilePass {
         super.visit(program);
     }
 
+    @Override
+    protected void visit(CatchClause catchClause) {
+        // TODO: currently only add this to the parent scope, put this is wrong due to the specification
+        env.addVarBinding(catchClause, catchClause.getParam().getName());
+    }
+
+    @Override
     protected void visit(ImportDeclaration importDeclaration) {
         env.addVarBinding(importDeclaration,
             importDeclaration.getNamespace().getName());

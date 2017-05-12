@@ -1,0 +1,12 @@
+- description: try catch in function
+  jsSource: |
+      export function f(bugger) {
+          var ret = 1;
+          try {
+              var unused = bugger.run();
+          } catch (e) {
+              ret = e;
+          }
+
+          return ret;
+      }

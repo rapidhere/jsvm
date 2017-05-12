@@ -5,8 +5,6 @@
  */
 package ranttu.rapid.jsvm.test;
 
-import ranttu.rapid.jsvm.runtime.JsFunctionObject;
-
 import java.util.concurrent.Callable;
 
 /**
@@ -16,13 +14,16 @@ import java.util.concurrent.Callable;
  * @version $id: TmpTest.java, v0.1 2017/4/13 dongwei.dq Exp $
  */
 public class TmpTest implements Callable {
-    private JsFunctionObject jsFunctionObject;
 
     public TmpTest(Object obj) {
-        jsFunctionObject = (JsFunctionObject) obj;
+        if (Boolean.valueOf("true")) {
+            throw new RuntimeException();
+        } else {
+            return;
+        }
     }
 
     public Object call() {
-        return jsFunctionObject.invoke(TmpTest.class);
+        return null;
     }
 }

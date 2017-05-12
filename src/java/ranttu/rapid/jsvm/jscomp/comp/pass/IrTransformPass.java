@@ -7,17 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.ir.IrCast;
-import ranttu.rapid.jsvm.codegen.ir.IrDup;
-import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
-import ranttu.rapid.jsvm.codegen.ir.IrJump;
-import ranttu.rapid.jsvm.codegen.ir.IrLabel;
-import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
-import ranttu.rapid.jsvm.codegen.ir.IrLoad;
-import ranttu.rapid.jsvm.codegen.ir.IrNew;
-import ranttu.rapid.jsvm.codegen.ir.IrNode;
-import ranttu.rapid.jsvm.codegen.ir.IrReturn;
-import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.jscomp.ast.astnode.*;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Declaration;
@@ -26,9 +16,9 @@ import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.ast.enums.BinaryOperator;
 import ranttu.rapid.jsvm.runtime.*;
+import ranttu.rapid.jsvm.runtime.async.FuturePromise;
 
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * the pass transform the ast-tree to ir-tree
@@ -39,6 +29,50 @@ import java.util.concurrent.Future;
 public class IrTransformPass extends AstBasedCompilePass {
     private void ir(IrNode... irs) {
         method.ir(irs);
+    }
+
+    @Override
+    protected void visit(TryStatement tryStatement) {
+        // TODO: support finally
+        IrLabel start = IrLabel.label(),
+            end = IrLabel.label(),
+            handler = IrLabel.label(),
+            nextBegin = IrLabel.label();
+
+        // create try catch list
+        method.try_catch(
+            start.label, end.label, handler.label, $$.getInternalName(Throwable.class));
+
+        // block to try catch
+        ir(start);
+        visit(tryStatement.getBlock());
+        ir(end, IrJump.j(nextBegin.label));
+
+        // try catch handler
+        ir(handler);
+        visit(tryStatement.getHandler());
+        ir(nextBegin);
+    }
+
+    @Override
+    protected void visit(CatchClause catchClause) {
+        // TODO: this implementation is still buggy on exception name scopes
+        String exceptionName = catchClause.getParam().getName();
+
+        // add new field to closure
+        ClassNode closure = clazz.getClosureClass();
+        closure.field(exceptionName).acc(Opcodes.ACC_PROTECTED).desc($$.getDescriptor(Object.class));
+
+        // store into closure
+        // exception is now on the stack
+        ir(
+            IrLoad.closure(),
+            IrSwap.swap(),
+            IrStore.field(closure.$.name, exceptionName, $$.getDescriptor(Object.class))
+        );
+
+        // visit catch body
+        visit(catchClause.getBody());
     }
 
     @Override
@@ -66,8 +100,11 @@ public class IrTransformPass extends AstBasedCompilePass {
         // TODO: await expression context check
         super.visit(awaitExpression);
 
-        // cast to Future Object and put it on the stack
-        ir(IrCast.cast(Future.class));
+        // cast to FuturePromise Object and put it on the stack
+        ir(IrCast.cast(FuturePromise.class));
+
+        // current method is over
+        ir(IrReturn.ret());
     }
 
     @Override

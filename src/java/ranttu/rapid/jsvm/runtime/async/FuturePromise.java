@@ -18,4 +18,9 @@ public interface FuturePromise extends Future<Object> {
      * called the the task is failed
      */
     Promise error(PromiseCallback callback);
+
+    /**
+     * been called whenever the task is finished or interrupted or failed
+     */
+    Promise done(ThunkCallback callback);
 }

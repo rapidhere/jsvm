@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
 import jdk.internal.org.objectweb.asm.*;
+import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
@@ -16,10 +17,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
 /**
  * a invoke-dynamic call site that is mutable
@@ -135,7 +133,7 @@ public class JsIndyCallSite extends MutableCallSite {
     }
 
     @SuppressWarnings("unused")
-    public static Object boundedInvoke(Object context, Object name, Object... args) {
+    public static Object boundedInvoke(Object context, Object name, Object... args) throws Throwable {
         if(context instanceof JsObjectObject) {
             Object invoker = getProperty(context, name.toString());
             return invoke(invoker, context, args);
@@ -143,10 +141,15 @@ public class JsIndyCallSite extends MutableCallSite {
             Method method = findExecutable(
                 context.getClass().getMethods(), args.length, (String) name);
             try {
+                // TODO: fix
+                method.setAccessible(true);
                 fitArgs(method, args);
                 return method.invoke(context, args);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            } finally {
+                // TODO: fix
+                method.setAccessible(false);
             }
         }
     }

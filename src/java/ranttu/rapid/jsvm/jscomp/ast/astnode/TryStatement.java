@@ -24,7 +24,9 @@ public class TryStatement extends BaseAstNode implements Statement {
         super(jsonObject);
         block = Node.of(this, jsonObject.getJSONObject("block"));
         handler = Node.of(this, jsonObject.getJSONObject("handler"));
-        finalizer = Node.of(this, jsonObject.getJSONObject("finalizer"));
+
+        // TODO: fix
+        // finalizer = Node.of(this, jsonObject.getJSONObject("finalizer"));
     }
 
     public BlockStatement getBlock() {

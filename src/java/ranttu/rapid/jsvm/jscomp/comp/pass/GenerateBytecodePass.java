@@ -7,16 +7,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
-import ranttu.rapid.jsvm.codegen.ir.IrCast;
-import ranttu.rapid.jsvm.codegen.ir.IrDup;
-import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
-import ranttu.rapid.jsvm.codegen.ir.IrJump;
-import ranttu.rapid.jsvm.codegen.ir.IrLabel;
-import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
-import ranttu.rapid.jsvm.codegen.ir.IrLoad;
-import ranttu.rapid.jsvm.codegen.ir.IrNew;
-import ranttu.rapid.jsvm.codegen.ir.IrReturn;
-import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
@@ -86,6 +77,11 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             default:
                 $$.notSupport();
         }
+    }
+
+    @Override
+    protected void visit(IrSwap swap) {
+        method.swap();
     }
 
     @Override

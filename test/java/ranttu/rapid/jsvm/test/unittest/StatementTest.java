@@ -60,6 +60,21 @@ public class StatementTest extends JsvmJunitTestBase {
         assertEquals(testData.expected, ret);
     }
 
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void tryCatch(StatementTestData testData) throws Exception {
+        JsModule module = loadModule("TryCatcTest", testData.jsSource);
+
+        JsFunctionObject function = ReflectionUtil.getFieldValue(module, "f");
+
+        Object result = function.invoke(this, (Runnable) () -> {
+            throw new RuntimeException("hahaha");
+        });
+
+        assertTrue(result instanceof RuntimeException);
+        assertEquals("hahaha", $$.cast(result, RuntimeException.class).getMessage());
+    }
+
     // ~~ not supported yet
 //    @Test
 //    @UseDataProvider("yamlDataProvider")

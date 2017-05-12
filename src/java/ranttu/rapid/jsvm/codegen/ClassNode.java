@@ -29,8 +29,17 @@ public class ClassNode extends
     private Map<String, MethodNode> methods      = new HashMap<>();
     private Map<String, ClassNode>  innerClasses = new HashMap<>();
 
+    // for async function usage only
+    private int awaitPointCount = 0;
+
     public ClassNode() {
         super(null);
+    }
+
+    public String nextEntryPointName() {
+        String ret = "awaitEntry$" + awaitPointCount;
+        awaitPointCount ++;
+        return ret;
     }
 
     public ClassNode getClosureClass() {

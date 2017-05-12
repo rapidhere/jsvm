@@ -14,6 +14,8 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class Promise implements FuturePromise {
     private PromiseCallback successCallback, failedCallback;
+    private ThunkCallback thunkCallback;
+
     private Object result, exception;
 
     private volatile boolean resolved = false;
@@ -67,14 +69,37 @@ public class Promise implements FuturePromise {
     }
 
     /**
+     * @see FuturePromise#done(ThunkCallback)
+     */
+    @Override
+    public Promise done(ThunkCallback callback) {
+        thunkCallback = callback;
+        resolve();
+        return this;
+    }
+
+    /**
      * try to resolve the final result to the then/error handler
      */
     private void resolve() {
         if(isDone()) {
             if(result != null && successCallback != null) {
                 successCallback.call(result);
+
+                // clear to avoid call again
+                successCallback = null;
             } else if(exception != null && failedCallback != null) {
                 failedCallback.call(exception);
+
+                // clear to avoid call again
+                failedCallback = null;
+            }
+
+            if(thunkCallback != null) {
+                thunkCallback.call(exception, result);
+
+                // clear to avoid call again
+                thunkCallback = null;
             }
         }
     }

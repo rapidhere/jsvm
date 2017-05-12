@@ -2,17 +2,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
-import ranttu.rapid.jsvm.codegen.ir.IrCast;
-import ranttu.rapid.jsvm.codegen.ir.IrDup;
-import ranttu.rapid.jsvm.codegen.ir.IrInvoke;
-import ranttu.rapid.jsvm.codegen.ir.IrJump;
-import ranttu.rapid.jsvm.codegen.ir.IrLabel;
-import ranttu.rapid.jsvm.codegen.ir.IrLiteral;
-import ranttu.rapid.jsvm.codegen.ir.IrLoad;
-import ranttu.rapid.jsvm.codegen.ir.IrNew;
-import ranttu.rapid.jsvm.codegen.ir.IrNode;
-import ranttu.rapid.jsvm.codegen.ir.IrReturn;
-import ranttu.rapid.jsvm.codegen.ir.IrStore;
+import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
 
 /**
@@ -61,9 +51,14 @@ abstract public class IrBasedCompilePass extends CompilePass {
             visit((IrLabel) irNode);
         } else if(irNode.is(IrJump.class)) {
             visit((IrJump) irNode);
+        } else if(irNode.is(IrSwap.class)) {
+            visit((IrSwap) irNode);
         } else {
             $$.notSupport();
         }
+    }
+
+    protected void visit(IrSwap swap) {
     }
 
     protected void visit(IrJump irJump) {

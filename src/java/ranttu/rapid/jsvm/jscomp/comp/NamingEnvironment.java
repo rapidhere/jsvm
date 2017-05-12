@@ -116,6 +116,10 @@ public class NamingEnvironment {
                 }
             }
 
+            if(node == null) {
+                System.out.print(node);
+            }
+
             if (node.hasParent()) {
                 node = node.getParent();
             } else {
