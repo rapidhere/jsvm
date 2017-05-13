@@ -71,9 +71,15 @@ abstract public class AstBasedCompilePass extends CompilePass {
             visit(node.as(TryStatement.class));
         } else if(node.is(CatchClause.class)) {
             visit(node.as(CatchClause.class));
+        } else if(node.is(ThrowStatement.class)) {
+            visit(node.as(ThrowStatement.class));
         } else {
             throw new NotSupportedYet(node);
         }
+    }
+
+    protected void visit(ThrowStatement throwStatement) {
+        visit(throwStatement.getArgument());
     }
 
     protected void visit(CatchClause catchClause) {

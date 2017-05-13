@@ -34,6 +34,12 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         context.byteCodes.put(classNode.$.name, cw.toByteArray());
     }
 
+
+    @Override
+    protected void visit(IrThrow irThrow) {
+        method.athrow();
+    }
+
     @Override
     protected void visit(IrLabel label) {
         method.put_label(label.label);

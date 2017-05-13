@@ -32,6 +32,18 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     @Override
+    protected void visit(ThrowStatement throwStatement) {
+        super.visit(throwStatement);
+
+        ir(
+            // convert to Throwable
+            IrCast.cast($$.getInternalName(Throwable.class)),
+            // then throw
+            IrThrow.athrow()
+        );
+    }
+
+    @Override
     protected void visit(TryStatement tryStatement) {
         // TODO: support finally
         IrLabel start = IrLabel.label(),

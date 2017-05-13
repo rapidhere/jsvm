@@ -36,6 +36,13 @@ abstract public class JsRuntime extends JsClosure {
 
             return obj;
         }
+
+        public JsObjectObject constructException(String message) {
+            JsObjectObject obj = new JsObjectObject(message);
+            obj.setProperty("__proto__", getProperty("prototype"));
+
+            return obj;
+        }
     }
     public static final JsFunctionObject Object = new ObjectClass();
 
@@ -56,6 +63,30 @@ abstract public class JsRuntime extends JsClosure {
 
     // ~~~ Promise
     public static final Class<Promise> Promise = Promise.class;
+
+    // ~~~ Error
+    protected static final class ErrorClass extends JsFunctionObject {
+        @Override
+        public Object invoke(Object $this, Object... args) {
+            return construct(args);
+        }
+
+        @Override
+        public JsObjectObject construct(Object... args) {
+            JsObjectObject obj = ((ObjectClass)Object).constructException(
+                args.length > 0 ? String.valueOf(args[0]) : null);
+            obj.setProperty("__proto__", getProperty("prototype"));
+
+            if(args.length > 0) {
+                obj.setProperty("message", args[0]);
+            } else {
+                obj.setProperty("message", null);
+            }
+
+            return obj;
+        }
+    }
+    public static final JsFunctionObject Error = new ErrorClass();
 
     // ~~~ helpers
 
@@ -119,5 +150,7 @@ abstract public class JsRuntime extends JsClosure {
         funcProto.setProperty("constructor", Function);
         Function.setProperty("prototype", funcProto);
         Function.setProperty("__proto__", funcProto);
+
+        Error.makeFunction();
     }
 }

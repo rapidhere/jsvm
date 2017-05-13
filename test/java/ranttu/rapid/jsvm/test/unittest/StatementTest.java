@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
+import ranttu.rapid.jsvm.runtime.JsObjectObject;
 import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
 
 import java.lang.reflect.Field;
@@ -63,7 +64,7 @@ public class StatementTest extends JsvmJunitTestBase {
     @Test
     @UseDataProvider("yamlDataProvider")
     public void tryCatch(StatementTestData testData) throws Exception {
-        JsModule module = loadModule("TryCatcTest", testData.jsSource);
+        JsModule module = loadModule("TryCatchTest", testData.jsSource);
 
         JsFunctionObject function = ReflectionUtil.getFieldValue(module, "f");
 
@@ -71,8 +72,13 @@ public class StatementTest extends JsvmJunitTestBase {
             throw new RuntimeException("hahaha");
         });
 
-        assertTrue(result instanceof RuntimeException);
-        assertEquals("hahaha", $$.cast(result, RuntimeException.class).getMessage());
+        assertTrue(result instanceof Throwable);
+        assertEquals("hahaha", $$.cast(result, Throwable.class).getMessage());
+
+        if(result instanceof JsObjectObject) {
+            assertEquals("hahaha",
+                $$.cast(result, JsObjectObject.class).getProperty("message"));
+        }
     }
 
     // ~~ not supported yet

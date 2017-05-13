@@ -10,3 +10,20 @@
 
           return ret;
       }
+
+- description: try catch from js
+  jsSource: |
+      export function f(bugger) {
+          var ret = 1;
+          function myBugger() {
+              throw new Error("hahaha");
+          }
+
+          try {
+              var unused = myBugger();
+          } catch (e) {
+              ret = e;
+          }
+
+          return ret;
+      }

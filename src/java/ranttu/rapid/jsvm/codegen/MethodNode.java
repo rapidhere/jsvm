@@ -56,6 +56,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode athrow() {
+        $.instructions.add(new InsnNode(Opcodes.ATHROW));
+        return this;
+    }
+
     @Override
     public MethodNode acc(int v) {
         $.access = v;

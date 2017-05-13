@@ -12,12 +12,21 @@ import java.util.Map;
 
 /**
  * a javascript Object
+ * WTF: in javascript, every object is throwable
  *
  * @author rapidhere@gmail.com
  * @version $id: JsObjectObject.java, v0.1 2017/4/14 dongwei.dq Exp $
  */
-public class JsObjectObject {
+public class JsObjectObject extends Throwable {
     protected Map<String, Object> properties = new HashMap<>();
+
+    public JsObjectObject() {
+    }
+
+    // only for throwable usage
+    public JsObjectObject(String message) {
+        super(message);
+    }
 
     public Object getProperty(String name) {
         if(properties.containsKey(name)) {

@@ -53,9 +53,14 @@ abstract public class IrBasedCompilePass extends CompilePass {
             visit((IrJump) irNode);
         } else if(irNode.is(IrSwap.class)) {
             visit((IrSwap) irNode);
+        } else if(irNode.is(IrThrow.class)) {
+            visit((IrThrow) irNode);
         } else {
             $$.notSupport();
         }
+    }
+
+    protected void visit(IrThrow irThrow) {
     }
 
     protected void visit(IrSwap swap) {

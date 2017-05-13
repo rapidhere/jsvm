@@ -29,6 +29,9 @@ abstract public class JsModule extends JsRuntime {
     @ExportName
     public final Object Promise = JsRuntime.Promise;
 
+    @ExportName
+    public final Object Error = JsRuntime.Error;
+
     /** cannot create directly */
     protected JsModule() {}
 }
