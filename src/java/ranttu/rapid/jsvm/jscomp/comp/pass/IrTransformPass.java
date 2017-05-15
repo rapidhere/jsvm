@@ -17,6 +17,8 @@ import ranttu.rapid.jsvm.jscomp.ast.enums.AssignmentOperator;
 import ranttu.rapid.jsvm.jscomp.ast.enums.BinaryOperator;
 import ranttu.rapid.jsvm.runtime.*;
 import ranttu.rapid.jsvm.runtime.async.FuturePromise;
+import ranttu.rapid.jsvm.runtime.async.Promise;
+import ranttu.rapid.jsvm.runtime.async.PromiseResultHandler;
 
 import java.util.List;
 
@@ -115,8 +117,8 @@ public class IrTransformPass extends AstBasedCompilePass {
         // cast to FuturePromise Object and put it on the stack
         ir(IrCast.cast(FuturePromise.class));
 
-        // current method is over
-        ir(IrReturn.ret());
+        // intermediate await node
+        ir(IrReturn.await());
     }
 
     @Override
@@ -319,6 +321,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             funcCls = clazz.inner_class("Function", JsFunctionObject.class);
         } else {
             funcCls = clazz.inner_class("Function", JsAsyncFunctionObject.class);
+            funcCls.isAsyncFunction = true;
         }
         funcCls.acc(Opcodes.ACC_PRIVATE, Opcodes.ACC_SUPER);
 
@@ -356,7 +359,7 @@ public class IrTransformPass extends AstBasedCompilePass {
                         // super class init
                         IrLoad.thiz(),
                         IrInvoke.invokeInit(
-                            $$.getInternalName(JsFunctionObject.class),
+                            $$.getInternalName(function.isAsync() ? JsAsyncFunctionObject.class : JsFunctionObject.class),
                             $$.getMethodDescriptor(void.class)),
                         // store field $that
                         IrLoad.thiz(),
@@ -374,7 +377,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             in(funcCls.method("invoke")).invoke(
                 () -> {
                     method.acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
-                        .desc(Object.class, Object.class, Object[].class)
+                        .desc(function.isAsync() ? FuturePromise.class : Object.class, Object.class, Object[].class)
                         .par("this")
                         .par("$this")
                         .par("args");
@@ -409,8 +412,43 @@ public class IrTransformPass extends AstBasedCompilePass {
                         );
                     }
 
-                    // compile body
-                    visit(function.getBody());
+                    if(! function.isAsync()) {
+                        // compile body
+                        visit(function.getBody());
+                    }
+                    // for async function, function compiled in entry
+                    else {
+                        // construct the promise object,
+                        // call the entry point 0
+                        // and return promise object
+                        ir(
+                            IrLoad.thiz(),
+                            IrLoad.closure(),
+                            IrInvoke.invokeVirtual(
+                                $$.getInternalName(JsAsyncFunctionObject.class),
+                                "invokeEntry", $$.getMethodDescriptor(Promise.class, JsClosure.class)),
+                            IrReturn.retWithValue()
+                        );
+
+                        // construct in entryPoint
+                        in(clazz.method("entry")).invoke(() -> {
+                           method.acc(Opcodes.ACC_PROTECTED)
+                               .desc($$.getMethodDescriptor(void.class, JsClosure.class,
+                                   PromiseResultHandler.class, PromiseResultHandler.class, int.class,
+                                   Object.class, Object.class))
+                               .par("this")
+                               .par("closure0")
+                               .par("accept")
+                               .par("reject")
+                               .par("entryPoint")
+                               .par("result")
+                               .par("error")
+                               .local("closure");
+
+                           // compile body
+                           visit(function.getBody());
+                        });
+                    }
                 });
         });
 

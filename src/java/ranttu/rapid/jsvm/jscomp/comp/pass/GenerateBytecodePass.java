@@ -9,6 +9,10 @@ import jdk.internal.org.objectweb.asm.ClassWriter;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.runtime.JsAsyncFunctionObject;
+import ranttu.rapid.jsvm.runtime.JsClosure;
+import ranttu.rapid.jsvm.runtime.async.FuturePromise;
+import ranttu.rapid.jsvm.runtime.async.PromiseResultHandler;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
 import java.util.HashMap;
@@ -29,11 +33,18 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
     protected void visit(ClassNode classNode) {
         super.visit(classNode);
 
+        // classNode.$.accept(new TraceClassVisitor(new PrintWriter(System.out)));
+
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.$.accept(cw);
         context.byteCodes.put(classNode.$.name, cw.toByteArray());
     }
 
+    @Override
+    protected void visit(IrSwitch irSwitch) {
+        method.table_switch(
+            irSwitch.min, irSwitch.max, irSwitch.defaultLabel, irSwitch.labels);
+    }
 
     @Override
     protected void visit(IrThrow irThrow) {
@@ -105,7 +116,12 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 method.invoke_dynamic(JsIndyType.GET_PROP);
                 break;
             case LOCAL:
-                method.aload(irl.key);
+                // TODO: change to method node local type
+                if (irl.isInt) {
+                    method.iload(irl.key);
+                } else {
+                    method.aload(irl.key);
+                }
                 break;
             case ARRAY:
                 method.load_const(irl.index).aaload();
@@ -173,10 +189,44 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrReturn ret) {
-        if(ret.hasReturnValue) {
-            method.aret();
+        // context in the async function
+        if (method.parent.isAsyncFunction && method.$.name.equals("entry")) {
+            if (ret.isAwait) {
+                // stack: promise
+                method
+                    .aload("this")
+                    .swap()
+                    .aload("closure")
+                    .aload("accept")
+                    .aload("reject")
+                    .load_const(ret.asyncPoint)
+                    .invoke_virtual(
+                        $$.getInternalName(JsAsyncFunctionObject.class), "asyncPoint",
+                        $$.getMethodDescriptor(void.class, FuturePromise.class, JsClosure.class,
+                            PromiseResultHandler.class, PromiseResultHandler.class, int.class))
+
+                    // current method is end, just return
+                    .ret()
+
+                    // next entry point
+                    .put_label(ret.label.label);
+
+            } else if(ret.hasReturnValue) {
+                method
+                    .aload("accept")
+                    .aload("this")
+                    .aload("result")
+                    .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, 1)
+                    .ret();
+            } else {
+                $$.notSupport();
+            }
         } else {
-            method.ret();
+            if (ret.hasReturnValue) {
+                method.aret();
+            } else {
+                method.ret();
+            }
         }
     }
 

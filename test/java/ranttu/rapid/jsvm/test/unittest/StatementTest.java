@@ -9,9 +9,11 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.runtime.JsAsyncFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
+import ranttu.rapid.jsvm.runtime.async.FuturePromise;
 import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
 
 import java.lang.reflect.Field;
@@ -81,13 +83,14 @@ public class StatementTest extends JsvmJunitTestBase {
         }
     }
 
-    // ~~ not supported yet
-//    @Test
-//    @UseDataProvider("yamlDataProvider")
-//    public void AsyncAwait(StatementTestData testData) {
-//        JsModule module = loadModule("AsyncAwaitTestCase", testData.jsSource);
-//
-//        JsAsyncFunctionObject function = ReflectionUtil.getFieldValue(module, "func");
-//
-//    }
+    @Test
+    @UseDataProvider("yamlDataProvider")
+    public void AsyncAwait(StatementTestData testData) throws Exception {
+        JsModule module = loadModule("AsyncAwaitTestCase", testData.jsSource);
+
+        JsAsyncFunctionObject function = ReflectionUtil.getFieldValue(module, "asyncFunc");
+        FuturePromise promise = function.invoke(this);
+
+        assertEquals(testData.expected, promise.get());
+    }
 }

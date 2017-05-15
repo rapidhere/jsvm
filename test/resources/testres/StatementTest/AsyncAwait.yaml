@@ -1,7 +1,19 @@
 - description: return 1
-  jsSource:
-      async function a() {
-          var ret = await f();
-          return ret;
+  jsSource: |
+      async function asyncFunc() {
+          return await new Promise(function(accept, reject) {
+              accept(1);
+              return 0;
+          });
       }
   expected: 1
+
+- description: return another thread
+  jsSource: |
+      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+      var man = new Man();
+
+      async function asyncFunc() {
+          return await man.instanceStaticTask(3);
+      }
+  expected: 3

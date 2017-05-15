@@ -16,10 +16,16 @@ import java.util.concurrent.Callable;
 public class TmpTest implements Callable {
 
     public TmpTest(Object obj) {
-        if (Boolean.valueOf("true")) {
-            throw new RuntimeException();
-        } else {
-            return;
+        switch ((Integer) obj) {
+            case 0:
+                call();
+                break;
+            case 1:
+                call();
+                break;
+            case 2:
+                call();
+                break;
         }
     }
 

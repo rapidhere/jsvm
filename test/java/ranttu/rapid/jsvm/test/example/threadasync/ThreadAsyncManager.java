@@ -18,4 +18,12 @@ public class ThreadAsyncManager {
             return val;
         });
     }
+
+    @SuppressWarnings("unused")
+    public Promise instanceStaticTask(Integer integer) {
+        return JsExecutorService.submit(() -> {
+            Thread.sleep(1000);
+            return integer;
+        });
+    }
 }

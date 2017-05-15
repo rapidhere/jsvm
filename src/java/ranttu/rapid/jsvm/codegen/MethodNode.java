@@ -5,7 +5,6 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
-import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.tree.*;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
@@ -77,6 +76,14 @@ public class MethodNode
         return irNodes;
     }
 
+    public MethodNode irPrepend(IrNode... ir) {
+        List<IrNode> irs = new ArrayList<>();
+        Collections.addAll(irs, ir);
+        irs.addAll(irNodes);
+        irNodes = irs;
+        return this;
+    }
+
     public MethodNode ir(IrNode... ir) {
         Collections.addAll(this.irNodes, ir);
         return this;
@@ -105,6 +112,12 @@ public class MethodNode
 
     //~ inst goes here
 
+    public MethodNode table_switch(int min, int max, LabelNode defaultLabel, LabelNode...labels) {
+        $.instructions.add(new TableSwitchInsnNode(
+            min, max, defaultLabel, labels));
+        return this;
+    }
+
     public MethodNode put_label(LabelNode labelNode) {
         $.instructions.add(labelNode);
         return this;
@@ -122,6 +135,11 @@ public class MethodNode
 
     public MethodNode aload(String name) {
         return aload(getLocalNameIndex(name));
+    }
+
+    public MethodNode iload(String name) {
+        $.instructions.add(new VarInsnNode(Opcodes.ILOAD, getLocalNameIndex(name)));
+        return this;
     }
 
     public int getLocalNameIndex(String name) {
