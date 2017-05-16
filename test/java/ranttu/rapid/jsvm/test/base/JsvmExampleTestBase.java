@@ -43,7 +43,13 @@ abstract public class JsvmExampleTestBase extends JsvmJunitTestBase {
             Object jsvmResult = function.invoke(this, arg);
             Object nashornResult = invoker.invokeFunction("entry", arg);
 
-            assertEquals("arg: " + Arrays.toString(arg), jsvmResult, nashornResult);
+            if(nashornResult instanceof Number) {
+                assertEquals("arg: " + Arrays.toString(arg),
+                    $$.cast(nashornResult, Number.class).doubleValue(),
+                    $$.cast(jsvmResult, Number.class).doubleValue(), 0.1);
+            } else {
+                assertEquals("arg: " + Arrays.toString(arg), jsvmResult, nashornResult);
+            }
         }
     }
 
