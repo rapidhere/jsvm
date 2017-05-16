@@ -15,17 +15,9 @@ import java.util.concurrent.Callable;
  */
 public class TmpTest implements Callable {
 
-    public TmpTest(Object obj) {
-        switch ((Integer) obj) {
-            case 0:
-                call();
-                break;
-            case 1:
-                call();
-                break;
-            case 2:
-                call();
-                break;
+    public TmpTest(Object obj) throws Throwable {
+        if(obj != null) {
+            throw (Throwable) obj;
         }
     }
 

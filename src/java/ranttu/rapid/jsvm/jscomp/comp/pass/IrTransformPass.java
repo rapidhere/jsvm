@@ -440,7 +440,7 @@ public class IrTransformPass extends AstBasedCompilePass {
                                .par("closure0")
                                .par("accept")
                                .par("reject")
-                               .par("entryPoint")
+                               .par("entryPoint", int.class)
                                .par("result")
                                .par("error")
                                .local("closure");

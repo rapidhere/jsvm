@@ -36,6 +36,24 @@ abstract public class JsAsyncFunctionObject extends JsFunctionObject {
         return new Promise((accept, reject) -> entry(closure, accept, reject, 0, null, null));
     }
 
+
+    /**
+     * get result or throw
+     */
+    @SuppressWarnings("unused")
+    protected static Object getResultOrThrow(Object error, Object result) throws Throwable {
+        if(error != null) {
+            throw (Throwable) error;
+        } else {
+            return result;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    protected static Object wrongEntryPoint() {
+        throw new RuntimeException("wrong entry point number");
+    }
+
     /**
      * the entry point
      */

@@ -27,9 +27,6 @@ public class IrLoad extends IrNode {
     // for ldc instruction only
     public Object    constVal;
 
-    // for local only
-    public boolean   isInt;
-
     public static IrLoad property() {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.PROP;
@@ -67,16 +64,6 @@ public class IrLoad extends IrNode {
         IrLoad irLoad = new IrLoad();
         irLoad.type = FieldType.LOCAL;
         irLoad.key = name;
-
-        return irLoad;
-    }
-
-    public static IrLoad local(String name, Class clazz) {
-        IrLoad irLoad = local(name);
-
-        if (clazz == int.class) {
-           irLoad.isInt = true;
-        }
 
         return irLoad;
     }

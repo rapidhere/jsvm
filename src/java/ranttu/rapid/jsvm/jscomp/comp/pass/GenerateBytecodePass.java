@@ -48,7 +48,18 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrThrow irThrow) {
-        method.athrow();
+        if (method.parent.isAsyncFunction && method.$.name.equals("entry")) {
+            // see method ret has value
+            method
+                .load("reject")
+                .swap()
+                .load("this")
+                .swap()
+                .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, 1)
+                .ret();
+        } else {
+            method.athrow();
+        }
     }
 
     @Override
@@ -116,12 +127,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 method.invoke_dynamic(JsIndyType.GET_PROP);
                 break;
             case LOCAL:
-                // TODO: change to method node local type
-                if (irl.isInt) {
-                    method.iload(irl.key);
-                } else {
-                    method.aload(irl.key);
-                }
+                method.load(irl.key);
                 break;
             case ARRAY:
                 method.load_const(irl.index).aaload();
@@ -194,11 +200,11 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             if (ret.isAwait) {
                 // stack: promise
                 method
-                    .aload("this")
+                    .load("this")
                     .swap()
-                    .aload("closure")
-                    .aload("accept")
-                    .aload("reject")
+                    .load("closure")
+                    .load("accept")
+                    .load("reject")
                     .load_const(ret.asyncPoint)
                     .invoke_virtual(
                         $$.getInternalName(JsAsyncFunctionObject.class), "asyncPoint",
@@ -209,13 +215,25 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                     .ret()
 
                     // next entry point
-                    .put_label(ret.label.label);
+                    .put_label(ret.label.label)
+
+                    // load error and result
+                    .load("error")
+                    .load("result")
+                    .invoke_static($$.getInternalName(JsAsyncFunctionObject.class), "getResultOrThrow",
+                        $$.getMethodDescriptor(Object.class, Object.class, Object.class))
+                    ;
 
             } else if(ret.hasReturnValue) {
+                // ret_val is on stack
+                // ret_val -> ret_val, accept -> accept, ret_val
+                // -> accept, ret_val, this
+                // -> accept, this, ret_val
                 method
-                    .aload("accept")
-                    .aload("this")
-                    .aload("result")
+                    .load("accept")
+                    .swap()
+                    .load("this")
+                    .swap()
                     .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, 1)
                     .ret();
             } else {

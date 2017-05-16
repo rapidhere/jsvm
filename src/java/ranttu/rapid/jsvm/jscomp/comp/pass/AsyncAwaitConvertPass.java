@@ -4,6 +4,7 @@ import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.runtime.JsAsyncFunctionObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class AsyncAwaitConvertPass extends IrBasedCompilePass {
                 IrStore.local("closure"),
 
                 // prepend label: generate jump table
-                IrLoad.local("entryPoint", int.class),
+                IrLoad.local("entryPoint"),
                 IrSwitch.switchTable(0, asyncLabels.size(), endLabel.label, labels),
 
                 // first entry point
@@ -51,13 +52,11 @@ public class AsyncAwaitConvertPass extends IrBasedCompilePass {
             ).ir(
                 // end label: throw new RuntimeException("wrong entry point number");
                 endLabel,
-                IrNew.newObject($$.getInternalName(RuntimeException.class)),
-                IrDup.dup(),
-                IrLiteral.of("wrong entry point number!"),
-                IrInvoke.invokeInit(
-                    $$.getInternalName(RuntimeException.class),
-                    $$.getMethodDescriptor(void.class, String.class)),
-                IrThrow.athrow()
+                IrInvoke.invokeStatic(
+                    $$.getInternalName(JsAsyncFunctionObject.class),
+                    "wrongEntryPoint",
+                    $$.getMethodDescriptor(Object.class)),
+                IrReturn.retWithValue()
             );
         }
 

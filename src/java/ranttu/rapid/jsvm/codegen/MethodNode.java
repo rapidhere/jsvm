@@ -12,9 +12,7 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * a method node
@@ -28,6 +26,7 @@ public class MethodNode
 
     private List<IrNode> irNodes            = new ArrayList<>();
     private List<String> localVariableNames = new ArrayList<>();
+    private Map<String, Class> localVarType = new HashMap<>();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -89,25 +88,35 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode par(String name, int... acc) {
+    public MethodNode par(String name, Class type, int... acc) {
         int sum = 0;
         for (int a : acc)
             sum += a;
 
         ParameterNode parNode = new ParameterNode(name, sum);
         $.parameters.add(parNode);
+        localVarType.put(name, type);
 
         return this;
     }
 
-    public MethodNode local(String name) {
+    public MethodNode par(String name, int... acc) {
+        return par(name, Object.class, acc);
+    }
+
+    public MethodNode local(String name, Class type) {
         for (String n : localVariableNames) {
             if (n.equals(name)) {
                 return this;
             }
         }
         localVariableNames.add(name);
+        localVarType.put(name, type);
         return this;
+    }
+
+    public MethodNode local(String name) {
+        return local(name, Object.class);
     }
 
     //~ inst goes here
@@ -128,17 +137,16 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode aload(int i) {
-        $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
-        return this;
-    }
+    public MethodNode load(String name) {
+        int idx = getLocalNameIndex(name);
+        Class type = localVarType.get(name);
 
-    public MethodNode aload(String name) {
-        return aload(getLocalNameIndex(name));
-    }
+        if (type == int.class) {
+            $.instructions.add(new VarInsnNode(Opcodes.ILOAD, idx));
+        } else {
+            $.instructions.add(new VarInsnNode(Opcodes.ALOAD, idx));
+        }
 
-    public MethodNode iload(String name) {
-        $.instructions.add(new VarInsnNode(Opcodes.ILOAD, getLocalNameIndex(name)));
         return this;
     }
 
