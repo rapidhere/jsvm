@@ -5,11 +5,11 @@
  */
 package ranttu.rapid.jsvm.runtime.indy;
 
+import ranttu.rapid.jsvm.common.SystemProperty;
+
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author rapidhere@gmail.com
@@ -21,7 +21,13 @@ final public class JsIndyFactory {
      */
     @SuppressWarnings("unused")
     public static CallSite callsite(MethodHandles.Lookup lookup, String methodName, MethodType mt) {
-        JsIndyCallSite callSite = new JsIndyCallSite(JsIndyType.valueOf(methodName), mt);
+        JsIndyBaseCallSite callSite;
+        if (SystemProperty.Jsvm_UseOptimisticCallSite) {
+            callSite = new JsIndyOptimisticCallSite(JsIndyType.valueOf(methodName), mt);
+        } else {
+            callSite = new JsIndyCallSite(JsIndyType.valueOf(methodName), mt);
+        }
+
         callSite.init();
         return callSite;
     }

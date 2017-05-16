@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.model.FrameworkMethod;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.common.SystemProperty;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 import ranttu.rapid.jsvm.jscomp.comp.Compiler;
 import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
@@ -41,14 +42,6 @@ abstract public class JsvmJunitTestBase extends Assert {
     // the class loader
     protected ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader();
 
-    // should print the byte code
-    private static boolean         printByteCode        = false;
-
-    static {
-        String ret = System.getProperty("test.printByteCode", "false");
-        printByteCode |= Boolean.valueOf(ret);
-    }
-
     /**
      * compile the source to byte array
      */
@@ -71,7 +64,7 @@ abstract public class JsvmJunitTestBase extends Assert {
     protected Class<? extends JsModule> loadSource(String className, String source) {
         Map<String, byte[]> ret = compileSource(className, source);
 
-        if (printByteCode) {
+        if (SystemProperty.Test_PrintByteCode) {
             for (Map.Entry<String, byte[]> r : ret.entrySet()) {
                 System.out.println("========Class: " + r.getKey());
                 printBytecode(r.getValue());

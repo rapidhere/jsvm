@@ -7,6 +7,9 @@ package ranttu.rapid.jsvm.common;
 
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
 
 /**
  * utils
@@ -142,5 +145,18 @@ final public class $$ {
         }
 
         return Type.getMethodDescriptor(getType(retType), types);
+    }
+
+    //~~~ the unsafe object
+    public static Unsafe UNSAFE;
+
+    static {
+        try {
+            Field f = Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            UNSAFE = (Unsafe) f.get(null);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -6,18 +6,18 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
 import jdk.internal.org.objectweb.asm.*;
-import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
-import sun.misc.Unsafe;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.invoke.MutableCallSite;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * a invoke-dynamic call site that is mutable
@@ -25,53 +25,16 @@ import java.lang.reflect.*;
  * @author rapidhere@gmail.com
  * @version $id: JsIndyBindingPoint.java, v0.1 2017/4/17 dongwei.dq Exp $
  */
-public class JsIndyCallSite extends MutableCallSite {
-    private JsIndyType          indyType;
-
+public class JsIndyCallSite extends JsIndyBaseCallSite {
+    // method handles
     private static MethodHandle SET_PROP;
     private static MethodHandle GET_PROP;
     private static MethodHandle INVOKE;
     private static MethodHandle BOUNDED_INVOKE;
     private static MethodHandle CONSTRUCT;
 
-    private static Unsafe UNSAFE;
-
-    static {
-        try {
-            Field f = Unsafe.class.getDeclaredField("theUnsafe");
-            f.setAccessible(true);
-            UNSAFE = (Unsafe) f.get(null);
-
-            SET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "setProperty",
-                MethodType.methodType(void.class, Object.class, String.class, Object.class));
-
-            GET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "getProperty",
-                MethodType.methodType(Object.class, Object.class, String.class));
-
-            INVOKE = MethodHandles
-                .lookup()
-                .findStatic(JsIndyCallSite.class, "invoke",
-                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
-                .asVarargsCollector(Object[].class);
-
-            BOUNDED_INVOKE = MethodHandles
-                .lookup()
-                .findStatic(JsIndyCallSite.class, "boundedInvoke",
-                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
-                .asVarargsCollector(Object[].class);
-
-            CONSTRUCT = MethodHandles
-                .lookup()
-                .findStatic(JsIndyCallSite.class, "construct",
-                    MethodType.methodType(Object.class, Object.class, Object[].class));
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
     public JsIndyCallSite(JsIndyType indyType, MethodType type) {
-        super(type);
-        this.indyType = indyType;
+        super(indyType, type);
     }
 
     public void init() {
@@ -207,7 +170,8 @@ public class JsIndyCallSite extends MutableCallSite {
                 byte[] content = defineInvokeWrapper(targetType, method);
                 // printBytecode(content);
 
-                Class clazz = UNSAFE.defineAnonymousClass(JsIndyCallSite.class, content, null);
+                Class clazz = $$.UNSAFE
+                    .defineAnonymousClass(JsIndyCallSite.class, content, null);
                 Object instance = clazz.getConstructors()[0].newInstance(raw);
                 args[i] = instance;
             }
@@ -284,5 +248,35 @@ public class JsIndyCallSite extends MutableCallSite {
         cw.visitEnd();
 
         return cw.toByteArray();
+    }
+
+    //~~~ init method handles
+    static {
+        try {
+            SET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "setProperty",
+                MethodType.methodType(void.class, Object.class, String.class, Object.class));
+
+            GET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "getProperty",
+                MethodType.methodType(Object.class, Object.class, String.class));
+
+            INVOKE = MethodHandles
+                .lookup()
+                .findStatic(JsIndyCallSite.class, "invoke",
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
+                .asVarargsCollector(Object[].class);
+
+            BOUNDED_INVOKE = MethodHandles
+                .lookup()
+                .findStatic(JsIndyCallSite.class, "boundedInvoke",
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
+                .asVarargsCollector(Object[].class);
+
+            CONSTRUCT = MethodHandles
+                .lookup()
+                .findStatic(JsIndyCallSite.class, "construct",
+                    MethodType.methodType(Object.class, Object.class, Object[].class));
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 }
