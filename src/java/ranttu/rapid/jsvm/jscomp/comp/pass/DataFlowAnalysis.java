@@ -3,6 +3,7 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 import com.google.common.collect.ImmutableList;
 import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
+import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
@@ -25,6 +26,16 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
     private boolean frameUpdatedInTurn = false;
 
     private boolean frameComputed = false;
+
+    @Override
+    public void visit(ClassNode clazz) {
+        try {
+            super.visit(clazz);
+        } catch (Throwable e) {
+            System.err.print("wrong in data flow analysis, escaped");
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void visit(MethodNode methodNode) {

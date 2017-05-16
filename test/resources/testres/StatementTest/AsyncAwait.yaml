@@ -88,3 +88,25 @@
       return sum;
     }
   expected: 10.0
+
+- description: async fib
+  jsSource: |
+    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    var man = new Man();
+
+    async function fib(n) {
+        if (n === 0) {
+            return await man.instanceStaticTask(0);
+        } else if (n === 1) {
+            return await man.instanceStaticTask(1);
+        } else {
+            var a = fib(n - 1),
+              b = fib(n - 2);
+            return await a + await b;
+        }
+    }
+
+    async function asyncFunc() {
+        return await fib(10);
+    }
+  expected: 55.0
