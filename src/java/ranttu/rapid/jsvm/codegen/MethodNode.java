@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.codegen;
 
 import jdk.internal.org.objectweb.asm.Opcodes;
+import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.*;
 import ranttu.rapid.jsvm.codegen.ir.IrNode;
 import ranttu.rapid.jsvm.common.$$;
@@ -26,7 +27,7 @@ public class MethodNode
 
     private List<IrNode> irNodes            = new ArrayList<>();
     private List<String> localVariableNames = new ArrayList<>();
-    private Map<String, Class> localVarType = new HashMap<>();
+    private Map<String, Type> localVarType = new HashMap<>();
 
     public MethodNode(ClassNode parent, String name) {
         super(parent);
@@ -83,19 +84,23 @@ public class MethodNode
         return this;
     }
 
+    public Type getLocalType(String name) {
+        return localVarType.get(name);
+    }
+
     public MethodNode ir(IrNode... ir) {
         Collections.addAll(this.irNodes, ir);
         return this;
     }
 
-    public MethodNode par(String name, Class type, int... acc) {
+    public MethodNode par(String name, Object type, int... acc) {
         int sum = 0;
         for (int a : acc)
             sum += a;
 
         ParameterNode parNode = new ParameterNode(name, sum);
         $.parameters.add(parNode);
-        localVarType.put(name, type);
+        localVarType.put(name, $$.getType(type));
 
         return this;
     }
@@ -104,14 +109,14 @@ public class MethodNode
         return par(name, Object.class, acc);
     }
 
-    public MethodNode local(String name, Class type) {
+    public MethodNode local(String name, Object type) {
         for (String n : localVariableNames) {
             if (n.equals(name)) {
                 return this;
             }
         }
         localVariableNames.add(name);
-        localVarType.put(name, type);
+        localVarType.put(name, $$.getType(type));
         return this;
     }
 
@@ -139,9 +144,9 @@ public class MethodNode
 
     public MethodNode load(String name) {
         int idx = getLocalNameIndex(name);
-        Class type = localVarType.get(name);
+        Type type = localVarType.get(name);
 
-        if (type == int.class) {
+        if (type == Type.INT_TYPE) {
             $.instructions.add(new VarInsnNode(Opcodes.ILOAD, idx));
         } else {
             $.instructions.add(new VarInsnNode(Opcodes.ALOAD, idx));
@@ -255,8 +260,18 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode aastore() {
+        $.instructions.add(new InsnNode(Opcodes.AASTORE));
+        return this;
+    }
+
     public MethodNode load_const(Object o) {
         $.instructions.add(new LdcInsnNode(o));
+        return this;
+    }
+
+    public MethodNode anew_array(String type) {
+        $.instructions.add(new TypeInsnNode(Opcodes.ANEWARRAY, type));
         return this;
     }
 

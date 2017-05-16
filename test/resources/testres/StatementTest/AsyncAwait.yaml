@@ -17,3 +17,74 @@
           return await man.instanceStaticTask(3);
       }
   expected: 3
+
+- description: with stack
+  jsSource: |
+      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+      var man = new Man();
+
+      async function asyncFunc() {
+          var pA = man.instanceStaticTask(5);
+          var pB = man.instanceStaticTask(4);
+
+          return await pA - await pB;
+      }
+  expected: 1.0
+
+- description: with stack 2
+  jsSource: |
+    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    var man = new Man();
+
+    function f(a, b) {
+        return a + b + 4;
+    }
+
+    async function asyncFunc() {
+        return f(await man.instanceStaticTask(2), await man.instanceStaticTask(3));
+    }
+  expected: 9.0
+
+- description: await with if
+  jsSource: |
+    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    var man = new Man();
+
+    async function asyncFunc() {
+        if (true) {
+          return await man.instanceStaticTask(2);
+        } else {
+          return await man.instanceStaticTask(3);
+        }
+    }
+  expected: 2
+
+- description: await in if
+  jsSource: |
+    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    var man = new Man();
+
+    async function asyncFunc() {
+      if (await man.instanceStaticTask(0)) {
+        return 1;
+      }
+      return 2;
+    }
+  expected: 2
+
+- description: await in while
+  jsSource: |
+    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    var man = new Man();
+
+    async function asyncFunc() {
+      var i = 4, sum = 0;
+
+      while(await man.instanceStaticTask(i)) {
+        sum = sum + i;
+        i = i - 1;
+      }
+
+      return sum;
+    }
+  expected: 10.0

@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
+import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
@@ -198,26 +199,58 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         // context in the async function
         if (method.parent.isAsyncFunction && method.$.name.equals("entry")) {
             if (ret.isAwait) {
-                // stack: promise
+                int stackSize = ret.restStack.size();
+
+                // store the __promise__ object
                 method
+                    .local("__promise__")
+                    .local("__stack__")
+                    .astore("__promise__")
+
+                // store the stack in reversed order
+                    .load_const(stackSize)
+                    .anew_array($$.getInternalName(Object.class))
+                    .astore("__stack__");
+                for(int i = 0;i < stackSize;i ++) {
+                    method
+                        .load("__stack__")
+                        .swap()
+                        .load_const(i)
+                        .swap()
+                        .aastore();
+                }
+
+                method
+                // call the async point
                     .load("this")
-                    .swap()
+                    .load("__stack__")
                     .load("closure")
+                    .load("__promise__")
                     .load("accept")
                     .load("reject")
                     .load_const(ret.asyncPoint)
                     .invoke_virtual(
                         $$.getInternalName(JsAsyncFunctionObject.class), "asyncPoint",
-                        $$.getMethodDescriptor(void.class, FuturePromise.class, JsClosure.class,
+                        $$.getMethodDescriptor(void.class, Object[].class, JsClosure.class, FuturePromise.class,
                             PromiseResultHandler.class, PromiseResultHandler.class, int.class))
 
-                    // current method is end, just return
+                // current method is end, just return
                     .ret()
 
-                    // next entry point
-                    .put_label(ret.label.label)
+                // next entry point
+                    .put_label(ret.label.label);
 
-                    // load error and result
+                // restore stack
+                for (int i = stackSize - 1;i >= 0;i --) {
+                    method
+                        .load("stack")
+                        .load_const(i)
+                        .aaload()
+                        .check_cast(Type.getType(ret.restStack.get(i)).getInternalName());
+                }
+
+                method
+                // load error and result
                     .load("error")
                     .load("result")
                     .invoke_static($$.getInternalName(JsAsyncFunctionObject.class), "getResultOrThrow",

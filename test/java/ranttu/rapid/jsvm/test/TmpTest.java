@@ -16,9 +16,8 @@ import java.util.concurrent.Callable;
 public class TmpTest implements Callable {
 
     public TmpTest(Object obj) throws Throwable {
-        if(obj != null) {
-            throw (Throwable) obj;
-        }
+        Object[] a = new Object[2];
+        a[0] = new Object();
     }
 
     public Object call() {

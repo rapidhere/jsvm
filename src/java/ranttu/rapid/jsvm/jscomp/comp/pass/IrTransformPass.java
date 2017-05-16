@@ -433,17 +433,18 @@ public class IrTransformPass extends AstBasedCompilePass {
                         // construct in entryPoint
                         in(clazz.method("entry")).invoke(() -> {
                            method.acc(Opcodes.ACC_PROTECTED)
-                               .desc($$.getMethodDescriptor(void.class, JsClosure.class,
+                               .desc($$.getMethodDescriptor(void.class, JsClosure.class, Object[].class,
                                    PromiseResultHandler.class, PromiseResultHandler.class, int.class,
                                    Object.class, Object.class))
                                .par("this")
                                .par("closure0")
+                               .par("stack")
                                .par("accept")
                                .par("reject")
                                .par("entryPoint", int.class)
                                .par("result")
                                .par("error")
-                               .local("closure");
+                               .local("closure", clazz.getClosureClass());
 
                            // compile body
                            visit(function.getBody());

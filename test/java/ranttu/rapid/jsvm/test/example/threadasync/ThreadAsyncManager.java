@@ -20,10 +20,10 @@ public class ThreadAsyncManager {
     }
 
     @SuppressWarnings("unused")
-    public Promise instanceStaticTask(Integer integer) {
+    public Promise instanceStaticTask(Number integer) {
         return JsExecutorService.submit(() -> {
             Thread.sleep(1000);
-            return integer;
+            return integer.intValue();
         });
     }
 }

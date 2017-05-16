@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
+import java.util.List;
+
 /**
  * @author rapidhere@gmail.com
  * @version $id: IrReturn.java, v0.1 2017/4/18 dongwei.dq Exp $
@@ -16,6 +18,8 @@ public class IrReturn extends IrNode {
     // for await label
     public IrLabel label;
     public int asyncPoint;
+
+    public List<String> restStack;
 
     public static IrReturn ret() {
         return new IrReturn();

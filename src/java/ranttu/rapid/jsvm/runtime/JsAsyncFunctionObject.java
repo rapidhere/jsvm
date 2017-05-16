@@ -23,9 +23,9 @@ abstract public class JsAsyncFunctionObject extends JsFunctionObject {
      * and enter the async executor
      */
     @SuppressWarnings("unused")
-    protected void asyncPoint(FuturePromise promise, JsClosure closure, PromiseResultHandler accept,
+    protected void asyncPoint(Object[] stack,  JsClosure closure, FuturePromise promise, PromiseResultHandler accept,
                               PromiseResultHandler reject, int asyncPoint) {
-        promise.done((error, result) -> entry(closure, accept, reject, asyncPoint + 1, result, error));
+        promise.done((error, result) -> entry(closure, stack, accept, reject, asyncPoint + 1, result, error));
     }
 
     /**
@@ -33,7 +33,7 @@ abstract public class JsAsyncFunctionObject extends JsFunctionObject {
      */
     @SuppressWarnings("unused")
     protected Promise invokeEntry(JsClosure closure) {
-        return new Promise((accept, reject) -> entry(closure, accept, reject, 0, null, null));
+        return new Promise((accept, reject) -> entry(closure, new Object[0], accept, reject, 0, null, null));
     }
 
 
@@ -57,7 +57,8 @@ abstract public class JsAsyncFunctionObject extends JsFunctionObject {
     /**
      * the entry point
      */
-    abstract protected void entry(JsClosure closure0, PromiseResultHandler accept, PromiseResultHandler reject, int entryPoint, Object result, Object error);
+    abstract protected void entry(JsClosure closure0, Object[] stack, PromiseResultHandler accept, PromiseResultHandler reject,
+                                  int entryPoint, Object result, Object error);
 
     /**
      * constructor is not supported in async function
