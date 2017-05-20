@@ -32,3 +32,21 @@
     }
   parameters:
   expected: 1.2
+
+- description: return java
+  jsSource: |
+    function func() {
+        return this.a + this.c + this.b;
+    }
+  parameters:
+  expected: 6.4
+
+- description: set java
+  jsSource: |
+    function func() {
+        this.a = 11;
+        this.b = 33;
+        return this.a + this.b;
+    }
+  parameters:
+  expected: 44.0

@@ -13,6 +13,7 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -93,6 +94,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode pop() {
+        $.instructions.add(new InsnNode(Opcodes.POP));
+        return this;
+    }
+
     public MethodNode par(String name, Object type, int... acc) {
         int sum = 0;
         for (int a : acc)
@@ -132,8 +138,48 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode lookup_switch(LabelNode defaultLabel, int[] ints, LabelNode[] labels) {
+        LookupSwitchEntry[] ent = new LookupSwitchEntry[ints.length];
+        for(int i = 0;i < ent.length;i ++) {
+            ent[i] = LookupSwitchEntry.of(ints[i], labels[i]);
+        }
+        Arrays.sort(ent);
+
+        int[] sortedInts = new int[ent.length];
+        LabelNode[] sortedLabels = new LabelNode[ent.length];
+        for(int i = 0;i < ent.length;i ++) {
+            sortedInts[i] = ent[i].code;
+            sortedLabels[i] = ent[i].labelNode;
+        }
+
+        $.instructions.add(new LookupSwitchInsnNode(defaultLabel, sortedInts, sortedLabels));
+        return this;
+    }
+
     public MethodNode put_label(LabelNode labelNode) {
         $.instructions.add(labelNode);
+        return this;
+    }
+
+    public MethodNode fsame() {
+        $.instructions.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
+        return this;
+    }
+
+    public MethodNode fsame1(Object name) {
+        $.instructions.add(new FrameNode(Opcodes.F_SAME1, 0, null, 0,
+            new Object[] { $$.getInternalName(name) }));
+        return this;
+    }
+
+    public MethodNode fappend(Object... locals) {
+        String[] localNames = new String[locals.length];
+        for(int i = 0;i < locals.length;i ++) {
+            localNames[i] = $$.getInternalName(locals[i]);
+        }
+        $.instructions.add(new FrameNode(Opcodes.F_APPEND, locals.length, localNames,
+            0, null));
+
         return this;
     }
 
@@ -315,5 +361,22 @@ public class MethodNode
     public MethodNode aret() {
         $.instructions.add(new InsnNode(Opcodes.ARETURN));
         return this;
+    }
+
+    public static class LookupSwitchEntry implements Comparable<LookupSwitchEntry> {
+        public int code;
+        public LabelNode labelNode;
+
+        public static LookupSwitchEntry of(int code, LabelNode labelNode) {
+            LookupSwitchEntry entry = new LookupSwitchEntry();
+            entry.code = code;
+            entry.labelNode = labelNode;
+            return entry;
+        }
+
+        @Override
+        public int compareTo(@Nonnull LookupSwitchEntry o) {
+            return code - o.code;
+        }
     }
 }

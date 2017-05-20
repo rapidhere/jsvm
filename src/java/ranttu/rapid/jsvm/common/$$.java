@@ -5,10 +5,13 @@
  */
 package ranttu.rapid.jsvm.common;
 
+import jdk.internal.org.objectweb.asm.ClassReader;
 import jdk.internal.org.objectweb.asm.Type;
+import jdk.internal.org.objectweb.asm.util.TraceClassVisitor;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import sun.misc.Unsafe;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 
 /**
@@ -145,6 +148,12 @@ final public class $$ {
         }
 
         return Type.getMethodDescriptor(getType(retType), types);
+    }
+
+    // print byte code
+    public static void printBytecode(byte[] codes) {
+        ClassReader reader = new ClassReader(codes);
+        reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
     }
 
     //~~~ the unsafe object

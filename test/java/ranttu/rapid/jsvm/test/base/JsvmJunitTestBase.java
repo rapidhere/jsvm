@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import jdk.internal.org.objectweb.asm.ClassReader;
-import jdk.internal.org.objectweb.asm.util.TraceClassVisitor;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.model.FrameworkMethod;
@@ -25,7 +23,6 @@ import ranttu.rapid.jsvm.runtime.JsModule;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,21 +35,17 @@ import java.util.Map;
  */
 @RunWith(DataProviderRunner.class)
 abstract public class JsvmJunitTestBase extends Assert {
-
-    // the class loader
-    protected ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader();
-
     /**
      * compile the source to byte array
      */
-    protected Map<String, byte[]> compileSource(String className, String source) {
+    protected Map<String, byte[]> compileSource(String className, String source, String suffix) {
         Parser parser = new AcornJSParser();
         AbstractSyntaxTree ast = parser.parse(source);
 
         Compiler compiler = new Compiler(ast);
 
         try {
-            return compiler.compile(className);
+            return compiler.compile(className + suffix);
         } catch (Exception e) {
             return fail("failed to compile source", e);
         }
@@ -62,9 +55,12 @@ abstract public class JsvmJunitTestBase extends Assert {
      * load the source to a java class
      */
     protected Class<? extends JsModule> loadSource(String className, String source) {
-        Map<String, byte[]> ret = compileSource(className, source);
+        String suffix = "$" + System.currentTimeMillis() +
+            (int) Math.floor(Math.random() * 100);
 
-        if (SystemProperty.Test_PrintByteCode) {
+        Map<String, byte[]> ret = compileSource(className, source, suffix);
+
+        if (SystemProperty.PrintByteCode) {
             for (Map.Entry<String, byte[]> r : ret.entrySet()) {
                 System.out.println("========Class: " + r.getKey());
                 printBytecode(r.getValue());
@@ -74,10 +70,13 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         Class<? extends JsModule> topClass = null;
         for (Map.Entry<String, byte[]> r : ret.entrySet()) {
-            Class<? extends JsModule> current = byteArrayClassLoader.loadClass(r.getKey(),
-                r.getValue());
+            byte[] bytes = r.getValue();
+            Class current;
+            current = $$.UNSAFE.defineClass(
+                r.getKey(), bytes, 0, bytes.length,
+                getClass().getClassLoader(), null);
 
-            if (r.getKey().equals(className)) {
+            if (r.getKey().equals(className + suffix)) {
                 topClass = current;
             }
         }
@@ -118,8 +117,7 @@ abstract public class JsvmJunitTestBase extends Assert {
 
     // ~~~ bytecode printer
     protected static void printBytecode(byte[] codes) {
-        ClassReader reader = new ClassReader(codes);
-        reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
+        $$.printBytecode(codes);
     }
 
     // ~~~ data provider

@@ -22,10 +22,12 @@ final public class JsIndyFactory {
     @SuppressWarnings("unused")
     public static CallSite callsite(MethodHandles.Lookup lookup, String methodName, MethodType mt) {
         JsIndyBaseCallSite callSite;
-        if (SystemProperty.Jsvm_UseOptimisticCallSite) {
-            callSite = new JsIndyOptimisticCallSite(JsIndyType.valueOf(methodName), mt);
+        JsIndyType type = JsIndyType.valueOf(methodName);
+
+        if (SystemProperty.UseOptimisticCallSite) {
+            callSite = new JsIndyOptimisticCallSite(type, mt);
         } else {
-            callSite = new JsIndyCallSite(JsIndyType.valueOf(methodName), mt);
+            callSite = new JsIndyCallSite(type, mt);
         }
 
         callSite.init();

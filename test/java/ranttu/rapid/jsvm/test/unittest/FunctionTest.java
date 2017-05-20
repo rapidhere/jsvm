@@ -25,6 +25,11 @@ public class FunctionTest extends JsvmJunitTestBase {
         public Object[] parameters;
     }
 
+    // for test usage only
+    public Object a = 1.1;
+    public Object b = 2.1;
+    public Object c = 3.2;
+
     @Test
     @UseDataProvider("yamlDataProvider")
     public void baseCase(FunctionTestData testData) {
@@ -35,9 +40,14 @@ public class FunctionTest extends JsvmJunitTestBase {
             testData.parameters = new Object[0];
         }
 
-        Object result = func.invoke(null, testData.parameters);
+        Object result = func.invoke(this, testData.parameters);
 
-        assertEquals(testData.expected, result);
+        if(testData.expected instanceof Double) {
+            assertEquals((Double) testData.expected,
+                (Double)result, 0.1);
+        } else {
+            assertEquals(testData.expected, result);
+        }
     }
 
     @Test

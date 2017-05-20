@@ -13,11 +13,11 @@ import java.lang.reflect.Field;
  * @version $id: JsIndyFactory.java, v0.1 2017/4/15 dongwei.dq Exp $
  */
 final public class SystemProperty {
-    @Property
-    public static boolean Jsvm_UseOptimisticCallSite = false;
+    @Property(namespace = "jsvm")
+    public static boolean UseOptimisticCallSite = false;
 
-    @Property
-    public static boolean Test_PrintByteCode = false;
+    @Property(namespace = "jsvm.test")
+    public static boolean PrintByteCode = false;
 
     //~~~ implementations
     // private constructor
@@ -25,14 +25,19 @@ final public class SystemProperty {
 
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    private @interface Property {}
+    private @interface Property {
+        String namespace();
+    }
 
     private static void initProperties() throws Throwable {
         Class<SystemProperty> clazz = SystemProperty.class;
 
         for (Field field: clazz.getDeclaredFields()) {
             if(field.isAnnotationPresent(Property.class)) {
-                String name = resolvePropertyName(field);
+                Property property = field.getAnnotation(Property.class);
+
+                String name = property.namespace() + "." +
+                    resolvePropertyName(field);
                 String val = System.getProperty(name);
 
                 // ignore and use default value

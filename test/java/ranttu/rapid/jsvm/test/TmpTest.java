@@ -16,8 +16,21 @@ import java.util.concurrent.Callable;
 public class TmpTest implements Callable {
 
     public TmpTest(Object obj) throws Throwable {
-        Object[] a = new Object[2];
-        a[0] = new Object();
+        switch ((Integer) obj) {
+            case 611181438:
+                func(obj);
+                return;
+            case 426014054:
+                func(obj);
+                return;
+            case 2071592732:
+                func(obj);
+                return;
+        }
+    }
+
+    public void func(Object o) {
+
     }
 
     public Object call() {

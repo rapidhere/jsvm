@@ -24,7 +24,7 @@ public class UnaryExpression extends BaseAstNode implements Expression {
     public UnaryExpression(JSONObject jsonObject) {
         super(jsonObject);
         operator = UnaryOperator.of(jsonObject.getString("operator"));
-        prefix = jsonObject.getBoolean("prefix");
+        prefix = jsonObject.getBoolean("namespace");
         argument = Node.of(this, jsonObject, "argument");
     }
 

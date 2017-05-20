@@ -42,7 +42,6 @@ public class ExpressionTest extends JsvmJunitTestBase {
         String clsName = "JsModuleTest";
         JsModule module = loadModule(clsName, testData.jsSource);
 
-        assertEquals(clsName, module.getClass().getSimpleName());
         assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "a"));
     }
 
@@ -77,7 +76,6 @@ public class ExpressionTest extends JsvmJunitTestBase {
         String clsName = "JsModuleTest";
         JsModule module = loadModule(clsName, testData.jsSource);
 
-        assertEquals(clsName, module.getClass().getSimpleName());
         assertEquals(testData.expected, ReflectionUtil.getFieldValue(module, "res"));
     }
 }
