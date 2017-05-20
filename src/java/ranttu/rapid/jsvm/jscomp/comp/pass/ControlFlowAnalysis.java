@@ -13,12 +13,12 @@ import java.util.Stack;
 /**
  * a compile pass that analysis the data flow, for:
  *
- * compute frame, async stack storage, local var append
+ * compute frame, async stack storage, local var append, reach analysis
  *
  * @author rapidhere@gmail.com
- * @version $id: DataFlowAnalysis.java, v0.1 2017/4/19 dongwei.dq Exp $
+ * @version $id: ControlFlowAnalysis.java, v0.1 2017/4/19 dongwei.dq Exp $
  */
-public class DataFlowAnalysis extends IrBasedCompilePass {
+public class ControlFlowAnalysis extends IrBasedCompilePass {
     private Stack<String> stackFrame;
     private boolean localsGenerated = false;
 

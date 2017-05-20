@@ -12,6 +12,8 @@ package ranttu.rapid.jsvm.codegen.ir;
  * @version $id: IrNode.java, v0.1 2017/4/18 dongwei.dq Exp $
  */
 abstract public class IrNode {
+    public boolean reachFlag = false;
+
     final public boolean is(Class<? extends IrNode> target) {
         return target.isAssignableFrom(getClass());
     }

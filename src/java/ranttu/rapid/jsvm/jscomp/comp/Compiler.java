@@ -53,7 +53,7 @@ public class Compiler {
         invokePass(new CollectNamingPass());
         invokePass(new IrTransformPass());
         invokePass(new AsyncAwaitConvertPass());
-        invokePass(new DataFlowAnalysis());
+        invokePass(new ControlFlowAnalysis());
         invokePass(new GenerateBytecodePass());
 
         return context.byteCodes;
