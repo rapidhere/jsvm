@@ -27,7 +27,7 @@ public class MethodNode
                        CgNode<jdk.internal.org.objectweb.asm.tree.MethodNode, ClassNode, MethodNode> {
 
     private List<IrNode> irNodes            = new ArrayList<>();
-    private List<String> localVariableNames = new ArrayList<>();
+    public List<String> localVariableNames = new ArrayList<>();
     private Map<String, Type> localVarType = new HashMap<>();
 
     public MethodNode(ClassNode parent, String name) {
@@ -111,10 +111,6 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode par(String name, int... acc) {
-        return par(name, Object.class, acc);
-    }
-
     public MethodNode local(String name, Object type) {
         for (String n : localVariableNames) {
             if (n.equals(name)) {
@@ -124,10 +120,6 @@ public class MethodNode
         localVariableNames.add(name);
         localVarType.put(name, $$.getType(type));
         return this;
-    }
-
-    public MethodNode local(String name) {
-        return local(name, Object.class);
     }
 
     //~ inst goes here
@@ -168,16 +160,27 @@ public class MethodNode
 
     public MethodNode fsame1(Object name) {
         $.instructions.add(new FrameNode(Opcodes.F_SAME1, 0, null, 0,
-            new Object[] { $$.getInternalName(name) }));
+            new Object[] { name }));
+        return this;
+    }
+
+    public MethodNode instance_of(Object name) {
+        $.instructions.add(new TypeInsnNode(Opcodes.INSTANCEOF, $$.getInternalName(name)));
+        return this;
+    }
+
+    public MethodNode ffull(Object[] locals, Object[] stacks) {
+        if (stacks == null) {
+            stacks = new Object[] {};
+        }
+
+        $.instructions.add(new FrameNode(Opcodes.F_FULL, locals.length,
+            locals, stacks.length, stacks));
         return this;
     }
 
     public MethodNode fappend(Object... locals) {
-        String[] localNames = new String[locals.length];
-        for(int i = 0;i < locals.length;i ++) {
-            localNames[i] = $$.getInternalName(locals[i]);
-        }
-        $.instructions.add(new FrameNode(Opcodes.F_APPEND, locals.length, localNames,
+        $.instructions.add(new FrameNode(Opcodes.F_APPEND, locals.length, locals,
             0, null));
 
         return this;

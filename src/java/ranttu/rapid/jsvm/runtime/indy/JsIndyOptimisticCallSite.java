@@ -97,8 +97,8 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
         cls.method("<init>")
             .acc(Opcodes.ACC_PUBLIC)
             .desc(void.class, JsIndyOptimisticCallSite.class)
-            .par("this")
-            .par("cs")
+            .par("this", cls)
+            .par("cs", JsIndyOptimisticCallSite.class)
             // call super init
             .load("this")
             .invoke_special($$.getInternalName(Object.class), "<init>", $$.getMethodDescriptor(void.class))
@@ -115,6 +115,7 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cls.$.accept(cw);
         byte[] clsBytes = cw.toByteArray();
+        $$.printBytecode(clsBytes);
 
         return $$.UNSAFE.defineAnonymousClass(
             JsIndyOptimisticCallSite.class, clsBytes, null);
@@ -128,32 +129,27 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             return ret;
         }
 
+        // FIXME:
+        // this impl is buggy on: if context is a subclass of targetClazz,
+        // some field from context that is not belong to targetClazz will fail
         ret = gen("SET_PROPERTY", "SET_PROPERTY", (cls, method, clsName, methodName) -> {
             String methodDesc = $$.getMethodDescriptor(void.class, Object.class, String.class, Object.class);
 
             method
                 .desc(methodDesc)
-                .par("this")
-                .par("context")
-                .par("name")
-                .par("val");
+                .par("this", cls)
+                .par("context", Object.class)
+                .par("name", String.class)
+                .par("val", Object.class);
 
-            LabelNode begin = new LabelNode(),
-                end = new LabelNode(),
-                handle = new LabelNode();
+            LabelNode guardedFailing = new LabelNode();
 
             // first, cast and try catch
             method
-                // exception - try
-                .try_catch(begin, end, handle,
-                    $$.getInternalName(ClassCastException.class))
-                .put_label(begin)
-                // cast
+                // test guarded condition
                 .load("context")
-                .check_cast($$.getInternalName(targetClazz))
-                .astore("context")
-                .put_label(end)
-                // exception - try - end
+                .instance_of(targetClazz)
+                .jump_if_eq(guardedFailing)
                 // name.intern
                 .load("name")
                 .invoke_virtual($$.getInternalName(String.class), "intern",
@@ -205,12 +201,11 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
                     $$.getMethodDescriptor(void.class, String.class))
                 .athrow();
 
-            // exception end
+            // failing
             method
                 // exception - catch
-                .put_label(handle)
-                .fsame1(ClassCastException.class)
-                .pop()
+                .put_label(guardedFailing)
+                .fsame()
                 .load("this")
                 .load(clsName, "cs",
                     $$.getDescriptor(JsIndyOptimisticCallSite.class))

@@ -6,6 +6,7 @@
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
+import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
@@ -17,6 +18,7 @@ import ranttu.rapid.jsvm.runtime.async.PromiseResultHandler;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * the pass that generate bytecode
@@ -36,7 +38,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
         // classNode.$.accept(new TraceClassVisitor(new PrintWriter(System.out)));
 
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.$.accept(cw);
         context.byteCodes.put(classNode.$.name, cw.toByteArray());
     }
@@ -63,9 +65,43 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         }
     }
 
+    private void resolveFrame(IrLabel label) {
+        if (label.needFrame) {
+            boolean exs = label.extraStacks != null && ! label.extraStacks.isEmpty();
+            boolean exl = label.extraLocals != null && ! label.extraLocals.isEmpty();
+            // resolve frame type
+            if (exs && exl || label.useFull) {
+                method.ffull(resolveFrameString(label.extraLocals),
+                    resolveFrameString(label.extraStacks));
+            } else if (exl && !exs) {
+                method.fappend(resolveFrameString(label.extraLocals));
+            } else if (!exl && exs) {
+                method.fsame1(resolveFrameString(label.extraStacks)[0]);
+            } else {
+                method.fsame();
+            }
+        }
+    }
+
+    private Object[] resolveFrameString(List<Type> types) {
+        Object[] s = new Object[types.size()];
+        for(int i = 0;i < types.size();i ++) {
+            Type t = types.get(i);
+            try {
+                s[i] = t.getInternalName();
+            } catch (NullPointerException e) {
+                // TODO
+                s[i] = Opcodes.INTEGER;
+            }
+        }
+
+        return s;
+    }
+
     @Override
     protected void visit(IrLabel label) {
         method.put_label(label.label);
+        resolveFrame(label);
     }
 
     @Override
@@ -203,8 +239,8 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
                 // store the __promise__ object
                 method
-                    .local("__promise__")
-                    .local("__stack__")
+                    .local("__promise__", FuturePromise.class)
+                    .local("__stack__", Object[].class)
                     .astore("__promise__")
 
                 // store the stack in reversed order
@@ -239,6 +275,8 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
                 // next entry point
                     .put_label(ret.label.label);
+                // resolve frame
+                resolveFrame(ret.label);
 
                 // restore stack
                 for (int i = stackSize - 1;i >= 0;i --) {
@@ -246,7 +284,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                         .load("stack")
                         .load_const(i)
                         .aaload()
-                        .check_cast(Type.getType(ret.restStack.get(i)).getInternalName());
+                        .check_cast(Type.getType(ret.restStack.get(stackSize - 1 - i)).getInternalName());
                 }
 
                 method

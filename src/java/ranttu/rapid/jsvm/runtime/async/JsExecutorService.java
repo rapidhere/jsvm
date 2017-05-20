@@ -49,12 +49,15 @@ public class JsExecutorService {
 
     public void submitTask(Callable task, PromiseResultHandler accept, PromiseResultHandler error) {
         executor.submit(() -> {
+            Object result;
             try {
-                Object result = task.call();
-                accept.call(result);
+                result = task.call();
             } catch (Throwable e) {
                 error.call(e);
+                return;
             }
+
+            accept.call(result);
         });
     }
 

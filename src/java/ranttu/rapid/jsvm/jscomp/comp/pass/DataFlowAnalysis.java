@@ -2,30 +2,25 @@ package ranttu.rapid.jsvm.jscomp.comp.pass;
 
 import com.google.common.collect.ImmutableList;
 import jdk.internal.org.objectweb.asm.Type;
-import jdk.internal.org.objectweb.asm.tree.LabelNode;
+import jdk.internal.org.objectweb.asm.tree.ParameterNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.codegen.ir.*;
 import ranttu.rapid.jsvm.common.$$;
 
-import java.util.*;
+import java.util.Stack;
 
 /**
  * a compile pass that analysis the data flow, for:
  *
- * compute frame, async stack storage
+ * compute frame, async stack storage, local var append
  *
  * @author rapidhere@gmail.com
  * @version $id: DataFlowAnalysis.java, v0.1 2017/4/19 dongwei.dq Exp $
  */
 public class DataFlowAnalysis extends IrBasedCompilePass {
     private Stack<String> stackFrame;
-
-    private Map<LabelNode, List<String>> frameInfo;
-
-    private boolean frameUpdatedInTurn = false;
-
-    private boolean frameComputed = false;
+    private boolean localsGenerated = false;
 
     @Override
     public void visit(ClassNode clazz) {
@@ -40,18 +35,8 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
     @Override
     public void visit(MethodNode methodNode) {
         stackFrame = new Stack<>();
-        frameInfo = new HashMap<>();
-        frameComputed = false;
+        localsGenerated = false;
 
-        // compute frame
-        do {
-            frameUpdatedInTurn = false;
-            super.visit(methodNode);
-            stackFrame.clear();
-        } while (frameUpdatedInTurn);
-
-        // now insert frame
-        frameComputed = true;
         super.visit(methodNode);
     }
 
@@ -59,16 +44,11 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
     protected void visit(IrSwitch irSwitch) {
         // pop switch operator number
         stackFrame.pop();
-
-        mergeFrame(irSwitch.defaultLabel);
-        for(LabelNode labelNode: irSwitch.labels) {
-            mergeFrame(labelNode);
-        }
     }
 
     @Override
     protected void visit(IrThrow irThrow) {
-        // TODO, not supported now
+        stackFrame.clear();
     }
 
     @Override
@@ -81,7 +61,26 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrLabel irLabel) {
-        mergeFrame(irLabel.label);
+        // append stacks
+        if (irLabel.extraStacks != null) {
+           for (Type type: irLabel.extraStacks) {
+               stackFrame.push(type.getDescriptor());
+           }
+        }
+
+        // generate locals
+        if (irLabel.needFrame && ! localsGenerated) {
+            localsGenerated = true;
+
+            for(ParameterNode par: method.$.parameters) {
+                irLabel.extraLocals.add(method.getLocalType(par.name));
+            }
+            for(String name: method.localVariableNames) {
+                irLabel.extraLocals.add(method.getLocalType(name));
+            }
+
+            irLabel.full();
+        }
     }
 
     @Override
@@ -181,17 +180,10 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrReturn irReturn) {
-        if (frameComputed) {
-            // for await node store the stack
-            if (irReturn.isAwait) {
-                // remove the top future promise object
-                List<String> stackTypes = ImmutableList.copyOf(stackFrame);
-                irReturn.restStack = stackTypes.subList(0, stackTypes.size() - 1);
-            }
-        }
-
         if (irReturn.isAwait) {
             stackFrame.pop();
+            // compute async stack
+            irReturn.restStack = ImmutableList.copyOf(stackFrame);
             stackFrame.push($$.getDescriptor(Object.class));
         } else {
             stackFrame.clear();
@@ -240,24 +232,6 @@ public class DataFlowAnalysis extends IrBasedCompilePass {
             case IF_EQ:
                 // remove top
                 stackFrame.pop();
-        }
-
-        // compute frame
-        mergeFrame(jump.label);
-    }
-
-    private void mergeFrame(LabelNode label) {
-        List<String> frame = frameInfo.get(label);
-
-        // first of frame
-        if (frame == null) {
-           frame = new ArrayList<>(stackFrame);
-           // this frame is updated
-           frameUpdatedInTurn = true;
-           frameInfo.put(label, frame);
-        } else if(! frame.equals(stackFrame)) {
-            throw new RuntimeException(
-                "stack frame compared not successfully " + label);
         }
     }
 }

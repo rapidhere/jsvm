@@ -35,6 +35,7 @@ public class AsyncAwaitConvertPass extends IrBasedCompilePass {
                 // assign async point
                 ret.asyncPoint = i - 1;
                 labels[i] = ret.label.label;
+                ret.label.frame();
             }
 
             clazz.method("entry").irPrepend(
@@ -48,10 +49,10 @@ public class AsyncAwaitConvertPass extends IrBasedCompilePass {
                 IrSwitch.switchTable(0, asyncLabels.size(), endLabel.label, labels),
 
                 // first entry point
-                beginLabel
+                beginLabel.frame()
             ).ir(
                 // end label: throw new RuntimeException("wrong entry point number");
-                endLabel,
+                endLabel.frame(),
                 IrInvoke.invokeStatic(
                     $$.getInternalName(JsAsyncFunctionObject.class),
                     "wrongEntryPoint",

@@ -1,35 +1,35 @@
-- description: return 1
-  jsSource: |
-      async function asyncFunc() {
-          return await new Promise(function(accept, reject) {
-              accept(1);
-              return 0;
-          });
-      }
-  expected: 1
-
-- description: return another thread
-  jsSource: |
-      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
-      var man = new Man();
-
-      async function asyncFunc() {
-          return await man.instanceStaticTask(3);
-      }
-  expected: 3
-
-- description: with stack
-  jsSource: |
-      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
-      var man = new Man();
-
-      async function asyncFunc() {
-          var pA = man.instanceStaticTask(5);
-          var pB = man.instanceStaticTask(4);
-
-          return await pA - await pB;
-      }
-  expected: 1.0
+#- description: return 1
+#  jsSource: |
+#      async function asyncFunc() {
+#          return await new Promise(function(accept, reject) {
+#              accept(1);
+#              return 0;
+#          });
+#      }
+#  expected: 1
+#
+#- description: return another thread
+#  jsSource: |
+#      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+#      var man = new Man();
+#
+#      async function asyncFunc() {
+#          return await man.instanceStaticTask(3);
+#      }
+#  expected: 3
+#
+#- description: with stack
+#  jsSource: |
+#      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+#      var man = new Man();
+#
+#      async function asyncFunc() {
+#          var pA = man.instanceStaticTask(5);
+#          var pB = man.instanceStaticTask(4);
+#
+#          return await pA - await pB;
+#      }
+#  expected: 1.0
 
 - description: with stack 2
   jsSource: |
@@ -51,11 +51,14 @@
     var man = new Man();
 
     async function asyncFunc() {
+        var a;
         if (true) {
-          return await man.instanceStaticTask(2);
+          a = await man.instanceStaticTask(2);
         } else {
-          return await man.instanceStaticTask(3);
+          a = await man.instanceStaticTask(3);
         }
+
+        return a;
     }
   expected: 2
 
@@ -95,15 +98,18 @@
     var man = new Man();
 
     async function fib(n) {
+        var ret;
         if (n === 0) {
-            return await man.instanceStaticTask(0);
+            ret = await man.instanceStaticTask(0);
         } else if (n === 1) {
-            return await man.instanceStaticTask(1);
+            ret = await man.instanceStaticTask(1);
         } else {
             var a = fib(n - 1),
               b = fib(n - 2);
-            return await a + await b;
+            ret = await a + await b;
         }
+
+        return ret;
     }
 
     async function asyncFunc() {

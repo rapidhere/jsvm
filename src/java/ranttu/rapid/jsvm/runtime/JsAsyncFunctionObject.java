@@ -25,7 +25,9 @@ abstract public class JsAsyncFunctionObject extends JsFunctionObject {
     @SuppressWarnings("unused")
     protected void asyncPoint(Object[] stack,  JsClosure closure, FuturePromise promise, PromiseResultHandler accept,
                               PromiseResultHandler reject, int asyncPoint) {
-        promise.done((error, result) -> entry(closure, stack, accept, reject, asyncPoint + 1, result, error));
+        promise.done((error, result) -> {
+            entry(closure, stack, accept, reject, asyncPoint + 1, result, error);
+        });
     }
 
     /**

@@ -60,12 +60,13 @@ public class IrTransformPass extends AstBasedCompilePass {
         // block to try catch
         ir(start);
         visit(tryStatement.getBlock());
+        // must be stack-less
         ir(end, IrJump.j(nextBegin.label));
 
         // try catch handler
-        ir(handler);
+        ir(handler.exStack(Throwable.class));
         visit(tryStatement.getHandler());
-        ir(nextBegin);
+        ir(nextBegin.frame());
     }
 
     @Override
@@ -147,7 +148,7 @@ public class IrTransformPass extends AstBasedCompilePass {
     protected void visit(WhileStatement whileStatement) {
         IrLabel beginLabel = IrLabel.label(), endLabel = IrLabel.label();
 
-        ir(beginLabel);
+        ir(beginLabel.frame());
 
         // test expression
         visit(whileStatement.getTest());
@@ -163,7 +164,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         visit(whileStatement.getBody());
         ir(IrJump.j(beginLabel.label));
 
-        ir(endLabel);
+        ir(endLabel.frame());
     }
 
 
@@ -186,16 +187,16 @@ public class IrTransformPass extends AstBasedCompilePass {
             visit(ifStatement.getConsequent());
             ir(IrJump.j(endLabel.label));
 
-            ir(altLabel);
+            ir(altLabel.frame());
             visit(ifStatement.getAlternate().get());
 
-            ir(endLabel);
+            ir(endLabel.frame());
         } else {
             IrLabel endLabel = IrLabel.label();
 
             ir(IrJump.eq(endLabel.label));
             visit(ifStatement.getConsequent());
-            ir(endLabel);
+            ir(endLabel.frame());
         }
     }
 
@@ -354,7 +355,8 @@ public class IrTransformPass extends AstBasedCompilePass {
             // build init command
             in(funcCls.method_init(outterCls)).invoke(() ->
                 // $that parameter
-                method.par("$that")
+                method
+                    .par("$that", outterCls)
                     .ir(
                         // super class init
                         IrLoad.thiz(),
@@ -378,12 +380,13 @@ public class IrTransformPass extends AstBasedCompilePass {
                 () -> {
                     method.acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_VARARGS)
                         .desc(function.isAsync() ? FuturePromise.class : Object.class, Object.class, Object[].class)
-                        .par("this")
-                        .par("$this")
-                        .par("args");
+                        .par("this", clazz)
+                        .par("$this", Object.class)
+                        .par("args", Object[].class);
 
                     // construct closure
-                    method.local("closure")
+                    method
+                        .local("closure", closureClass)
                         .ir(
                             // new closure
                             IrNew.newObject(closureClass.$.name),
@@ -436,14 +439,14 @@ public class IrTransformPass extends AstBasedCompilePass {
                                .desc($$.getMethodDescriptor(void.class, JsClosure.class, Object[].class,
                                    PromiseResultHandler.class, PromiseResultHandler.class, int.class,
                                    Object.class, Object.class))
-                               .par("this")
-                               .par("closure0")
-                               .par("stack")
-                               .par("accept")
-                               .par("reject")
+                               .par("this", clazz)
+                               .par("closure0", JsClosure.class)
+                               .par("stack", Object[].class)
+                               .par("accept", PromiseResultHandler.class)
+                               .par("reject", PromiseResultHandler.class)
                                .par("entryPoint", int.class)
-                               .par("result")
-                               .par("error")
+                               .par("result", Object.class)
+                               .par("error", Object.class)
                                .local("closure", clazz.getClosureClass());
 
                            // compile body
@@ -621,7 +624,8 @@ public class IrTransformPass extends AstBasedCompilePass {
                 );
 
                 // add closure
-                method.local("closure")
+                method
+                    .local("closure", clazz)
                     .ir(
                         IrLoad.thiz(),
                         IrStore.local("closure")

@@ -144,6 +144,7 @@ public class ClassNode extends
     }
 
     public MethodNode method_init(ClassNode... types) {
-        return method(MethodConst.INIT).desc($$.getMethodDescriptor(void.class, types)).par("this");
+        return method(MethodConst.INIT).desc($$.getMethodDescriptor(void.class, types))
+            .par("this", this);
     }
 }
