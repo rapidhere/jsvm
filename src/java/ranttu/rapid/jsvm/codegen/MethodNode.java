@@ -5,6 +5,8 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
+import com.google.common.collect.Lists;
+import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.*;
@@ -130,18 +132,16 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode lookup_switch(LabelNode defaultLabel, int[] ints, LabelNode[] labels) {
-        LookupSwitchEntry[] ent = new LookupSwitchEntry[ints.length];
-        for(int i = 0;i < ent.length;i ++) {
-            ent[i] = LookupSwitchEntry.of(ints[i], labels[i]);
-        }
-        Arrays.sort(ent);
+    public MethodNode lookup_switch(LabelNode defaultLabel, Map<Integer, LabelNode> labels) {
+        int[] sortedInts = new int[labels.size()];
+        LabelNode[] sortedLabels = new LabelNode[labels.size()];
 
-        int[] sortedInts = new int[ent.length];
-        LabelNode[] sortedLabels = new LabelNode[ent.length];
-        for(int i = 0;i < ent.length;i ++) {
-            sortedInts[i] = ent[i].code;
-            sortedLabels[i] = ent[i].labelNode;
+        List<Map.Entry<Integer, LabelNode>> sorted = new ArrayList<>(labels.entrySet());
+        sorted.sort(Comparator.comparingInt(Map.Entry::getKey));
+
+        for(int i = 0;i < labels.size();i ++) {
+            sortedInts[i] = sorted.get(i).getKey();
+            sortedLabels[i] = sorted.get(i).getValue();
         }
 
         $.instructions.add(new LookupSwitchInsnNode(defaultLabel, sortedInts, sortedLabels));
@@ -379,22 +379,5 @@ public class MethodNode
     public MethodNode aret() {
         $.instructions.add(new InsnNode(Opcodes.ARETURN));
         return this;
-    }
-
-    public static class LookupSwitchEntry implements Comparable<LookupSwitchEntry> {
-        public int code;
-        public LabelNode labelNode;
-
-        public static LookupSwitchEntry of(int code, LabelNode labelNode) {
-            LookupSwitchEntry entry = new LookupSwitchEntry();
-            entry.code = code;
-            entry.labelNode = labelNode;
-            return entry;
-        }
-
-        @Override
-        public int compareTo(@Nonnull LookupSwitchEntry o) {
-            return code - o.code;
-        }
     }
 }

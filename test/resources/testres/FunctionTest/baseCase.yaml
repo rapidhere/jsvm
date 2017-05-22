@@ -36,7 +36,7 @@
 - description: return java
   jsSource: |
     function func() {
-        return this.a + this.c + this.b;
+        return this.abc + this.cba + this.ccc;
     }
   parameters:
   expected: 6.4

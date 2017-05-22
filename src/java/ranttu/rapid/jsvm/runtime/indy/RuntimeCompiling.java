@@ -1,5 +1,7 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
@@ -152,7 +154,7 @@ public class RuntimeCompiling {
 
 
     private interface SwitchTableInvoke {
-        void gen(LabelNode label, Field field);
+        void gen(Field field);
     }
 
     private Field[] getAllFields(Class targetClazz) {
@@ -177,34 +179,64 @@ public class RuntimeCompiling {
         return fields.toArray(new Field[fields.size()]);
     }
 
-    private void internNameAndSwitchTable(MethodNode method, Class targetClazz, SwitchTableInvoke invoke) {
+    private void nameSwitchTable(MethodNode method, Class targetClazz, SwitchTableInvoke invoke) {
         // name.intern
         method
             .load("name")
-            .invoke_virtual($$.getInternalName(String.class), "intern",
-                $$.getMethodDescriptor(String.class))
-            // get interned hash code
-            .invoke_static($$.getInternalName(System.class), "identityHashCode",
-                $$.getMethodDescriptor(int.class, Object.class));
+            .invoke_virtual($$.getInternalName(String.class), "hashCode",
+                $$.getMethodDescriptor(int.class));
 
         // generate field accessor
         Field[] fields = getAllFields(targetClazz);
-        int[] fieldHashCodes = new int[fields.length];
-        LabelNode[] fieldLabels = new LabelNode[fields.length];
         LabelNode defaultLabel = new LabelNode();
-        int fieldSize = fields.length;
 
-        for (int i = 0;i < fieldSize;i ++) {
-            LabelNode l = new LabelNode();
-            fieldLabels[i] = l;
-            fieldHashCodes[i] = System.identityHashCode(
-                fields[i].getName());
+        // generate labels
+        Map<Integer, LabelNode> labelMap = new HashMap<>();
+        Multimap<Integer, Field> fieldMap = ArrayListMultimap.create();
+
+        for (Field field : fields) {
+            int code = field.getName().hashCode();
+            fieldMap.put(code, field);
+            if (!labelMap.containsKey(code)) {
+                labelMap.put(code, new LabelNode());
+            }
         }
-        // switch table
-        method.lookup_switch(defaultLabel, fieldHashCodes, fieldLabels);
 
-        for(int i = 0;i < fieldSize;i ++) {
-            invoke.gen(fieldLabels[i], fields[i]);
+        // switch table
+        method.lookup_switch(defaultLabel, labelMap);
+
+        // generate switch branches
+        for(Map.Entry<Integer, LabelNode> ent: labelMap.entrySet()) {
+            int hash = ent.getKey();
+            LabelNode switchLabel = ent.getValue();
+
+            // switch entry
+            method.put_label(switchLabel).fsame();
+
+            int i = 0;
+            Collection<Field> currentFields = fieldMap.get(hash);
+            LabelNode fallbackLabel = null;
+            for(Field field: currentFields) {
+                if (i != 0) {
+                    method.put_label(fallbackLabel).fsame();
+                }
+
+                if(i == currentFields.size() - 1) {
+                    fallbackLabel = defaultLabel;
+                } else {
+                    fallbackLabel = new LabelNode();
+                }
+
+                // fallback
+                method
+                    .load("name")
+                    .load_const(field.getName())
+                    .invoke_virtual($$.getInternalName(Object.class), "equals",
+                        $$.getMethodDescriptor(boolean.class, Object.class))
+                    .jump_if_eq(fallbackLabel);
+                invoke.gen(field);
+                i ++;
+            }
         }
 
         // switch default begin
@@ -266,15 +298,14 @@ public class RuntimeCompiling {
                 .par("name", String.class);
 
             guardForExactType(method, targetClazz, failing);
-            internNameAndSwitchTable(method, targetClazz, (label, field) ->
+            nameSwitchTable(method, targetClazz, (field) ->
                 method
-                    .put_label(label)
-                    .fsame()
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))
                     .load($$.getInternalName(targetClazz), field.getName(),
                         $$.getDescriptor(field.getType()))
-                    .aret());
+                    .aret()
+            );
         });
     }
 
@@ -290,17 +321,16 @@ public class RuntimeCompiling {
                 .par("val", Object.class);
 
             guardForExactType(method, targetClazz, failing);
-            internNameAndSwitchTable(method, targetClazz, (label, field) ->
+            nameSwitchTable(method, targetClazz, (field) ->
                 method
-                    .put_label(label)
-                    .fsame()
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))
                     .load("val")
                     .check_cast($$.getInternalName(field.getType()))
                     .store($$.getInternalName(targetClazz), field.getName(),
                         $$.getDescriptor(field.getType()))
-                    .ret());
+                    .ret()
+            );
         });
     }
 }

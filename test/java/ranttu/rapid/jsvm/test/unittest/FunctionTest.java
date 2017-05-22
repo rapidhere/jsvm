@@ -18,6 +18,7 @@ import ranttu.rapid.jsvm.test.base.JsvmJunitTestBase;
  * @author rapidhere@gmail.com
  * @version $id: FunctionTest.java, v0.1 2017/4/17 dongwei.dq Exp $
  */
+@SuppressWarnings("unused")
 public class FunctionTest extends JsvmJunitTestBase {
     public static class FunctionTestData extends BaseCaseData {
         public String jsSource;
@@ -29,6 +30,10 @@ public class FunctionTest extends JsvmJunitTestBase {
     public Object a = 1.1;
     public Object b = 2.1;
     public Object c = 3.2;
+
+    public Object abc = 1.1;
+    public Object cba = 2.1;
+    public Object ccc = 3.2;
 
     @Test
     @UseDataProvider("yamlDataProvider")
