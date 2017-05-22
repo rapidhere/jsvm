@@ -151,9 +151,13 @@ final public class $$ {
     }
 
     // print byte code
-    public static void printBytecode(byte[] codes) {
-        ClassReader reader = new ClassReader(codes);
-        reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
+    public static void printBytecode(String className, byte[] codes) {
+        if (SystemProperty.PrintByteCode) {
+            System.out.println("========Class: " + className);
+            ClassReader reader = new ClassReader(codes);
+            reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
+            System.out.println();
+        }
     }
 
     //~~~ the unsafe object

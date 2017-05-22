@@ -17,13 +17,12 @@ public class TmpTest implements Callable {
 
     public TmpTest(Object obj) throws Throwable {
         int i = 0;
-        if ((Boolean) obj) {
-            func(i + 1);
-        }
+        Object o = null;
+
     }
 
-    public void func(Object o) {
-
+    public void func(Callable callable) throws Exception {
+        callable.call();
     }
 
     public Object call() {

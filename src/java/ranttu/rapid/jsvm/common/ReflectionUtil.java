@@ -8,8 +8,6 @@ package ranttu.rapid.jsvm.common;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * the reflection utils
@@ -26,6 +24,20 @@ final public class ReflectionUtil {
         return clazz.getMethods().length == 1 && clazz.isInterface();
     }
 
+    public static Method getSingleAbstractMethod(Class clazz, int cnt) {
+        if (isSingleAbstractMethod(clazz)) {
+            return clazz.getMethods()[0];
+        } else {
+            for(Class i: clazz.getInterfaces()) {
+                if(isSingleAbstractMethod(i) && i.getMethods()[0].getParameterCount() == cnt) {
+                    return i.getMethods()[0];
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static Field getField(Object instance, String fieldName) {
         Class clazz = instance.getClass();
 
@@ -40,6 +52,16 @@ final public class ReflectionUtil {
                 }
             }
         }
+    }
+
+    public static Method getMethodWithName(Class clazz, String name) {
+        for(Method method: clazz.getMethods()) {
+            if (method.getName().equals(name)) {
+                return method;
+            }
+        }
+
+        throw new RuntimeException("not found");
     }
 
     public static void setFieldValue(Object instance, String fieldName, Object value) {

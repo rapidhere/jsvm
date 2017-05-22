@@ -14,12 +14,12 @@ public enum JsIndyType {
     GET_PROP(Object.class, Object.class, String.class),
 
     // ret, invoker, name
-    BOUNDED_INVOKE(Object.class, Object.class, Object.class),
+    BOUNDED_INVOKE(Object.class, Object.class, Object.class, Object[].class),
 
     // ret, invoker, context
-    UNBOUNDED_INVOKE(Object.class, Object.class, Object.class),
+    UNBOUNDED_INVOKE(Object.class, Object.class, Object.class, Object[].class),
 
-    CONSTRUCT(Object.class, Object.class)
+    CONSTRUCT(Object.class, Object.class, Object[].class)
     ;
 
     private Class   retType;
@@ -30,11 +30,7 @@ public enum JsIndyType {
         this.parsType = parsType;
     }
 
-
-    public String getDescriptor(Class... clazz) {
-        Class[] pars = new Class[clazz.length + parsType.length];
-        System.arraycopy(parsType, 0, pars, 0, parsType.length);
-        System.arraycopy(clazz, 0, pars, parsType.length, clazz.length);
-        return $$.getMethodDescriptor(retType, pars);
+    public String getDescriptor() {
+        return $$.getMethodDescriptor(retType, (Object[]) parsType);
     }
 }

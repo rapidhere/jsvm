@@ -46,13 +46,13 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
                 setTarget(GET_PROP);
                 break;
             case UNBOUNDED_INVOKE:
-                setTarget(INVOKE.asType(type()));
+                setTarget(INVOKE);
                 break;
             case BOUNDED_INVOKE:
-                setTarget(BOUNDED_INVOKE.asType(type()));
+                setTarget(BOUNDED_INVOKE);
                 break;
             case CONSTRUCT:
-                setTarget(CONSTRUCT.asType(type()));
+                setTarget(CONSTRUCT);
                 break;
         }
     }
@@ -78,20 +78,22 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
     }
 
     @SuppressWarnings("unused")
-    public static Object invoke(Object invoker, Object context, Object... args) {
+    public static Object invoke(Object invoker, Object context, Object... args) throws Throwable {
         // TODO
-        Class clazz = invoker.getClass();
-        if(ReflectionUtil.isSingleAbstractMethod(clazz)) {
-            Method method = invoker.getClass().getMethods()[0];
-            return invokeSingleAbstractMethod(invoker, method, args);
-        } else if(clazz.getInterfaces().length == 1
-            && ReflectionUtil.isSingleAbstractMethod(clazz.getInterfaces()[0])) {
-            Method method = clazz.getInterfaces()[0].getMethods()[0];
-            return invokeSingleAbstractMethod(invoker, method, args);
-        } else if(invoker instanceof JsFunctionObject){
+        if(invoker instanceof JsFunctionObject){
             return $$.cast(invoker, JsFunctionObject.class).invoke(context, args);
         } else {
-            return $$.notSupport();
+            Method method = ReflectionUtil.getSingleAbstractMethod(
+                invoker.getClass(), args.length);
+            if (method == null) {
+                throw new RuntimeException("not a single abstract method");
+            }
+
+            try {
+                return method.invoke(invoker, args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
         }
     }
 
@@ -133,14 +135,6 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
             }
         } else {
             return $$.notSupport();
-        }
-    }
-
-    private static Object invokeSingleAbstractMethod(Object invoker, Method method, Object... args) {
-        try {
-            return method.invoke(invoker, args);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -262,14 +256,12 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
             INVOKE = MethodHandles
                 .lookup()
                 .findStatic(JsIndyCallSite.class, "invoke",
-                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
-                .asVarargsCollector(Object[].class);
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class));
 
             BOUNDED_INVOKE = MethodHandles
                 .lookup()
                 .findStatic(JsIndyCallSite.class, "boundedInvoke",
-                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
-                .asVarargsCollector(Object[].class);
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class));
 
             CONSTRUCT = MethodHandles
                 .lookup()

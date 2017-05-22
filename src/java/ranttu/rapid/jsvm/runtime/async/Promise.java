@@ -163,7 +163,7 @@ public class Promise implements FuturePromise {
         }
 
         while (! resolved) {
-            if(timed) {
+            if (timed) {
                 LockSupport.parkUntil(deadline);
             } else {
                 LockSupport.park();

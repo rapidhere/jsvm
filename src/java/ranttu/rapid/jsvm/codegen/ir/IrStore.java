@@ -51,4 +51,11 @@ public class IrStore extends IrNode {
 
         return ir;
     }
+
+    public static IrStore array() {
+        IrStore ir = new IrStore();
+        ir.type = FieldType.ARRAY;
+
+        return ir;
+    }
 }

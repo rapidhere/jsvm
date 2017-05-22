@@ -100,9 +100,9 @@
     async function fib(n) {
         var ret;
         if (n === 0) {
-            ret = await man.instanceStaticTask(0);
+            ret = 0;
         } else if (n === 1) {
-            ret = await man.instanceStaticTask(1);
+            ret = 1;
         } else {
             var a = fib(n - 1),
               b = fib(n - 2);

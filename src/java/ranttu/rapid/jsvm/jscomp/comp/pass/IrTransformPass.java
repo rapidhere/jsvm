@@ -202,8 +202,9 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(NewExpression newExp) {
-        super.visit(newExp);
-        ir(IrInvoke.construct(newExp.getArguments().size()));
+        visit(newExp.getCallee());
+        putArguments(newExp.getArguments());
+        ir(IrInvoke.construct());
     }
 
     @Override
@@ -255,10 +256,10 @@ public class IrTransformPass extends AstBasedCompilePass {
             resolvePropertyName(mem.getProperty());
 
             // put args on the stack
-            call.getArguments().forEach(this::visit);
+            putArguments(call.getArguments());
 
             // bounded invoke
-            ir(IrInvoke.boundedInvoke(call.getArguments().size()));
+            ir(IrInvoke.boundedInvoke());
         }
         // anonymous invoke
         else {
@@ -269,10 +270,20 @@ public class IrTransformPass extends AstBasedCompilePass {
             ir(IrLoad.thiz());
 
             // put args on the stack
-            call.getArguments().forEach(this::visit);
+            putArguments(call.getArguments());
 
             // unbounded invoke
-            ir(IrInvoke.unboundedInvoke(call.getArguments().size()));
+            ir(IrInvoke.unboundedInvoke());
+        }
+    }
+
+    private void putArguments(List<Expression> arguments) {
+        ir(IrNew.newArray(arguments.size(), $$.getInternalName(Object.class)));
+
+        for (int i = 0;i < arguments.size();i ++) {
+            ir(IrDup.dup(), IrLoad.ldc(i));
+            visit(arguments.get(i));
+            ir(IrStore.array());
         }
     }
 
@@ -487,7 +498,8 @@ public class IrTransformPass extends AstBasedCompilePass {
         // load init method
         ir(
             IrLoad.staticField(JsRuntime.class, "Object", $$.getDescriptor(JsFunctionObject.class)),
-            IrInvoke.construct(0)
+            IrNew.newArray(0, $$.getInternalName(Object.class)),
+            IrInvoke.construct()
         );
 
         // now we get a empty object

@@ -54,11 +54,19 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
         if (method.parent.isAsyncFunction && method.$.name.equals("entry")) {
             // see method ret has value
             method
+                .local("__args__", Object[].class)
+                .load_const(1)
+                .anew_array($$.getInternalName(Object.class))
+                .dup()
+                .astore("__args__")
+                .swap()
+                .load_const(0)
+                .swap()
+                .aastore()
                 .load("reject")
-                .swap()
                 .load("this")
-                .swap()
-                .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, 1)
+                .load("__args__")
+                .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE)
                 .ret();
         } else {
             method.athrow();
@@ -128,16 +136,16 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 method.invoke_special(invoke.className, invoke.invokeeName, invoke.desc);
                 break;
             case UNBOUNDED_FUNC_CALL:
-                method.invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, invoke.numberOfArgs);
+                method.invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE);
                 break;
             case BOUNDED_FUNC_CALL:
-                method.invoke_dynamic(JsIndyType.BOUNDED_INVOKE, invoke.numberOfArgs);
+                method.invoke_dynamic(JsIndyType.BOUNDED_INVOKE);
                 break;
             case VIRTUAL:
                 method.invoke_virtual(invoke.className, invoke.invokeeName, invoke.desc);
                 break;
             case CONSTRUCT:
-                method.invoke_dynamic(JsIndyType.CONSTRUCT, invoke.numberOfArgs);
+                method.invoke_dynamic(JsIndyType.CONSTRUCT);
                 break;
             default:
                 $$.notSupport();
@@ -220,6 +228,9 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
             case LOCAL:
                 method.astore(irs.key);
                 break;
+            case ARRAY:
+                method.aastore();
+                break;
             default:
                 $$.notSupport();
         }
@@ -227,7 +238,13 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrNew irNew) {
-        method.new_class(irNew.className);
+        if (irNew.isArray) {
+            method
+                .load_const(irNew.size)
+                .anew_array(irNew.className);
+        } else {
+            method.new_class(irNew.className);
+        }
     }
 
     @Override
@@ -248,12 +265,18 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                     .anew_array($$.getInternalName(Object.class))
                     .astore("__stack__");
                 for(int i = 0;i < stackSize;i ++) {
+                    Type t = Type.getType(ret.restStack.get(stackSize - 1 - i));
                     method
                         .load("__stack__")
                         .swap()
                         .load_const(i)
-                        .swap()
-                        .aastore();
+                        .swap();
+
+                    if (t == Type.INT_TYPE) {
+                        method.invoke_static($$.getInternalName(Integer.class), "valueOf",
+                            $$.getMethodDescriptor(Integer.class, int.class));
+                    }
+                    method.aastore();
                 }
 
                 method
@@ -283,8 +306,18 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                     method
                         .load("stack")
                         .load_const(i)
-                        .aaload()
-                        .check_cast(Type.getType(ret.restStack.get(stackSize - 1 - i)).getInternalName());
+                        .aaload();
+                    Type t = Type.getType(ret.restStack.get(stackSize - 1 - i));
+
+                    // TODO
+                    if (t == Type.INT_TYPE) {
+                        method
+                            .check_cast($$.getInternalName(Integer.class))
+                            .invoke_virtual($$.getInternalName(Integer.class), "intValue",
+                                $$.getMethodDescriptor(int.class));
+                    } else {
+                        method.check_cast(t.getInternalName());
+                    }
                 }
 
                 method
@@ -301,11 +334,19 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
                 // -> accept, ret_val, this
                 // -> accept, this, ret_val
                 method
+                    .local("__args__", Object[].class)
+                    .load_const(1)
+                    .anew_array($$.getInternalName(Object.class))
+                    .dup()
+                    .astore("__args__")
+                    .swap()
+                    .load_const(0)
+                    .swap()
+                    .aastore()
                     .load("accept")
-                    .swap()
                     .load("this")
-                    .swap()
-                    .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE, 1)
+                    .load("__args__")
+                    .invoke_dynamic(JsIndyType.UNBOUNDED_INVOKE)
                     .ret();
             } else {
                 $$.notSupport();

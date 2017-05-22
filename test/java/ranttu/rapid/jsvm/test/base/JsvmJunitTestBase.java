@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.model.FrameworkMethod;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
-import ranttu.rapid.jsvm.common.SystemProperty;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 import ranttu.rapid.jsvm.jscomp.comp.Compiler;
 import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
@@ -60,12 +59,8 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         Map<String, byte[]> ret = compileSource(className, source, suffix);
 
-        if (SystemProperty.PrintByteCode) {
-            for (Map.Entry<String, byte[]> r : ret.entrySet()) {
-                System.out.println("========Class: " + r.getKey());
-                printBytecode(r.getValue());
-                System.out.println();
-            }
+        for (Map.Entry<String, byte[]> r : ret.entrySet()) {
+            $$.printBytecode(r.getKey(), r.getValue());
         }
 
         Class<? extends JsModule> topClass = null;
@@ -113,11 +108,6 @@ abstract public class JsvmJunitTestBase extends Assert {
         fail(null, e);
 
         return $$.shouldNotReach();
-    }
-
-    // ~~~ bytecode printer
-    protected static void printBytecode(byte[] codes) {
-        $$.printBytecode(codes);
     }
 
     // ~~~ data provider

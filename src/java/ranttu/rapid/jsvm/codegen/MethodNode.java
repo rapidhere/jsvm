@@ -192,16 +192,26 @@ public class MethodNode
     }
 
     public MethodNode load(String name) {
-        int idx = getLocalNameIndex(name);
-        Type type = localVarType.get(name);
+        return load(getLocalNameIndex(name));
+    }
 
+    public MethodNode load(int i) {
+        Type type = localVarType.get(getLocalName(i));
         if (type == Type.INT_TYPE) {
-            $.instructions.add(new VarInsnNode(Opcodes.ILOAD, idx));
+            $.instructions.add(new VarInsnNode(Opcodes.ILOAD, i));
         } else {
-            $.instructions.add(new VarInsnNode(Opcodes.ALOAD, idx));
+            $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
         }
 
         return this;
+    }
+
+    public String getLocalName(int idx) {
+        if (idx >= $.parameters.size()) {
+           return localVariableNames.get(idx - $.parameters.size());
+        } else {
+            return $.parameters.get(idx).name;
+        }
     }
 
     public int getLocalNameIndex(String name) {
@@ -230,6 +240,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode jump_if_acmpne(LabelNode labelNode) {
+        $.instructions.add(new JumpInsnNode(Opcodes.IF_ACMPNE, labelNode));
+        return this;
+    }
+
     public MethodNode dup() {
         $.instructions.add(new InsnNode(Opcodes.DUP));
         return this;
@@ -240,20 +255,9 @@ public class MethodNode
         return this;
     }
 
-    public MethodNode invoke_dynamic(JsIndyType indyType, int numberOfArgs) {
-        Class[] extraArgs = new Class[numberOfArgs];
-        for (int i = 0; i < numberOfArgs; i++) {
-            extraArgs[i] = Object.class;
-        }
-
-        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType
-            .getDescriptor(extraArgs), MethodConst.INDY_JSOBJ_FACTORY));
-        return this;
-    }
-
     public MethodNode invoke_dynamic(JsIndyType indyType) {
-        $.instructions.add(new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(),
-            MethodConst.INDY_JSOBJ_FACTORY));
+        $.instructions.add(
+            new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(), MethodConst.INDY_JSOBJ_FACTORY));
         return this;
     }
 
@@ -266,6 +270,12 @@ public class MethodNode
     public MethodNode invoke_virtual(String invokeName, String name, String desc) {
         $.instructions
             .add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, invokeName, name, desc, false));
+        return this;
+    }
+
+    public MethodNode invoke_interface(String invokeName, String name, String desc) {
+        $.instructions
+            .add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, invokeName, name, desc, true));
         return this;
     }
 
@@ -316,6 +326,11 @@ public class MethodNode
 
     public MethodNode load_const(Object o) {
         $.instructions.add(new LdcInsnNode(o));
+        return this;
+    }
+
+    public MethodNode load_null() {
+        $.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
         return this;
     }
 

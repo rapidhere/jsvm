@@ -16,9 +16,6 @@ import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 public class IrInvoke extends IrNode {
     public InvokeType type;
 
-    // for bounded/unbounded/construct invoke only
-    public int        numberOfArgs;
-
     // for java invoke only
     public String     invokeeName;
     public String     desc;
@@ -44,18 +41,16 @@ public class IrInvoke extends IrNode {
         return irInvoke;
     }
 
-    public static IrInvoke unboundedInvoke(int numberOfArgs) {
+    public static IrInvoke unboundedInvoke() {
         IrInvoke irInvoke = new IrInvoke();
         irInvoke.type = InvokeType.UNBOUNDED_FUNC_CALL;
-        irInvoke.numberOfArgs = numberOfArgs;
 
         return irInvoke;
     }
 
-    public static IrInvoke boundedInvoke(int numberOfArgs) {
+    public static IrInvoke boundedInvoke() {
         IrInvoke irInvoke = new IrInvoke();
         irInvoke.type = InvokeType.BOUNDED_FUNC_CALL;
-        irInvoke.numberOfArgs = numberOfArgs;
 
         return irInvoke;
     }
@@ -65,10 +60,9 @@ public class IrInvoke extends IrNode {
             $$.getMethodDescriptor(void.class));
     }
 
-    public static IrInvoke construct(int numberOfArgs) {
+    public static IrInvoke construct() {
         IrInvoke irInvoke = new IrInvoke();
         irInvoke.type = InvokeType.CONSTRUCT;
-        irInvoke.numberOfArgs = numberOfArgs;
 
         return irInvoke;
     }

@@ -92,13 +92,18 @@ public class ControlFlowAnalysis extends IrBasedCompilePass {
 
     @Override
     protected void visit(IrNew irNew) {
-        stackFrame.push($$.getDescriptor(irNew.className));
+        if (irNew.isArray) {
+            stackFrame.push("[" + $$.getDescriptor(irNew.className));
+        } else {
+            stackFrame.push($$.getDescriptor(irNew.className));
+        }
     }
 
     @Override
     protected void visit(IrStore irs) {
         switch (irs.type) {
             case PROP:
+            case ARRAY:
                 stackFrame.pop();
             case FIELD:
                 stackFrame.pop();
@@ -123,13 +128,13 @@ public class ControlFlowAnalysis extends IrBasedCompilePass {
                 computeFrame(retDesc(desc), argSize(desc) + 1);
                 break;
             case BOUNDED_FUNC_CALL:
-                computeFrame($$.getDescriptor(Object.class), invoke.numberOfArgs + 2);
+                computeFrame($$.getDescriptor(Object.class), 3);
                 break;
             case UNBOUNDED_FUNC_CALL:
-                computeFrame($$.getDescriptor(Object.class), invoke.numberOfArgs + 2);
+                computeFrame($$.getDescriptor(Object.class), 3);
                 break;
             case CONSTRUCT:
-                computeFrame($$.getDescriptor(Object.class), invoke.numberOfArgs + 1);
+                computeFrame($$.getDescriptor(Object.class), 2);
                 break;
             default:
                 $$.notSupport();
@@ -219,7 +224,11 @@ public class ControlFlowAnalysis extends IrBasedCompilePass {
                 stackFrame.push(irl.desc);
                 break;
             case CONST:
-                stackFrame.push($$.getDescriptor(irl.constVal.getClass()));
+                if (irl.constVal instanceof Integer) {
+                    stackFrame.push(Type.INT_TYPE.getDescriptor());
+                } else {
+                    stackFrame.push($$.getDescriptor(irl.constVal.getClass()));
+                }
                 break;
             default:
                 $$.notSupport();
