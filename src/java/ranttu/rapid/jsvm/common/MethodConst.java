@@ -34,4 +34,10 @@ public interface MethodConst {
                                   "callsite",
                                   // the factory method desc
                                   $$.getMethodDescriptor(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class));
+
+    Handle INDY_SAM_GLUE_FACTORY = new Handle(
+                                    Opcodes.H_INVOKESTATIC,
+                                    $$.getInternalName(INDY_FACTORY_CLASS),
+                                    "samGlueSite",
+                                    $$.getMethodDescriptor(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class));
 }

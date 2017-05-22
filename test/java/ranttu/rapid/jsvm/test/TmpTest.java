@@ -16,9 +16,9 @@ import java.util.concurrent.Callable;
 public class TmpTest implements Callable {
 
     public TmpTest(Object obj) throws Throwable {
-        int i = 0;
-        Object o = null;
-
+        func(() -> {
+           return obj;
+        });
     }
 
     public void func(Callable callable) throws Exception {

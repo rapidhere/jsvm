@@ -83,8 +83,7 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
         if(invoker instanceof JsFunctionObject){
             return $$.cast(invoker, JsFunctionObject.class).invoke(context, args);
         } else {
-            Method method = ReflectionUtil.getSingleAbstractMethod(
-                invoker.getClass(), args.length);
+            Method method = ReflectionUtil.getSingleAbstractMethod(invoker.getClass());
             if (method == null) {
                 throw new RuntimeException("not a single abstract method");
             }

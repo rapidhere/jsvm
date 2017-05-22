@@ -11,6 +11,7 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -86,6 +87,11 @@ public class ClassNode extends
         return inner_class(innerName, $$.getInternalName(superClass), acces);
     }
 
+    public ClassNode interfaze(String... interfaceNames) {
+        Collections.addAll($.interfaces, interfaceNames);
+        return this;
+    }
+
     public Collection<ClassNode> innerClasses() {
         return innerClasses.values();
     }
@@ -143,7 +149,7 @@ public class ClassNode extends
             $$.getMethodDescriptor(void.class));
     }
 
-    public MethodNode method_init(ClassNode... types) {
+    public MethodNode method_init(Object... types) {
         return method(MethodConst.INIT).desc($$.getMethodDescriptor(void.class, types))
             .par("this", this);
     }

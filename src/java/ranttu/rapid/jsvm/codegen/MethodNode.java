@@ -5,8 +5,6 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
-import com.google.common.collect.Lists;
-import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import jdk.internal.org.objectweb.asm.tree.*;
@@ -15,7 +13,6 @@ import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.MethodConst;
 import ranttu.rapid.jsvm.runtime.indy.JsIndyType;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -206,6 +203,11 @@ public class MethodNode
         return this;
     }
 
+    public MethodNode aload(int i) {
+        $.instructions.add(new VarInsnNode(Opcodes.ALOAD, i));
+        return this;
+    }
+
     public String getLocalName(int idx) {
         if (idx >= $.parameters.size()) {
            return localVariableNames.get(idx - $.parameters.size());
@@ -258,6 +260,13 @@ public class MethodNode
     public MethodNode invoke_dynamic(JsIndyType indyType) {
         $.instructions.add(
             new InvokeDynamicInsnNode(indyType.toString(), indyType.getDescriptor(), MethodConst.INDY_JSOBJ_FACTORY));
+        return this;
+    }
+
+    public MethodNode invoke_dynamic_sam_glue(Class interfaceType) {
+        $.instructions.add(
+            new InvokeDynamicInsnNode("SAM_GLUE", $$.getMethodDescriptor(interfaceType, Object.class),
+                MethodConst.INDY_SAM_GLUE_FACTORY));
         return this;
     }
 

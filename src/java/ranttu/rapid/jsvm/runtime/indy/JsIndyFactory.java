@@ -8,6 +8,7 @@ package ranttu.rapid.jsvm.runtime.indy;
 import ranttu.rapid.jsvm.common.SystemProperty;
 
 import java.lang.invoke.CallSite;
+import java.lang.invoke.ConstantCallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
@@ -16,6 +17,9 @@ import java.lang.invoke.MethodType;
  * @version $id: JsIndyFactory.java, v0.1 2017/4/15 dongwei.dq Exp $
  */
 final public class JsIndyFactory {
+    private JsIndyFactory() {
+    }
+
     /**
      * call site factory entry for `invokedynamic` instruction
      */
@@ -32,5 +36,15 @@ final public class JsIndyFactory {
 
         callSite.init();
         return callSite;
+    }
+
+    /**
+     * call site factory entry for a glue instance between sam method and js function
+     */
+    @SuppressWarnings("unused")
+    public static CallSite samGlueSite(MethodHandles.Lookup lookup, String methodName, MethodType mt) throws Throwable {
+        Class samGlueClass = RuntimeCompiling.getSamGlue(mt.returnType());
+        return new ConstantCallSite(lookup.findStatic(
+            samGlueClass, "getGlueInterface", mt));
     }
 }

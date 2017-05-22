@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * the optimistic javascript call site
@@ -38,7 +39,11 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
                 relink(GUARD_UNBOUNDED_INVOKE);
                 break;
             case CONSTRUCT:
+                relink(GUARD_CONSTRUCT_OBJECT);
+                break;
             case BOUNDED_INVOKE:
+                relink(GUARD_BOUNDED_INVOKE);
+                break;
             default:
                 super.init();
         }
@@ -52,17 +57,17 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
     // ~~~ inner cache
     private Map<Class, MethodHandle> cache = new HashMap<>();
 
-    private MethodHandle setTypeSpecifiedMethodHandle(Class rawClass, String name, Class retType, Class...parTypes)
+    private MethodHandle setTypeSpecifiedMethodHandle(Class rawClass, String name, MethodType mt, Object...extraArgs)
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 
         MethodHandle ret = cache.get(rawClass);
         if (ret == null) {
-           Class clazz = RuntimeCompiling.getCompiled(indyType, rawClass);
+           Class clazz = RuntimeCompiling.getCompiled(indyType, rawClass, extraArgs);
            Object handler = clazz.getConstructor(JsIndyOptimisticCallSite.class).newInstance(this);
-           ret = lookup.findVirtual(clazz, name, MethodType.methodType(retType, parTypes)).bindTo(handler);
+           ret = lookup.findVirtual(clazz, name, mt).bindTo(handler);
            cache.put(rawClass, ret);
         }
-        setTarget(ret.asType(type()));
+        setTarget(ret);
 
         return ret;
     }
@@ -74,7 +79,7 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             relink(JSOBJ_SET_PROPERTY);
         } else {
             setTypeSpecifiedMethodHandle(context.getClass(), "SET_PROPERTY",
-                void.class, Object.class, String.class, Object.class)
+                MethodType.methodType(void.class, Object.class, String.class, Object.class))
 
             .invokeExact(context, name, val);
         }
@@ -96,7 +101,7 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             return jsobj_GET_PROPERTY(context, name);
         } else {
             return setTypeSpecifiedMethodHandle(context.getClass(), "GET_PROPERTY",
-                Object.class, Object.class, String.class)
+                MethodType.methodType(Object.class, Object.class, String.class))
 
             .invokeExact(context, name);
         }
@@ -116,15 +121,14 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             relink(JSOBJ_UNBOUNDED_INVOKE);
             return jsobj_UNBOUNDED_INVOKE(invoker, context, args);
         } else {
-            Method samMethod = ReflectionUtil.getSingleAbstractMethod(
-                invoker.getClass(), type().parameterCount() - 2);
+            Method samMethod = ReflectionUtil.getSingleAbstractMethod(invoker.getClass());
 
             if (samMethod == null) {
                 // TODO
                 throw new RuntimeException("not a sam method");
             } else {
                 return setTypeSpecifiedMethodHandle(samMethod.getDeclaringClass(), "UNBOUNDED_INVOKE",
-                    Object.class, Object.class, Object.class, Object[].class)
+                    MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
 
                 .invoke(invoker, context, args);
             }
@@ -146,8 +150,9 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             return jsobj_CONSTRUCT_OBJECT(invoker, args);
         } else {
             if (invoker instanceof Class) {
-                return setTypeSpecifiedMethodHandle(Class.class, "CONSTRUCT_OBJECT",
-                    Object.class, Object[].class)
+                // for a call site, the number of args is always the same
+                return setTypeSpecifiedMethodHandle((Class) invoker, "CONSTRUCT_OBJECT",
+                    MethodType.methodType(Object.class, Object.class, Object[].class), args.length)
 
                 .invokeExact(invoker, args);
             } else {
@@ -164,23 +169,79 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
         }
     }
 
+    // ~~~ bounded invoke
+    public Object guard_BOUNDED_INVOKE(Object invoker, Object name, Object...args) throws Throwable {
+        if (invoker instanceof JsObjectObject) {
+            relink(JSOBJ_BOUNDED_INVOKE);
+            return jsobj_BOUNDED_INVOKE(invoker, name, args);
+        } else {
+            return setTypeSpecifiedMethodHandle(invoker.getClass(), "BOUNDED_INVOKE",
+                MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
 
+            .invokeExact(invoker, name, args);
+        }
+    }
+
+    // use to cache reflection result
+    private MethodHandle cachedSamMh = null;
+    private Class cachedBoundedInvokeType = null;
+
+    public Object jsobj_BOUNDED_INVOKE(Object invoker, Object name, Object...args) throws Throwable {
+        if (invoker instanceof JsObjectObject) {
+            JsObjectObject obj = (JsObjectObject) invoker;
+            Object method = ((JsObjectObject) invoker).getProperty((String) name);
+
+            if (method instanceof JsFunctionObject) {
+                ((JsFunctionObject)method).invoke(invoker, args);
+            } else {
+                // if type changed cache is not valid
+                if (cachedBoundedInvokeType == null || ! cachedBoundedInvokeType.isInstance(invoker)) {
+                    cachedSamMh = null;
+                }
+
+                // redefine cache
+                if (cachedSamMh == null) {
+                    Method samMethod = ReflectionUtil.getSingleAbstractMethod(invoker.getClass());
+                    if (samMethod == null) {
+                        throw new RuntimeException("not a sam method");
+                    }
+
+                    cachedSamMh = MethodHandles.publicLookup()
+                        .findVirtual(samMethod.getDeclaringClass(), samMethod.getName(),
+                            MethodType.methodType(samMethod.getReturnType(), samMethod.getParameterTypes()));
+                }
+
+                // use cache to invoke
+                return cachedSamMh.invokeExact(invoker, args);
+            }
+
+            return ((JsFunctionObject) ((JsObjectObject) invoker).getProperty((String) name)).invoke(invoker, args);
+        } else {
+            return guard_BOUNDED_INVOKE(invoker, name, args);
+        }
+    }
 
     // ~~~ method handles
     private static MethodHandles.Lookup lookup = MethodHandles.lookup();
 
     private static MethodHandle GUARD_SET_PROPERTY;
     private static MethodHandle JSOBJ_SET_PROPERTY;
+
     private static MethodHandle GUARD_GET_PROPERTY;
     private static MethodHandle JSOBJ_GET_PROPERTY;
+
     private static MethodHandle GUARD_UNBOUNDED_INVOKE;
     private static MethodHandle JSOBJ_UNBOUNDED_INVOKE;
+
     private static MethodHandle GUARD_CONSTRUCT_OBJECT;
     private static MethodHandle JSOBJ_CONSTRUCT_OBJECT;
 
+    private static MethodHandle GUARD_BOUNDED_INVOKE;
+    private static MethodHandle JSOBJ_BOUNDED_INVOKE;
+
     private static void initMh() throws NoSuchMethodException, IllegalAccessException {
         for(Field f: JsIndyOptimisticCallSite.class.getDeclaredFields()) {
-            if(f.getType() == MethodHandle.class) {
+            if(f.getType() == MethodHandle.class && !Objects.equals(f.getName(), "cachedSamMh")) {
                 String names[] = f.getName().split("_");
                 String methodName = names[0].toLowerCase() + "_" + names[1] + "_" + names[2];
                 Method method = ReflectionUtil.getMethodWithName(JsIndyOptimisticCallSite.class, methodName);

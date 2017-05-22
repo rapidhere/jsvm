@@ -8,10 +8,11 @@ import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.common.$$;
+import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -25,14 +26,22 @@ public class RuntimeCompiling {
     public static final RuntimeCompiling theRc = new RuntimeCompiling();
 
     /**
+     * get a sam glue class
+     */
+    public static Class getSamGlue(Class targetInterface) {
+        return theRc.getSamGlueInternal(targetInterface);
+    }
+
+    /**
      * get a compiled class
      */
-    public static Class getCompiled(JsIndyType type, Class rawClass) {
-        return theRc.get(type, rawClass);
+    public static Class getCompiled(JsIndyType type, Class rawClass, Object...extraArgs) {
+        return theRc.get(type, rawClass, extraArgs);
     }
 
     // impl
     private Map<String, Class> compiled = new HashMap<>();
+    private Map<Class, Class> samGlueCompiled = new HashMap<>();
 
     private RuntimeCompiling() {
     }
@@ -41,7 +50,11 @@ public class RuntimeCompiling {
         return type.name() + '#' + rawClass.getName();
     }
 
-    public Class get(JsIndyType type, Class rawClass) {
+    public Class getSamGlueInternal(Class targetInterface) {
+        return samGlueCompiled.computeIfAbsent(targetInterface, this::genGlue);
+    }
+
+    public Class get(JsIndyType type, Class rawClass, Object...extraArgs) {
         String key = getKey(type, rawClass);
         Class ret = compiled.get(key);
 
@@ -58,6 +71,12 @@ public class RuntimeCompiling {
                 case UNBOUNDED_INVOKE:
                     ret = compileUnboundedInvoke(rawClass);
                     break;
+                case CONSTRUCT:
+                    ret = compileConstructor(rawClass, (Integer) extraArgs[0]);
+                    break;
+                case BOUNDED_INVOKE:
+                    ret = compileBoundedInvoke(rawClass);
+                    break;
                 default:
                     $$.notSupport();
             }
@@ -66,6 +85,95 @@ public class RuntimeCompiling {
             return ret;
         }
     }
+
+    private Class genGlue(Class targetInterface) {
+        Method samMethod = targetInterface.getMethods()[0];
+        ClassNode cls = new ClassNode();
+
+        String className = "SAM_GLUE$" + targetInterface.getSimpleName();
+        cls
+            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC, Opcodes.ACC_SUPER)
+            .name(className, Object.class)
+            .interfaze($$.getInternalName(targetInterface))
+            // store field
+            .field("function")
+            .desc(JsFunctionObject.class);
+
+        // static construct method
+        LabelNode guardLabel = new LabelNode();
+        cls.method("getGlueInterface")
+            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_STATIC)
+            .desc(targetInterface, Object.class)
+            .par("o", Object.class)
+            // instanceof
+            .load("o")
+            .instance_of(JsFunctionObject.class)
+            .jump_if_eq(guardLabel)
+            .new_class(className)
+            .dup()
+            .load("o")
+            .check_cast($$.getInternalName(JsFunctionObject.class))
+            .invoke_special(className, "<init>",
+                $$.getMethodDescriptor(void.class, JsFunctionObject.class))
+            .aret()
+            // direct return
+            .put_label(guardLabel)
+            .ffull(new Object[] { $$.getInternalName(Object.class) }, new Object[0])
+            .load("o")
+            .check_cast($$.getInternalName(targetInterface))
+            .aret();
+
+
+        // init method
+        cls.method_init(JsFunctionObject.class)
+            .acc(Opcodes.ACC_PUBLIC)
+            .par("function", JsFunctionObject.class)
+            // call super init
+            .load("this")
+            .invoke_special($$.getInternalName(Object.class), "<init>",
+                $$.getMethodDescriptor(void.class))
+            // store function
+            .load("this")
+            .load("function")
+            .store(className, "function", $$.getDescriptor(JsFunctionObject.class))
+            // ret
+            .ret();
+
+        // invoke method
+        MethodNode method = cls.method(samMethod.getName())
+            .acc(Opcodes.ACC_PUBLIC)
+            .desc(samMethod.getReturnType(), (Object[]) samMethod.getParameterTypes())
+            // get function
+            .aload(0)
+            .load(className, "function", $$.getDescriptor(JsFunctionObject.class))
+            // set context to this
+            .aload(0)
+            // new args array
+            .load_const(samMethod.getParameterCount())
+            .anew_array($$.getInternalName(Object.class));
+        // load arguments
+        for (int i = 0;i < samMethod.getParameterCount();i ++) {
+            method
+                .dup()
+                .load_const(i)
+                .aload(i + 1)
+                .aastore();
+        }
+        // call invoke
+        method.invoke_virtual($$.getInternalName(JsFunctionObject.class),
+            "invoke", $$.getMethodDescriptor(Object.class, Object.class, Object[].class));
+        // ret
+        if (samMethod.getReturnType() == void.class) {
+            method.pop().ret();
+        } else {
+            method
+                .check_cast($$.getInternalName(samMethod.getReturnType()))
+                .aret();
+        }
+
+        return define(cls);
+    }
+
 
     private interface GenInvoke {
         void gen(ClassNode cls, MethodNode method, String className, String methodName, LabelNode failing);
@@ -131,11 +239,14 @@ public class RuntimeCompiling {
             method.aret();
         }
 
-        // compute
+        return define(cls);
+    }
+
+    private Class define(ClassNode classNode) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cls.$.accept(cw);
+        classNode.$.accept(cw);
         byte[] clsBytes = cw.toByteArray();
-        $$.printBytecode(className, clsBytes);
+        $$.printBytecode(classNode.$.name, clsBytes);
 
         return $$.UNSAFE.defineAnonymousClass(
             JsIndyOptimisticCallSite.class, clsBytes, null);
@@ -153,8 +264,8 @@ public class RuntimeCompiling {
     }
 
 
-    private interface SwitchTableInvoke {
-        void gen(Field field);
+    private interface SwitchTableInvoke<T> {
+        void gen(T field);
     }
 
     private Field[] getAllFields(Class targetClazz) {
@@ -179,22 +290,71 @@ public class RuntimeCompiling {
         return fields.toArray(new Field[fields.size()]);
     }
 
-    private void nameSwitchTable(MethodNode method, Class targetClazz, SwitchTableInvoke invoke) {
-        // name.intern
+    private Method[] getAllMethods(Class targetClazz) {
+        List<Method> methods = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+
+        while (true) {
+            // ignore all generated method
+            if(! targetClazz.isSynthetic() && ! targetClazz.getSimpleName().contains("/")) {
+                for (Method method : targetClazz.getDeclaredMethods()) {
+                    if (! method.isSynthetic() && !visited.contains(method.getName())) {
+                        methods.add(method);
+                        visited.add(method.getName());
+                    }
+                }
+            }
+
+            if (targetClazz == Object.class) {
+                break;
+            } else {
+                targetClazz = targetClazz.getSuperclass();
+            }
+        }
+
+        return methods.toArray(new Method[methods.size()]);
+    }
+
+    private String getMethodKey(Method method) {
+        return method.getName() + '$' +
+            $$.getMethodDescriptor(method.getReturnType(), (Object[]) method.getParameterTypes());
+    }
+
+    private Map<String, Class> resolveAllInterfaceMethod(Class targetClazz) {
+        Map<String, Class> ret = new HashMap<>();
+
+        while (true) {
+            for (Class inter: targetClazz.getInterfaces()) {
+                for (Method method: inter.getDeclaredMethods()) {
+                    ret.put(getMethodKey(method), inter);
+                }
+            }
+
+            if (targetClazz == Object.class) {
+                break;
+            } else {
+                targetClazz = targetClazz.getSuperclass();
+            }
+        }
+
+        return ret;
+    }
+
+    private <T extends Member> void nameSwitchTable(MethodNode method, T[] fields, SwitchTableInvoke<T> invoke) {
+        // name.hashCode
         method
             .load("name")
-            .invoke_virtual($$.getInternalName(String.class), "hashCode",
+            .invoke_virtual($$.getInternalName(Object.class), "hashCode",
                 $$.getMethodDescriptor(int.class));
 
         // generate field accessor
-        Field[] fields = getAllFields(targetClazz);
         LabelNode defaultLabel = new LabelNode();
 
         // generate labels
         Map<Integer, LabelNode> labelMap = new HashMap<>();
-        Multimap<Integer, Field> fieldMap = ArrayListMultimap.create();
+        Multimap<Integer, T> fieldMap = ArrayListMultimap.create();
 
-        for (Field field : fields) {
+        for (T field : fields) {
             int code = field.getName().hashCode();
             fieldMap.put(code, field);
             if (!labelMap.containsKey(code)) {
@@ -214,9 +374,9 @@ public class RuntimeCompiling {
             method.put_label(switchLabel).fsame();
 
             int i = 0;
-            Collection<Field> currentFields = fieldMap.get(hash);
+            Collection<T> currentFields = fieldMap.get(hash);
             LabelNode fallbackLabel = null;
-            for(Field field: currentFields) {
+            for(T field: currentFields) {
                 if (i != 0) {
                     method.put_label(fallbackLabel).fsame();
                 }
@@ -247,10 +407,159 @@ public class RuntimeCompiling {
             .new_class($$.getInternalName(NoSuchFieldException.class))
             .dup()
             .load("name")
+            .check_cast($$.getInternalName(String.class))
             .invoke_special($$.getInternalName(NoSuchFieldException.class), "<init>",
                 $$.getMethodDescriptor(void.class, String.class))
             .athrow();
     }
+
+    private void fitArgs(MethodNode method, Executable executable) {
+        for (int i = 0;i < executable.getParameterCount();i ++) {
+            method.load("args")
+                .load_const(i)
+                .aaload();
+
+            Class parType = executable.getParameterTypes()[i];
+            if (ReflectionUtil.isSingleAbstractMethod(parType)) {
+                method.invoke_dynamic_sam_glue(parType);
+            } else if (parType.isPrimitive()) {
+                unwrapPrimitiveParameter(method, parType);
+            } else {
+                method.check_cast($$.getInternalName(parType));
+            }
+        }
+    }
+
+    private void unwrapPrimitiveParameter(MethodNode method, Class parType) {
+        if (parType == boolean.class) {
+            unwrapPrimitive(method, boolean.class, Boolean.class);
+        } else if (parType == char.class) {
+            unwrapPrimitive(method, char.class, Character.class);
+        } else if (parType == byte.class) {
+            unwrapPrimitive(method, byte.class, Byte.class);
+        } else if (parType == short.class) {
+            unwrapPrimitive(method, short.class, Short.class);
+        } else if (parType == int.class) {
+            unwrapPrimitive(method, int.class, Integer.class);
+        } else if (parType == long.class) {
+            unwrapPrimitive(method, long.class, Long.class);
+        } else if (parType == float.class) {
+            unwrapPrimitive(method, float.class, Float.class);
+        } else if (parType == double.class) {
+            unwrapPrimitive(method, double.class, Double.class);
+        }
+    }
+
+    private void unwrapPrimitive(MethodNode method, Class ptype, Class wtype) {
+        method
+            .check_cast($$.getInternalName(wtype))
+            .invoke_virtual($$.getInternalName(wtype), ptype.getSimpleName() + "Value",
+                $$.getMethodDescriptor(ptype));
+    }
+
+    private void wrapReturn(MethodNode method, Method m) {
+        Class retType = m.getReturnType();
+        if (retType == void.class) {
+            method.load_null();
+        } else if (retType == boolean.class) {
+            wrapPrimitive(method, boolean.class, Boolean.class);
+        } else if (retType == char.class) {
+            wrapPrimitive(method, char.class, Character.class);
+        } else if (retType == byte.class) {
+            wrapPrimitive(method, byte.class, Byte.class);
+        } else if (retType == short.class) {
+            wrapPrimitive(method, short.class, Short.class);
+        } else if (retType == int.class) {
+            wrapPrimitive(method, int.class, Integer.class);
+        } else if (retType == long.class) {
+            wrapPrimitive(method, long.class, Long.class);
+        } else if (retType == float.class) {
+            wrapPrimitive(method, float.class, Float.class);
+        } else if (retType == double.class) {
+            wrapPrimitive(method, double.class, Double.class);
+        }
+
+        // for other non-primitive types, simply do nothing
+    }
+
+    private void wrapPrimitive(MethodNode method, Class primitiveType, Class warpType) {
+        method.invoke_static($$.getInternalName(warpType), "valueOf",
+            $$.getMethodDescriptor(warpType, primitiveType));
+    }
+
+    private Class compileBoundedInvoke(Class targetClazz) {
+        MethodType mt = MethodType.methodType(Object.class, Object.class, Object.class, Object[].class);
+
+        return gen("BOUNDED_INVOKE", "BOUNDED_INVOKE", mt, (cls, method, clsName, methodName, failing) -> {
+            method
+                .par("this", cls)
+                .par("invoker", Object.class)
+                .par("name", Object.class)
+                .par("args", Object[].class);
+
+            guardForExactType(method, targetClazz, failing);
+            Map<String, Class> interfaceMethods = resolveAllInterfaceMethod(targetClazz);
+
+            // generate field accessor
+            nameSwitchTable(method, getAllMethods(targetClazz), (m) -> {
+                Class inter = interfaceMethods.get(getMethodKey(m));
+                String methodDesc = $$.getMethodDescriptor(m.getReturnType(), (Object[]) m.getParameterTypes());
+
+                if (inter != null) {
+                    method.load("invoker").check_cast($$.getInternalName(inter));
+                    fitArgs(method, m);
+                    method.invoke_interface($$.getInternalName(inter), m.getName(), methodDesc);
+                } else {
+                    method.load("invoker").check_cast($$.getInternalName(m.getDeclaringClass()));
+                    fitArgs(method, m);
+                    method.invoke_virtual($$.getInternalName(m.getDeclaringClass()), m.getName(), methodDesc);
+                }
+
+                wrapReturn(method, m);
+                method.aret();
+            });
+        });
+    }
+
+    private Class compileConstructor(Class targetClazz, int numberOfArgs) {
+        MethodType mt = MethodType.methodType(Object.class, Object.class, Object[].class);
+
+        return gen("CONSTRUCT_OBJECT", "CONSTRUCT_OBJECT", mt, (cls, method, clsName, methodName, failing) -> {
+            method
+                .par("this", cls)
+                .par("invoker", Object.class)
+                .par("args", Object[].class);
+
+            // find constructor
+            Constructor con = null;
+            for(Constructor c: targetClazz.getConstructors()) {
+                if (c.getParameterCount() == numberOfArgs) {
+                    con = c;
+                    break;
+                }
+            }
+            if(con == null) {
+                throw new RuntimeException("cannot find a suitable constructor");
+            }
+
+            // guard
+            method
+                .load("invoker")
+                .load_const($$.getType(targetClazz))
+                .jump_if_acmpne(failing)
+                .new_class($$.getInternalName(targetClazz))
+                .dup();
+
+            // put args
+            fitArgs(method, con);
+
+            // invoke special
+            method.invoke_special($$.getInternalName(targetClazz), "<init>",
+                $$.getMethodDescriptor(void.class, (Object[]) con.getParameterTypes()));
+            method.aret();
+        });
+    }
+
 
     private Class compileUnboundedInvoke(Class targetInterface) {
         MethodType mt = MethodType.methodType(Object.class, Object.class, Object.class, Object[].class);
@@ -271,19 +580,13 @@ public class RuntimeCompiling {
                 .load("invoker");
 
             // put args
-            for (int i = 0;i < samMethod.getParameterCount();i ++) {
-                method.load("args")
-                    .load_const(i)
-                    .aaload();
-            }
+            fitArgs(method, samMethod);
 
             // invoke
             method
                 .invoke_interface($$.getInternalName(targetInterface), samMethod.getName(),
                     $$.getMethodDescriptor(samMethod.getReturnType(), (Object[]) samMethod.getParameterTypes()));
-            if (samMethod.getReturnType() == void.class) {
-                method.load_null();
-            }
+            wrapReturn(method, samMethod);
             method.aret();
         });
     }
@@ -298,7 +601,7 @@ public class RuntimeCompiling {
                 .par("name", String.class);
 
             guardForExactType(method, targetClazz, failing);
-            nameSwitchTable(method, targetClazz, (field) ->
+            nameSwitchTable(method, getAllFields(targetClazz), (field) ->
                 method
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))
@@ -321,7 +624,7 @@ public class RuntimeCompiling {
                 .par("val", Object.class);
 
             guardForExactType(method, targetClazz, failing);
-            nameSwitchTable(method, targetClazz, (field) ->
+            nameSwitchTable(method, getAllFields(targetClazz), (field) ->
                 method
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))

@@ -24,12 +24,12 @@ final public class ReflectionUtil {
         return clazz.getMethods().length == 1 && clazz.isInterface();
     }
 
-    public static Method getSingleAbstractMethod(Class clazz, int cnt) {
+    public static Method getSingleAbstractMethod(Class clazz) {
         if (isSingleAbstractMethod(clazz)) {
             return clazz.getMethods()[0];
         } else {
             for(Class i: clazz.getInterfaces()) {
-                if(isSingleAbstractMethod(i) && i.getMethods()[0].getParameterCount() == cnt) {
+                if(isSingleAbstractMethod(i)) {
                     return i.getMethods()[0];
                 }
             }
