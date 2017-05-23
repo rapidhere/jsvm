@@ -58,22 +58,22 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
     }
 
     @SuppressWarnings("unused")
-    public static void setProperty(Object obj, String name, Object val) {
+    public static void setProperty(Object obj, Object name, Object val) {
         // TODO: refine
         if (obj instanceof JsObjectObject) {
             $$.cast(obj, JsObjectObject.class).setProperty(name, val);
         } else {
-            ReflectionUtil.setFieldValue(obj, name, val);
+            ReflectionUtil.setFieldValue(obj, (String) name, val);
         }
     }
 
     @SuppressWarnings("unused")
-    public static Object getProperty(Object obj, String name) {
+    public static Object getProperty(Object obj, Object name) {
         // TODO: refine
         if (obj instanceof JsObjectObject) {
             return $$.cast(obj, JsObjectObject.class).getProperty(name);
         } else {
-            return ReflectionUtil.getFieldValue(obj, name);
+            return ReflectionUtil.getFieldValue(obj, (String) name);
         }
     }
 
@@ -245,10 +245,10 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
     static {
         try {
             SET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "setProperty",
-                MethodType.methodType(void.class, Object.class, String.class, Object.class));
+                MethodType.methodType(void.class, Object.class, Object.class, Object.class));
 
             GET_PROP = MethodHandles.lookup().findStatic(JsIndyCallSite.class, "getProperty",
-                MethodType.methodType(Object.class, Object.class, String.class));
+                MethodType.methodType(Object.class, Object.class, Object.class));
 
             INVOKE = MethodHandles
                 .lookup()

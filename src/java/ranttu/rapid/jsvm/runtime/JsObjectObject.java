@@ -28,7 +28,8 @@ public class JsObjectObject extends Throwable {
         super(message);
     }
 
-    public Object getProperty(String name) {
+    public Object getProperty(Object name0) {
+        String name = name0.toString();
         if(properties.containsKey(name)) {
             return properties.get(name);
         } else {
@@ -42,8 +43,8 @@ public class JsObjectObject extends Throwable {
         return null;
     }
 
-    public void setProperty(String name, Object val) {
-        properties.put(name, val);
+    public void setProperty(Object name, Object val) {
+        properties.put(name.toString(), val);
     }
 
     public Boolean instanceOf(Object obj) {

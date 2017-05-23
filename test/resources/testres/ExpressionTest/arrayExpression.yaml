@@ -1,0 +1,10 @@
+- description: empty object
+  jsSource: 'var a = [];'
+  expected:
+
+- description: object 1
+  jsSource: 'var a = [1, 2, 3];'
+  expected:
+    0: 1
+    1: 2
+    2: 3

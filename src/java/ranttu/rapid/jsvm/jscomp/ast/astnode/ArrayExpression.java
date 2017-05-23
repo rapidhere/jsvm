@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Expression;
 import ranttu.rapid.jsvm.jscomp.ast.asttype.Node;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,11 +19,15 @@ import java.util.List;
  * @version $id: ArrayExpression.java, v0.1 2016/12/9 dongwei.dq Exp $
  */
 public class ArrayExpression extends BaseAstNode implements Expression {
-    private List<Expression> elements;
+    private List<Expression> elements = new ArrayList<>();
 
     public ArrayExpression(JSONObject jsonObject) {
         super(jsonObject);
         jsonObject.getJSONArray("elements").forEach((child) ->
             elements.add(Node.of(this, (JSONObject) child)));
+    }
+
+    public List<Expression> getElements() {
+        return elements;
     }
 }

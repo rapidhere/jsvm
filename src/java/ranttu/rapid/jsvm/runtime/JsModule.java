@@ -32,6 +32,9 @@ abstract public class JsModule extends JsRuntime {
     @ExportName
     public final Object Error = JsRuntime.Error;
 
+    @ExportName
+    public final Object Array = JsRuntime.Array;
+
     /** cannot create directly */
     protected JsModule() {}
 }

@@ -17,9 +17,7 @@ public class TmpTest implements Callable {
 
     int a = 0;
     public TmpTest(Object obj) throws Throwable {
-        func(() -> {
-           return a;
-        });
+        obj = 1.0;
     }
 
     public void func(Callable callable) throws Exception {

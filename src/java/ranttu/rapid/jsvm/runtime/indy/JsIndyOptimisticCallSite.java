@@ -73,20 +73,20 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
     }
 
     // ~~~ set property
-    public void guard_SET_PROPERTY(Object context, String name, Object val) throws Throwable {
+    public void guard_SET_PROPERTY(Object context, Object name, Object val) throws Throwable {
         if (context instanceof JsObjectObject) {
             jsobj_SET_PROPERTY(context, name, val);
             relink(JSOBJ_SET_PROPERTY);
         } else {
             setTypeSpecifiedMethodHandle(context.getClass(),
                 "SET_PROPERTY",
-                MethodType.methodType(void.class, Object.class, String.class, Object.class))
+                MethodType.methodType(void.class, Object.class, Object.class, Object.class))
 
             .invokeExact(context, name, val);
         }
     }
 
-    public void jsobj_SET_PROPERTY(Object context, String name, Object val) throws Throwable{
+    public void jsobj_SET_PROPERTY(Object context, Object name, Object val) throws Throwable{
         if (context instanceof JsObjectObject) {
             ((JsObjectObject) context)
                 .setProperty(name, val);
@@ -96,20 +96,20 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
     }
 
     // ~~~ get property
-    public Object guard_GET_PROPERTY(Object context, String name) throws Throwable {
+    public Object guard_GET_PROPERTY(Object context, Object name) throws Throwable {
         if (context instanceof JsObjectObject) {
             relink(JSOBJ_GET_PROPERTY);
             return jsobj_GET_PROPERTY(context, name);
         } else {
             return setTypeSpecifiedMethodHandle(context.getClass(),
                 "GET_PROPERTY",
-                MethodType.methodType(Object.class, Object.class, String.class))
+                MethodType.methodType(Object.class, Object.class, Object.class))
 
             .invokeExact(context, name);
         }
     }
 
-    public Object jsobj_GET_PROPERTY(Object context, String name) throws Throwable {
+    public Object jsobj_GET_PROPERTY(Object context, Object name) throws Throwable {
         if (context instanceof JsObjectObject) {
             return ((JsObjectObject) context).getProperty(name);
         } else {
@@ -208,10 +208,10 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
     public Object jsobj_BOUNDED_INVOKE(Object invoker, Object name, Object...args) throws Throwable {
         if (invoker instanceof JsObjectObject) {
             JsObjectObject obj = (JsObjectObject) invoker;
-            Object method = ((JsObjectObject) invoker).getProperty((String) name);
+            Object method = ((JsObjectObject) invoker).getProperty(name);
 
             if (method instanceof JsFunctionObject) {
-                ((JsFunctionObject)method).invoke(invoker, args);
+                return ((JsFunctionObject)method).invoke(invoker, args);
             } else {
                 // if type changed cache is not valid
                 if (cachedBoundedInvokeType == null || ! cachedBoundedInvokeType.isInstance(invoker)) {
@@ -233,8 +233,6 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
                 // use cache to invoke
                 return cachedSamMh.invokeExact(invoker, args);
             }
-
-            return ((JsFunctionObject) ((JsObjectObject) invoker).getProperty((String) name)).invoke(invoker, args);
         } else {
             return guard_BOUNDED_INVOKE(invoker, name, args);
         }

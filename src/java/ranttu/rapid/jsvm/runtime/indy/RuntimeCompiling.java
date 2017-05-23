@@ -630,13 +630,13 @@ public class RuntimeCompiling {
     }
 
     private Class compileGetProperty(Class targetClazz) {
-        MethodType mt = MethodType.methodType(Object.class, Object.class, String.class);
+        MethodType mt = MethodType.methodType(Object.class, Object.class, Object.class);
 
         return gen("GET_PROPERTY", "GET_PROPERTY", mt, (cls, method, clsName, methodName, failing) -> {
             method
                 .par("this", cls)
                 .par("context", Object.class)
-                .par("name", String.class);
+                .par("name", Object.class);
 
             guardForExactType(method, targetClazz, failing);
             nameSwitchTable(method, getAllFields(targetClazz), failing, false, (field) ->
@@ -652,13 +652,13 @@ public class RuntimeCompiling {
 
 
     private Class compileSetProperty(Class targetClazz) {
-        MethodType mt = MethodType.methodType(void.class, Object.class, String.class, Object.class);
+        MethodType mt = MethodType.methodType(void.class, Object.class, Object.class, Object.class);
 
         return gen("SET_PROPERTY", "SET_PROPERTY", mt, (cls, method, clsName, methodName, failing) -> {
             method
                 .par("this", cls)
                 .par("context", Object.class)
-                .par("name", String.class)
+                .par("name", Object.class)
                 .par("val", Object.class);
 
             guardForExactType(method, targetClazz, failing);

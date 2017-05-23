@@ -9,9 +9,9 @@ import ranttu.rapid.jsvm.common.$$;
  * @version $id: GenerateBytecodePass.java, v0.1 2017/4/6 dongwei.dq Exp $
  */
 public enum JsIndyType {
-    SET_PROP(void.class, Object.class, String.class, Object.class),
+    SET_PROP(void.class, Object.class, Object.class, Object.class),
 
-    GET_PROP(Object.class, Object.class, String.class),
+    GET_PROP(Object.class, Object.class, Object.class),
 
     // ret, invoker, name
     BOUNDED_INVOKE(Object.class, Object.class, Object.class, Object[].class),

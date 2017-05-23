@@ -5,7 +5,6 @@
  */
 package ranttu.rapid.jsvm.runtime;
 
-import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.runtime.async.Promise;
 
 /**
@@ -88,6 +87,23 @@ abstract public class JsRuntime extends JsClosure {
     }
     public static final JsFunctionObject Error = new ErrorClass();
 
+    // ~~~ Array
+    protected static final class ArrayClass extends JsFunctionObject {
+        @Override
+        public Object invoke(Object $this, Object... args) {
+            throw new RuntimeException("not supported");
+        }
+
+        @Override
+        public JsObjectObject construct(Object...args) {
+            JsArrayObject arrayObject = new JsArrayObject();
+            arrayObject.setProperty("__proto__", getProperty("prototype"));
+
+            return arrayObject;
+        }
+    }
+    public static final JsFunctionObject Array = new ArrayClass();
+
     // ~~~ helpers
 
     /**
@@ -120,6 +136,21 @@ abstract public class JsRuntime extends JsClosure {
     @SuppressWarnings("unused")
     public static Object SUBTRACT(Object a, Object b) {
         return ((Number) a).doubleValue() - ((Number) b).doubleValue();
+    }
+
+    @SuppressWarnings("unused")
+    public static Object MULTIPLY(Object a, Object b) {
+        return ((Number) a).doubleValue() * ((Number) b).doubleValue();
+    }
+
+    @SuppressWarnings("unused")
+    public static Object DIVIDE(Object a, Object b) {
+        return ((Number) a).doubleValue() / ((Number) b).doubleValue();
+    }
+
+    @SuppressWarnings("unused")
+    public static Object LESS(Object a, Object b) {
+        return ((Number) a).doubleValue() < ((Number) b).doubleValue();
     }
 
     @SuppressWarnings("unused")

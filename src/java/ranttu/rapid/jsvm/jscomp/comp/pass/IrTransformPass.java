@@ -34,6 +34,26 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     @Override
+    protected void visit(ArrayExpression array) {
+        ir(
+            IrLoad.staticField(JsRuntime.class, "Array", $$.getDescriptor(JsFunctionObject.class)),
+            IrNew.newArray(0, $$.getInternalName(Object.class)),
+            IrInvoke.construct()
+        );
+
+        List<Expression> elements = array.getElements();
+        for (int i = 0;i < elements.size();i ++) {
+            Expression exp = elements.get(i);
+            ir(
+                IrDup.dup(),
+                IrLiteral.of(i)
+            );
+            visit(exp);
+            ir(IrStore.property());
+        }
+    }
+
+    @Override
     protected void visit(ThrowStatement throwStatement) {
         super.visit(throwStatement);
 
@@ -224,6 +244,9 @@ public class IrTransformPass extends AstBasedCompilePass {
             case ADD:
             case SUBTRACT:
             case STRONG_EQUAL:
+            case MULTIPLY:
+            case DIVIDE:
+            case LESS:
                 visit(binExp.getLeft());
                 visit(binExp.getRight());
                 invokeBinMathOp(binExp.getOperator());
@@ -586,12 +609,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         // load the field
         visit(memExp.getObject());
         resolvePropertyName(memExp);
-
-        ir(
-            // transfer to string
-            IrCast.cast(String.class),
-            IrLoad.property()
-        );
+        ir(IrLoad.property());
     }
 
     @Override
