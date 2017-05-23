@@ -1,10 +1,11 @@
-package ranttu.rapid.jsvm.test.example.threadasync;
+package ranttu.rapid.jsvm.test.example;
 
 import org.junit.Test;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.runtime.async.Promise;
 import ranttu.rapid.jsvm.test.base.JsvmExampleTestBase;
+import ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class ThreadAsync extends JsvmExampleTestBase {
     @Test
     @Override
     public void run() throws Exception {
-        String source = getTestSource();
+        String source = getTestSource("testres/example/");
         JsModule module = loadModule("ThreadAsyncTest", source);
 
         Promise promise = ReflectionUtil.getFieldValue(module, "promise");

@@ -1,5 +1,6 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
+import com.google.common.collect.Maps;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
@@ -10,9 +11,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * the optimistic javascript call site
@@ -173,11 +172,27 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
     }
 
     // ~~~ bounded invoke
+    // cached methods
+    private Map<Class, Set<String>> classMethods = Maps.newHashMap();
+
     public Object guard_BOUNDED_INVOKE(Object invoker, Object name, Object...args) throws Throwable {
         if (invoker instanceof JsObjectObject) {
             relink(JSOBJ_BOUNDED_INVOKE);
             return jsobj_BOUNDED_INVOKE(invoker, name, args);
         } else {
+            Set<String> methods = classMethods.get(invoker.getClass());
+            if(methods == null) {
+                methods = new HashSet<>();
+                for (Method m: invoker.getClass().getMethods()) {
+                    methods.add(m.getName());
+                }
+                classMethods.put(invoker.getClass(), methods);
+            }
+
+            if (! methods.contains(name)) {
+                throw new NoSuchMethodException((String) name);
+            }
+
             return setTypeSpecifiedMethodHandle(invoker.getClass(),
                 "BOUNDED_INVOKE",
                 MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))

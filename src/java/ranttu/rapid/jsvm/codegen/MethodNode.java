@@ -374,7 +374,7 @@ public class MethodNode
         if (opcode > 0) {
             $.instructions.add(new InsnNode(opcode));
         } else {
-            $.instructions.add(new IntInsnNode(Opcodes.BIPUSH, i));
+            $.instructions.add(new LdcInsnNode(i));
         }
 
         return this;

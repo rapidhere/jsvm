@@ -28,7 +28,7 @@ abstract public class JsvmExampleTestBase extends JsvmJunitTestBase {
     @Test
     public void run() throws Exception {
         // load source
-        String source = getTestSource();
+        String source = getTestSource("testres/example/");
 
         // jsvm object
         JsModule module = loadModule(getClass().getSimpleName() + "_Test", source);
@@ -55,11 +55,11 @@ abstract public class JsvmExampleTestBase extends JsvmJunitTestBase {
 
     abstract protected List<Object[]> args();
 
-    protected String getTestSource() throws IOException {
+    protected String getTestSource(String path) throws IOException {
         Class clazz = getClass();
         String className = clazz.getSimpleName();
 
-        InputStream stream = clazz.getClassLoader().getResourceAsStream("testres/example/" + className + ".js");
+        InputStream stream = clazz.getClassLoader().getResourceAsStream(path + className + ".js");
         return IOUtils.toString(stream, "UTF8");
     }
 }

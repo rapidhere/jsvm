@@ -1,4 +1,4 @@
-import * as Manager from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+import * as Manager from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
 
 var man = new Manager();
 export var result;

@@ -253,7 +253,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             visit(mem.getObject());
 
             // put invoke name on the stack
-            resolvePropertyName(mem.getProperty());
+            resolvePropertyName(mem);
 
             // put args on the stack
             putArguments(call.getArguments());
@@ -519,8 +519,12 @@ public class IrTransformPass extends AstBasedCompilePass {
     }
 
     // resolve property as a string on stack
-    private void resolvePropertyName(Expression exp) {
-        if(exp.is(Identifier.class)) {
+    private void resolvePropertyName(MemberExpression mem) {
+        Expression exp = mem.getProperty();
+
+        if (mem.isComputed()) {
+            visit(exp);
+        } else {
             ir(IrLiteral.of(exp.as(Identifier.class).getName()));
         }
     }
@@ -567,7 +571,7 @@ public class IrTransformPass extends AstBasedCompilePass {
             MemberExpression member = $$.cast(assignExp.getLeft());
 
             visit(member.getObject());
-            resolvePropertyName(member.getProperty());
+            resolvePropertyName(member);
             visit(assignExp.getRight());
             ir(IrStore.property());
         }
@@ -579,12 +583,15 @@ public class IrTransformPass extends AstBasedCompilePass {
 
     @Override
     protected void visit(MemberExpression memExp) {
-        $$.should(!memExp.isComputed());
-
         // load the field
         visit(memExp.getObject());
-        resolvePropertyName(memExp.getProperty());
-        ir(IrLoad.property());
+        resolvePropertyName(memExp);
+
+        ir(
+            // transfer to string
+            IrCast.cast(String.class),
+            IrLoad.property()
+        );
     }
 
     @Override

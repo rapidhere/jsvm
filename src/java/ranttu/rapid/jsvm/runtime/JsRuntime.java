@@ -114,18 +114,12 @@ abstract public class JsRuntime extends JsClosure {
     // ~~~ arithmetic operators
     @SuppressWarnings("unused")
     public static Object ADD(Object a, Object b) {
-        double da = $$.cast(a, Number.class).doubleValue();
-        double db = $$.cast(b, Number.class).doubleValue();
-
-        return da + db;
+        return ((Number) a).doubleValue() + ((Number) b).doubleValue();
     }
 
     @SuppressWarnings("unused")
     public static Object SUBTRACT(Object a, Object b) {
-        double da = $$.cast(a, Number.class).doubleValue();
-        double db = $$.cast(b, Number.class).doubleValue();
-
-        return da - db;
+        return ((Number) a).doubleValue() - ((Number) b).doubleValue();
     }
 
     @SuppressWarnings("unused")

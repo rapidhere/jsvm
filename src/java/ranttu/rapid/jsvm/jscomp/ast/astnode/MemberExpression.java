@@ -24,10 +24,6 @@ public class MemberExpression extends BaseAstNode implements Expression {
         object = Node.of(this, jsonObject, "object");
         property = Node.of(this, jsonObject, "property");
         computed = jsonObject.getBoolean("computed");
-
-        if (computed) {
-            throw new NotSupportedYet(this, "only support computed access now");
-        }
     }
 
     public Expression getObject() {

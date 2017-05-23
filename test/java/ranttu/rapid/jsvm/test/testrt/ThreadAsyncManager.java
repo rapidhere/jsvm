@@ -1,4 +1,4 @@
-package ranttu.rapid.jsvm.test.example.threadasync;
+package ranttu.rapid.jsvm.test.testrt;
 
 import ranttu.rapid.jsvm.runtime.async.JsExecutorService;
 import ranttu.rapid.jsvm.runtime.async.Promise;

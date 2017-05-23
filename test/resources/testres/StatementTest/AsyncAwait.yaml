@@ -10,7 +10,7 @@
 
 - description: return another thread
   jsSource: |
-      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+      import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
       var man = new Man();
 
       async function asyncFunc() {
@@ -20,7 +20,7 @@
 
 - description: with stack
   jsSource: |
-      import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+      import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
       var man = new Man();
 
       async function asyncFunc() {
@@ -33,7 +33,7 @@
 
 - description: with stack 2
   jsSource: |
-    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
     var man = new Man();
 
     function f(a, b) {
@@ -47,7 +47,7 @@
 
 - description: await with if
   jsSource: |
-    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
     var man = new Man();
 
     async function asyncFunc() {
@@ -64,7 +64,7 @@
 
 - description: await in if
   jsSource: |
-    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
     var man = new Man();
 
     async function asyncFunc() {
@@ -77,7 +77,7 @@
 
 - description: await in while
   jsSource: |
-    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
     var man = new Man();
 
     async function asyncFunc() {
@@ -94,7 +94,7 @@
 
 - description: async fib
   jsSource: |
-    import * as Man from 'ranttu.rapid.jsvm.test.example.threadasync.ThreadAsyncManager';
+    import * as Man from 'ranttu.rapid.jsvm.test.testrt.ThreadAsyncManager';
     var man = new Man();
 
     async function fib(n) {

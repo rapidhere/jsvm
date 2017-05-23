@@ -1,0 +1,84 @@
+- description: access private field
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        return obj.privateField;
+    }
+  expected: IllegalAccessError
+
+- description: nosuch field
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        return obj.noSuchField;
+    }
+  expected: NoSuchFieldException
+
+- description: access private method
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        return obj.privateMethod();
+    }
+  expected: NoSuchMethodException
+
+- description: access private method 2
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        var i = 2;
+        while(i) {
+            i = i - 1;
+            var methodName;
+            if(i === 0) {
+                methodName = 'privateMethod';
+            } else {
+                methodName = 'publicMethod';
+            }
+            var c = obj[methodName]();
+        }
+
+        return 0;
+    }
+  expected: NoSuchMethodException
+
+
+- description: nosuch method
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        return obj.noSuchMethod();
+    }
+  expected: NoSuchMethodException
+
+- description: nosuch method 2
+  jsSource: |
+    import * as SomeObject from 'ranttu.rapid.jsvm.test.testrt.SomeObject';
+
+    function f() {
+        var obj = new SomeObject();
+        var i = 2;
+        while(i) {
+            i = i - 1;
+            var methodName;
+            if(i === 0) {
+                methodName = 'noSuchMethod';
+            } else {
+                methodName = 'publicMethod';
+            }
+            var c = obj[methodName]();
+        }
+
+        return 0;
+    }
+  expected: NoSuchMethodException

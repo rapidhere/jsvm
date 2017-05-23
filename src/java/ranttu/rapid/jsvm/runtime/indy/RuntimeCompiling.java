@@ -378,7 +378,7 @@ public class RuntimeCompiling {
         return ret;
     }
 
-    private <T extends Member> void nameSwitchTable(MethodNode method, T[] fields, SwitchTableInvoke<T> invoke) {
+    private <T extends Member> void nameSwitchTable(MethodNode method, T[] fields, LabelNode fail, boolean defaultToFail, SwitchTableInvoke<T> invoke) {
         // name.hashCode
         method
             .load("name")
@@ -387,6 +387,9 @@ public class RuntimeCompiling {
 
         // generate field accessor
         LabelNode defaultLabel = new LabelNode();
+        if(defaultToFail) {
+            defaultLabel = fail;
+        }
 
         // generate labels
         Map<Integer, LabelNode> labelMap = new HashMap<>();
@@ -437,18 +440,20 @@ public class RuntimeCompiling {
             }
         }
 
-        // switch default begin
-        // throw new NoSuchFieldException([name])
-        method
-            .put_label(defaultLabel)
-            .fsame()
-            .new_class($$.getInternalName(NoSuchFieldException.class))
-            .dup()
-            .load("name")
-            .check_cast($$.getInternalName(String.class))
-            .invoke_special($$.getInternalName(NoSuchFieldException.class), "<init>",
-                $$.getMethodDescriptor(void.class, String.class))
-            .athrow();
+        if (! defaultToFail) {
+            // switch default begin
+            // throw new NoSuchFieldException([name])
+            method
+                .put_label(defaultLabel)
+                .fsame()
+                .new_class($$.getInternalName(NoSuchFieldException.class))
+                .dup()
+                .load("name")
+                .check_cast($$.getInternalName(String.class))
+                .invoke_special($$.getInternalName(NoSuchFieldException.class), "<init>",
+                    $$.getMethodDescriptor(void.class, String.class))
+                .athrow();
+        }
     }
 
     private void fitArgs(MethodNode method, Executable executable) {
@@ -537,7 +542,7 @@ public class RuntimeCompiling {
 
             Map<String, Class> interfaceMethods = resolveAllInterfaceMethod(targetClazz);
             // generate field accessor
-            nameSwitchTable(method, getAllMethods(targetClazz), (m) -> {
+            nameSwitchTable(method, getAllMethods(targetClazz), failing, true, (m) -> {
                 Class inter = interfaceMethods.get(getMethodKey(m));
                 String methodDesc = $$.getMethodDescriptor(m.getReturnType(), (Object[]) m.getParameterTypes());
 
@@ -634,7 +639,7 @@ public class RuntimeCompiling {
                 .par("name", String.class);
 
             guardForExactType(method, targetClazz, failing);
-            nameSwitchTable(method, getAllFields(targetClazz), (field) ->
+            nameSwitchTable(method, getAllFields(targetClazz), failing, false, (field) ->
                 method
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))
@@ -657,7 +662,7 @@ public class RuntimeCompiling {
                 .par("val", Object.class);
 
             guardForExactType(method, targetClazz, failing);
-            nameSwitchTable(method, getAllFields(targetClazz), (field) ->
+            nameSwitchTable(method, getAllFields(targetClazz), failing, false, (field) ->
                 method
                     .load("context")
                     .check_cast($$.getInternalName(targetClazz))
