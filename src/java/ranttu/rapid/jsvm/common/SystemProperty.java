@@ -22,6 +22,9 @@ final public class SystemProperty {
     @Property(namespace = "jsvm.test")
     public static boolean PrintByteCode = false;
 
+    @Property(namespace = "jsvm.test")
+    public static boolean IgnoreBenchMark = true;
+
     //~~~ implementations
     // private constructor
     private SystemProperty() {}

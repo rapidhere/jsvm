@@ -31,6 +31,10 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
 
     @Test
     public void run() throws Exception {
+        if(SystemProperty.IgnoreBenchMark) {
+            return ;
+        }
+
         String source = getTestSource("testres/benchmark/");
         String titlePrefix = getClass().getSimpleName() + "::";
 
