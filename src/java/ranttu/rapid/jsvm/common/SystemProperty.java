@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
  */
 final public class SystemProperty {
     @Property(namespace = "jsvm")
-    public static boolean UseOptimisticCallSite = false;
+    public static boolean UseOptimisticCallSite = true;
 
     @Property(namespace = "jsvm")
     public static boolean UseVAC = true;

@@ -27,8 +27,7 @@ public class MiscTest extends JsvmJunitTestBase {
         try {
             func.invoke(this);
         } catch (Throwable e) {
-            assertEquals(e.getClass().getSimpleName(), caseData.expected);
-            e.printStackTrace();
+            assertEquals(caseData.expected, e.getClass().getSimpleName());
         }
     }
 }
