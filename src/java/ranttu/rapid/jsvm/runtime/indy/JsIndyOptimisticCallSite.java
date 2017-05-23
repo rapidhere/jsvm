@@ -1,6 +1,7 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
 import com.google.common.collect.Maps;
+import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsObjectObject;
@@ -20,7 +21,7 @@ import java.util.*;
  * @version $id: JsIndyOptimisticCallSite.java, v0.1 2017/4/17 dongwei.dq Exp $
  */
 @SuppressWarnings("unused")
-public class JsIndyOptimisticCallSite extends JsIndyCallSite {
+public class JsIndyOptimisticCallSite extends JsIndyBaseCallSite {
 
     public JsIndyOptimisticCallSite(MethodHandles.Lookup lookup, JsIndyType indyType, MethodType type) {
         super(lookup, indyType, type);
@@ -45,7 +46,7 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
                 relink(GUARD_BOUNDED_INVOKE);
                 break;
             default:
-                super.init();
+                $$.notSupport();
         }
     }
 

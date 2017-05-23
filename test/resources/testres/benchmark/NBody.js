@@ -2,7 +2,7 @@
  http://shootout.alioth.debian.org/
  contributed by Isaac Gouy */
 
-function entry(obj1, obj2, obj3, Math, print) {
+function entry(obj1, obj2, obj3, Math) {
 
     var PI = 3.141592653589793;
     var SOLAR_MASS = 4 * PI * PI;

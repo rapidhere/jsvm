@@ -1,5 +1,5 @@
 function entry(obj1, obj2, obj3) {
-    var count = 1000000;
+    var count = 20000;
     var i = 0;
     var obj;
     var t = 0;

@@ -1,5 +1,5 @@
 function entry() {
-    var count = 1000000;
+    var count = 500000;
     var i = 0;
     var fieldName;
     var t = 0;
