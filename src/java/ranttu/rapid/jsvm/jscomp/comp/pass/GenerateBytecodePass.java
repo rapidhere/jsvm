@@ -5,7 +5,6 @@
  */
 package ranttu.rapid.jsvm.jscomp.comp.pass;
 
-import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.Type;
 import ranttu.rapid.jsvm.codegen.ClassNode;
@@ -36,11 +35,7 @@ public class GenerateBytecodePass extends IrBasedCompilePass {
     protected void visit(ClassNode classNode) {
         super.visit(classNode);
 
-        // classNode.$.accept(new TraceClassVisitor(new PrintWriter(System.out)));
-
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.$.accept(cw);
-        context.byteCodes.put(classNode.$.name, cw.toByteArray());
+        context.byteCodes.put(classNode.$.name, classNode.writeClass(1));
     }
 
     @Override

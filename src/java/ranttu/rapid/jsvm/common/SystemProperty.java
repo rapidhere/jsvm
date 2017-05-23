@@ -16,6 +16,9 @@ final public class SystemProperty {
     @Property(namespace = "jsvm")
     public static boolean UseOptimisticCallSite = false;
 
+    @Property(namespace = "jsvm")
+    public static boolean UseVAC = true;
+
     @Property(namespace = "jsvm.test")
     public static boolean PrintByteCode = false;
 

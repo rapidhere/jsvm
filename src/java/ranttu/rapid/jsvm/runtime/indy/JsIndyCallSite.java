@@ -33,8 +33,8 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
     private static MethodHandle BOUNDED_INVOKE;
     private static MethodHandle CONSTRUCT;
 
-    public JsIndyCallSite(JsIndyType indyType, MethodType type) {
-        super(indyType, type);
+    public JsIndyCallSite(MethodHandles.Lookup lookup, JsIndyType indyType, MethodType type) {
+        super(lookup, indyType, type);
     }
 
     public void init() {
@@ -160,87 +160,85 @@ public class JsIndyCallSite extends JsIndyBaseCallSite {
             if(JsFunctionObject.class.isAssignableFrom(raw.getClass())
                 && ReflectionUtil.isSingleAbstractMethod(targetType)) {
                 Method method = targetType.getMethods()[0];
-                byte[] content = defineInvokeWrapper(targetType, method);
-                // printBytecode(content);
-
-                Class clazz = $$.UNSAFE
-                    .defineAnonymousClass(JsIndyCallSite.class, content, null);
+                Class clazz = defineInvokeWrapper(targetType, method);
                 Object instance = clazz.getConstructors()[0].newInstance(raw);
                 args[i] = instance;
             }
         }
     }
 
-    private static byte[] defineInvokeWrapper(Class clazz, Method method) {
-        String className = "INVOKE_WRAPPER_RECOMPILED";
+    private static Class defineInvokeWrapper(Class clazz, Method method) {
+        return RuntimeCompiling.defineAnonymous(JsIndyCallSite.class, "INVOKE_WRAPPER_RECOMPILED", (className) -> {
+            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            cw.visit(
+                Opcodes.V1_8,
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+                className, null, $$.getInternalName(Object.class),
+                new String[] { $$.getInternalName(clazz) });
 
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visit(
-            Opcodes.V1_8,
-            Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-            className, null, $$.getInternalName(Object.class),
-            new String[] { $$.getInternalName(clazz) });
+            //~~~ field
+            FieldVisitor fv;
+            fv = cw.visitField(Opcodes.ACC_PRIVATE, "function",
+                $$.getDescriptor(JsFunctionObject.class), null, null);
+            fv.visitEnd();
 
-        //~~~ field
-        FieldVisitor fv;
-        fv = cw.visitField(Opcodes.ACC_PRIVATE, "function",
-            $$.getDescriptor(JsFunctionObject.class), null, null);
-        fv.visitEnd();
+            MethodVisitor mv;
+            //~~~ init method
+            mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(Ljava/lang/Object;)V", null, null);
+            mv.visitCode();
+            // call super init
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+            //~~~ store function
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, $$.getInternalName(JsFunctionObject.class));
+            mv.visitFieldInsn(Opcodes.PUTFIELD, className, "function", $$.getDescriptor(JsFunctionObject.class));
 
-        MethodVisitor mv;
-        //~~~ init method
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(Ljava/lang/Object;)V", null, null);
-        mv.visitCode();
-        // call super init
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-        //~~~ store function
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitVarInsn(Opcodes.ALOAD, 1);
-        mv.visitTypeInsn(Opcodes.CHECKCAST, $$.getInternalName(JsFunctionObject.class));
-        mv.visitFieldInsn(Opcodes.PUTFIELD, className, "function", $$.getDescriptor(JsFunctionObject.class));
-
-        // ret
-        mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
-
-        //~~~ invoke method
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method.getName(),
-            Type.getMethodDescriptor(method), null, null);
-        mv.visitCode();
-        // get function
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitFieldInsn(Opcodes.GETFIELD, className, "function", $$.getDescriptor(JsFunctionObject.class));
-        // set context to this
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        // new array
-        mv.visitIntInsn(Opcodes.BIPUSH, method.getParameterCount());
-        mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
-        // load arguments
-        for (int i = 0;i < method.getParameterCount();i ++) {
-            mv.visitInsn(Opcodes.DUP);
-            mv.visitIntInsn(Opcodes.BIPUSH, i);
-            mv.visitVarInsn(Opcodes.ALOAD, i + 1);
-            mv.visitInsn(Opcodes.AASTORE);
-        }
-        // call invoke
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "ranttu/rapid/jsvm/runtime/JsFunctionObject",
-            "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
-        // ret
-        if(method.getReturnType() == void.class) {
-            mv.visitInsn(Opcodes.POP);
+            // ret
             mv.visitInsn(Opcodes.RETURN);
-        } else {
-            mv.visitTypeInsn(Opcodes.CHECKCAST, $$.getInternalName(method.getReturnType()));
-            mv.visitInsn(Opcodes.ARETURN);
-        }
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
+            mv.visitMaxs(0, 0);
+            mv.visitEnd();
 
-        cw.visitEnd();
+            //~~~ invoke method
+            mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method.getName(),
+                Type.getMethodDescriptor(method), null, null);
+            mv.visitCode();
+            // get function
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, "function", $$.getDescriptor(JsFunctionObject.class));
+            // set context to this
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            // new array
+            mv.visitIntInsn(Opcodes.BIPUSH, method.getParameterCount());
+            mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+            // load arguments
+            for (int i = 0;i < method.getParameterCount();i ++) {
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitIntInsn(Opcodes.BIPUSH, i);
+                mv.visitVarInsn(Opcodes.ALOAD, i + 1);
+                mv.visitInsn(Opcodes.AASTORE);
+            }
+            // call invoke
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "ranttu/rapid/jsvm/runtime/JsFunctionObject",
+                "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
+            // ret
+            if(method.getReturnType() == void.class) {
+                mv.visitInsn(Opcodes.POP);
+                mv.visitInsn(Opcodes.RETURN);
+            } else {
+                mv.visitTypeInsn(Opcodes.CHECKCAST, $$.getInternalName(method.getReturnType()));
+                mv.visitInsn(Opcodes.ARETURN);
+            }
+            mv.visitMaxs(0, 0);
+            mv.visitEnd();
 
-        return cw.toByteArray();
+            cw.visitEnd();
+
+            return cw.toByteArray();
+        });
+
+
     }
 
     //~~~ init method handles

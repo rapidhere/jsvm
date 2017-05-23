@@ -18,6 +18,7 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.Callable;
 
 /**
  * a js compiler use javascript's acorn lib, require nashorn library
@@ -36,6 +37,8 @@ public class AcornJSParser implements Parser {
             // add a entry point
             engine.eval("function parse(source) { return JSON.stringify(acorn.parse.call("
                         + "acorn, source, {locations:true, sourceType: 'module', ecmaVersion: 8})); }");
+
+            engine.eval("function test(a) { a.run(); a.call(); }");
         } catch (ScriptException e) {
             throw new CompileError("wrong with acorn compile env", e);
         }
@@ -57,7 +60,6 @@ public class AcornJSParser implements Parser {
     private String getESTreeString(InputStream inputStream) {
         try {
             Invocable invoker = $$.cast(engine);
-
             Object ret = invoker.invokeFunction("parse", IOUtils.toString(inputStream, "utf-8"));
 
             return $$.cast(ret);

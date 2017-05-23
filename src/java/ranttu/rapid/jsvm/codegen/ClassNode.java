@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen;
 
+import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import ranttu.rapid.jsvm.common.$$;
@@ -34,6 +35,15 @@ public class ClassNode extends
 
     public ClassNode() {
         super(null);
+    }
+
+    public byte[] writeClass(int opt) {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        $.accept(cw);
+        byte[] clsBytes = cw.toByteArray();
+        $$.printBytecode($.name, clsBytes);
+
+        return clsBytes;
     }
 
     public ClassNode getClosureClass() {

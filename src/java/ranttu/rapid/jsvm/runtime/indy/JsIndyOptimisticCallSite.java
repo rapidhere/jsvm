@@ -22,8 +22,9 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class JsIndyOptimisticCallSite extends JsIndyCallSite {
-    public JsIndyOptimisticCallSite(JsIndyType indyType, MethodType type) {
-        super(indyType, type);
+
+    public JsIndyOptimisticCallSite(MethodHandles.Lookup lookup, JsIndyType indyType, MethodType type) {
+        super(lookup, indyType, type);
     }
 
     @Override
@@ -78,7 +79,8 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             jsobj_SET_PROPERTY(context, name, val);
             relink(JSOBJ_SET_PROPERTY);
         } else {
-            setTypeSpecifiedMethodHandle(context.getClass(), "SET_PROPERTY",
+            setTypeSpecifiedMethodHandle(context.getClass(),
+                "SET_PROPERTY",
                 MethodType.methodType(void.class, Object.class, String.class, Object.class))
 
             .invokeExact(context, name, val);
@@ -100,7 +102,8 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             relink(JSOBJ_GET_PROPERTY);
             return jsobj_GET_PROPERTY(context, name);
         } else {
-            return setTypeSpecifiedMethodHandle(context.getClass(), "GET_PROPERTY",
+            return setTypeSpecifiedMethodHandle(context.getClass(),
+                "GET_PROPERTY",
                 MethodType.methodType(Object.class, Object.class, String.class))
 
             .invokeExact(context, name);
@@ -175,7 +178,8 @@ public class JsIndyOptimisticCallSite extends JsIndyCallSite {
             relink(JSOBJ_BOUNDED_INVOKE);
             return jsobj_BOUNDED_INVOKE(invoker, name, args);
         } else {
-            return setTypeSpecifiedMethodHandle(invoker.getClass(), "BOUNDED_INVOKE",
+            return setTypeSpecifiedMethodHandle(invoker.getClass(),
+                "BOUNDED_INVOKE",
                 MethodType.methodType(Object.class, Object.class, Object.class, Object[].class))
 
             .invokeExact(invoker, name, args);

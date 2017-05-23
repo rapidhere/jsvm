@@ -1,5 +1,6 @@
 package ranttu.rapid.jsvm.runtime.indy;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 
@@ -11,10 +12,12 @@ import java.lang.invoke.MutableCallSite;
  */
 abstract public class JsIndyBaseCallSite extends MutableCallSite {
     protected JsIndyType          indyType;
+    protected MethodHandles.Lookup contextLookUp;
 
-    public JsIndyBaseCallSite(JsIndyType indyType, MethodType type) {
+    public JsIndyBaseCallSite(MethodHandles.Lookup lookup, JsIndyType indyType, MethodType type) {
         super(type);
         this.indyType = indyType;
+        this.contextLookUp = lookup;
     }
 
     /**

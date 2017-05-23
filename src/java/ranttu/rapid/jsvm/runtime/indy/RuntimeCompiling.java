@@ -2,18 +2,19 @@ package ranttu.rapid.jsvm.runtime.indy;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import ranttu.rapid.jsvm.codegen.ClassNode;
 import ranttu.rapid.jsvm.codegen.MethodNode;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.common.SystemProperty;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 
 import java.lang.invoke.MethodType;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * the runtime compiling manager
@@ -39,11 +40,36 @@ public class RuntimeCompiling {
         return theRc.get(type, rawClass, extraArgs);
     }
 
+    /**
+     * define a anounymous class
+     */
+    public static Class defineAnonymous(Class hostClass, String className, AnonymousClassDefiner definer) {
+        if (SystemProperty.UseVAC) {
+            return $$.UNSAFE.defineAnonymousClass(hostClass, definer.define(className), null);
+        } else {
+            return theRc.defineAnonymousClass(hostClass.getClassLoader(), className, definer);
+        }
+    }
+
+    public interface AnonymousClassDefiner {
+        byte[] define(String className);
+    }
+
     // impl
     private Map<String, Class> compiled = new HashMap<>();
     private Map<Class, Class> samGlueCompiled = new HashMap<>();
 
+    private AtomicInteger anonymousClassHashCount = new AtomicInteger(1000000);
+
     private RuntimeCompiling() {
+    }
+
+    private Class defineAnonymousClass(ClassLoader cl, String className, AnonymousClassDefiner definer) {
+        int hash = anonymousClassHashCount.incrementAndGet();
+        String hashedClassName = className + '$' + hash;
+        byte[] bytes = definer.define(hashedClassName);
+        return $$.UNSAFE.defineClass(
+            hashedClassName, bytes, 0, bytes.length, cl, null);
     }
 
     private String getKey(JsIndyType type, Class rawClass) {
@@ -90,88 +116,89 @@ public class RuntimeCompiling {
         Method samMethod = targetInterface.getMethods()[0];
         ClassNode cls = new ClassNode();
 
-        String className = "SAM_GLUE$" + targetInterface.getSimpleName();
-        cls
-            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC, Opcodes.ACC_SUPER)
-            .name(className, Object.class)
-            .interfaze($$.getInternalName(targetInterface))
-            // store field
-            .field("function")
-            .desc(JsFunctionObject.class);
+        return defineAnonymous(RuntimeCompiling.class, "SAM_GLUE$" + targetInterface.getSimpleName(), (className) -> {
+            cls
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC, Opcodes.ACC_SUPER)
+                .name(className, Object.class)
+                .interfaze($$.getInternalName(targetInterface))
+                // store field
+                .field("function")
+                .desc(JsFunctionObject.class);
 
-        // static construct method
-        LabelNode guardLabel = new LabelNode();
-        cls.method("getGlueInterface")
-            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_STATIC)
-            .desc(targetInterface, Object.class)
-            .par("o", Object.class)
-            // instanceof
-            .load("o")
-            .instance_of(JsFunctionObject.class)
-            .jump_if_eq(guardLabel)
-            .new_class(className)
-            .dup()
-            .load("o")
-            .check_cast($$.getInternalName(JsFunctionObject.class))
-            .invoke_special(className, "<init>",
-                $$.getMethodDescriptor(void.class, JsFunctionObject.class))
-            .aret()
-            // direct return
-            .put_label(guardLabel)
-            .ffull(new Object[] { $$.getInternalName(Object.class) }, new Object[0])
-            .load("o")
-            .check_cast($$.getInternalName(targetInterface))
-            .aret();
-
-
-        // init method
-        cls.method_init(JsFunctionObject.class)
-            .acc(Opcodes.ACC_PUBLIC)
-            .par("function", JsFunctionObject.class)
-            // call super init
-            .load("this")
-            .invoke_special($$.getInternalName(Object.class), "<init>",
-                $$.getMethodDescriptor(void.class))
-            // store function
-            .load("this")
-            .load("function")
-            .store(className, "function", $$.getDescriptor(JsFunctionObject.class))
-            // ret
-            .ret();
-
-        // invoke method
-        MethodNode method = cls.method(samMethod.getName())
-            .acc(Opcodes.ACC_PUBLIC)
-            .desc(samMethod.getReturnType(), (Object[]) samMethod.getParameterTypes())
-            // get function
-            .aload(0)
-            .load(className, "function", $$.getDescriptor(JsFunctionObject.class))
-            // set context to this
-            .aload(0)
-            // new args array
-            .load_const(samMethod.getParameterCount())
-            .anew_array($$.getInternalName(Object.class));
-        // load arguments
-        for (int i = 0;i < samMethod.getParameterCount();i ++) {
-            method
+            // static construct method
+            LabelNode guardLabel = new LabelNode();
+            cls.method("getGlueInterface")
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_STATIC)
+                .desc(targetInterface, Object.class)
+                .par("o", Object.class)
+                // instanceof
+                .load("o")
+                .instance_of(JsFunctionObject.class)
+                .jump_if_eq(guardLabel)
+                .new_class(className)
                 .dup()
-                .load_const(i)
-                .aload(i + 1)
-                .aastore();
-        }
-        // call invoke
-        method.invoke_virtual($$.getInternalName(JsFunctionObject.class),
-            "invoke", $$.getMethodDescriptor(Object.class, Object.class, Object[].class));
-        // ret
-        if (samMethod.getReturnType() == void.class) {
-            method.pop().ret();
-        } else {
-            method
-                .check_cast($$.getInternalName(samMethod.getReturnType()))
+                .load("o")
+                .check_cast($$.getInternalName(JsFunctionObject.class))
+                .invoke_special(className, "<init>",
+                    $$.getMethodDescriptor(void.class, JsFunctionObject.class))
+                .aret()
+                // direct return
+                .put_label(guardLabel)
+                .ffull(new Object[] { $$.getInternalName(Object.class) }, new Object[0])
+                .load("o")
+                .check_cast($$.getInternalName(targetInterface))
                 .aret();
-        }
 
-        return define(cls);
+
+            // init method
+            cls.method_init(JsFunctionObject.class)
+                .acc(Opcodes.ACC_PUBLIC)
+                .par("function", JsFunctionObject.class)
+                // call super init
+                .load("this")
+                .invoke_special($$.getInternalName(Object.class), "<init>",
+                    $$.getMethodDescriptor(void.class))
+                // store function
+                .load("this")
+                .load("function")
+                .store(className, "function", $$.getDescriptor(JsFunctionObject.class))
+                // ret
+                .ret();
+
+            // invoke method
+            MethodNode method = cls.method(samMethod.getName())
+                .acc(Opcodes.ACC_PUBLIC)
+                .desc(samMethod.getReturnType(), (Object[]) samMethod.getParameterTypes())
+                // get function
+                .aload(0)
+                .load(className, "function", $$.getDescriptor(JsFunctionObject.class))
+                // set context to this
+                .aload(0)
+                // new args array
+                .load_const(samMethod.getParameterCount())
+                .anew_array($$.getInternalName(Object.class));
+            // load arguments
+            for (int i = 0;i < samMethod.getParameterCount();i ++) {
+                method
+                    .dup()
+                    .load_const(i)
+                    .aload(i + 1)
+                    .aastore();
+            }
+            // call invoke
+            method.invoke_virtual($$.getInternalName(JsFunctionObject.class),
+                "invoke", $$.getMethodDescriptor(Object.class, Object.class, Object[].class));
+            // ret
+            if (samMethod.getReturnType() == void.class) {
+                method.pop().ret();
+            } else {
+                method
+                    .check_cast($$.getInternalName(samMethod.getReturnType()))
+                    .aret();
+            }
+
+            return cls.writeClass(1);
+        });
     }
 
 
@@ -179,77 +206,69 @@ public class RuntimeCompiling {
         void gen(ClassNode cls, MethodNode method, String className, String methodName, LabelNode failing);
     }
 
-    private Class gen(String className, String methodName, MethodType mt, GenInvoke genInvoke) {
-        ClassNode cls = new ClassNode();
-        cls
-            .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC, Opcodes.ACC_SUPER)
-            .name(className, Object.class);
+    private Class gen(String className0, String methodName, MethodType mt, GenInvoke genInvoke) {
+        return defineAnonymous(RuntimeCompiling.class, className0, className -> {
+            ClassNode cls = new ClassNode();
+            cls
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_SYNTHETIC, Opcodes.ACC_SUPER)
+                .name(className, Object.class);
 
-        // stored field
-        cls.field("cs").desc(JsIndyOptimisticCallSite.class);
+            // stored field
+            cls.field("cs").desc(JsIndyOptimisticCallSite.class);
 
-        // init method
-        cls.method("<init>")
-            .acc(Opcodes.ACC_PUBLIC)
-            .desc(void.class, JsIndyOptimisticCallSite.class)
-            .par("this", cls)
-            .par("cs", JsIndyOptimisticCallSite.class)
-            // call super init
-            .load("this")
-            .invoke_special($$.getInternalName(Object.class), "<init>", $$.getMethodDescriptor(void.class))
-            // store cs
-            .load("this")
-            .load("cs")
-            .store(className, "cs", $$.getDescriptor(JsIndyOptimisticCallSite.class))
-            .ret();
+            // init method
+            cls.method("<init>")
+                .acc(Opcodes.ACC_PUBLIC)
+                .desc(void.class, JsIndyOptimisticCallSite.class)
+                .par("this", cls)
+                .par("cs", JsIndyOptimisticCallSite.class)
+                // call super init
+                .load("this")
+                .invoke_special($$.getInternalName(Object.class), "<init>", $$.getMethodDescriptor(void.class))
+                // store cs
+                .load("this")
+                .load("cs")
+                .store(className, "cs", $$.getDescriptor(JsIndyOptimisticCallSite.class))
+                .ret();
 
-        // specifier gen
-        LabelNode failing = new LabelNode();
-        MethodNode method = cls.method(methodName)
-            .acc(Opcodes.ACC_PUBLIC)
-            .desc(mt.toMethodDescriptorString());
+            // specifier gen
+            LabelNode failing = new LabelNode();
+            MethodNode method = cls.method(methodName)
+                .acc(Opcodes.ACC_PUBLIC)
+                .desc(mt.toMethodDescriptorString());
 
-        genInvoke.gen(cls, method,
-            className, methodName, failing);
+            genInvoke.gen(cls, method,
+                className, methodName, failing);
 
-        // fall back
-        method
-            // exception - catch
-            .put_label(failing)
-            .fsame()
-            // put cs on the stack
-            .load("this")
-            .load(className, "cs",
-                $$.getDescriptor(JsIndyOptimisticCallSite.class));
+            // fall back
+            method
+                // exception - catch
+                .put_label(failing)
+                .fsame()
+                // put cs on the stack
+                .load("this")
+                .load(className, "cs",
+                    $$.getDescriptor(JsIndyOptimisticCallSite.class));
 
-        // put parameters on stack
-        for (int i = 0;i < mt.parameterCount();i ++) {
-            method.load(i + 1);
-        }
+            // put parameters on stack
+            for (int i = 0; i < mt.parameterCount(); i++) {
+                method.load(i + 1);
+            }
 
-        // fall back to guard point
-        method
-            .invoke_virtual(
-                $$.getInternalName(JsIndyOptimisticCallSite.class),
-                "guard_" + methodName, mt.toMethodDescriptorString());
-        // return guarded result
-        if (mt.returnType() == void.class) {
-            method.ret();
-        } else {
-            method.aret();
-        }
+            // fall back to guard point
+            method
+                .invoke_virtual(
+                    $$.getInternalName(JsIndyOptimisticCallSite.class),
+                    "guard_" + methodName, mt.toMethodDescriptorString());
+            // return guarded result
+            if (mt.returnType() == void.class) {
+                method.ret();
+            } else {
+                method.aret();
+            }
 
-        return define(cls);
-    }
-
-    private Class define(ClassNode classNode) {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.$.accept(cw);
-        byte[] clsBytes = cw.toByteArray();
-        $$.printBytecode(classNode.$.name, clsBytes);
-
-        return $$.UNSAFE.defineAnonymousClass(
-            JsIndyOptimisticCallSite.class, clsBytes, null);
+            return cls.writeClass(1);
+        });
     }
 
     private void guardForExactType(MethodNode method, Class targetClass, LabelNode failing) {
@@ -261,6 +280,13 @@ public class RuntimeCompiling {
                 "getClass", $$.getMethodDescriptor(Class.class))
             .load_const($$.getType(targetClass))
             .jump_if_acmpne(failing);
+    }
+
+    private void guardAsInstance(MethodNode methodNode, Class targetClass, LabelNode failing) {
+        methodNode
+            .load(1)
+            .instance_of(targetClass)
+            .jump_if_eq(failing);
     }
 
 
@@ -296,19 +322,31 @@ public class RuntimeCompiling {
 
         while (true) {
             // ignore all generated method
-            if(! targetClazz.isSynthetic() && ! targetClazz.getSimpleName().contains("/")) {
+            if(! targetClazz.isSynthetic() && ! targetClazz.getName().contains("/")) {
                 for (Method method : targetClazz.getDeclaredMethods()) {
-                    if (! method.isSynthetic() && !visited.contains(method.getName())) {
+                    if (! method.isSynthetic()
+                        && Modifier.isPublic(method.getModifiers())
+                        && !visited.contains(method.getName())) {
                         methods.add(method);
                         visited.add(method.getName());
                     }
                 }
             }
 
-            if (targetClazz == Object.class) {
+            for (Class inter: targetClazz.getInterfaces()) {
+                for (Method method: getAllMethods(inter)) {
+                    if(!visited.contains(method.getName())) {
+                        methods.add(method);
+                        visited.add(method.getName());
+                    }
+                }
+            }
+
+            Class superClass = targetClazz.getSuperclass();
+            if (superClass == null) {
                 break;
             } else {
-                targetClazz = targetClazz.getSuperclass();
+                targetClazz = superClass;
             }
         }
 
@@ -497,19 +535,19 @@ public class RuntimeCompiling {
                 .par("name", Object.class)
                 .par("args", Object[].class);
 
-            guardForExactType(method, targetClazz, failing);
             Map<String, Class> interfaceMethods = resolveAllInterfaceMethod(targetClazz);
-
             // generate field accessor
             nameSwitchTable(method, getAllMethods(targetClazz), (m) -> {
                 Class inter = interfaceMethods.get(getMethodKey(m));
                 String methodDesc = $$.getMethodDescriptor(m.getReturnType(), (Object[]) m.getParameterTypes());
 
                 if (inter != null) {
+                    guardAsInstance(method, inter, failing);
                     method.load("invoker").check_cast($$.getInternalName(inter));
                     fitArgs(method, m);
                     method.invoke_interface($$.getInternalName(inter), m.getName(), methodDesc);
                 } else {
+                    guardAsInstance(method, m.getDeclaringClass(), failing);
                     method.load("invoker").check_cast($$.getInternalName(m.getDeclaringClass()));
                     fitArgs(method, m);
                     method.invoke_virtual($$.getInternalName(m.getDeclaringClass()), m.getName(), methodDesc);
@@ -573,15 +611,10 @@ public class RuntimeCompiling {
 
             Method samMethod = targetInterface.getMethods()[0];
 
-            method
-                .load("invoker")
-                .instance_of(targetInterface)
-                .jump_if_eq(failing)
-                .load("invoker");
-
+            guardAsInstance(method, targetInterface, failing);
             // put args
+            method.load("invoker");
             fitArgs(method, samMethod);
-
             // invoke
             method
                 .invoke_interface($$.getInternalName(targetInterface), samMethod.getName(),

@@ -73,7 +73,6 @@ public class StatementTest extends JsvmJunitTestBase {
         Object result = function.invoke(this, (Runnable) () -> {
             throw new RuntimeException("hahaha");
         });
-
         assertTrue(result instanceof Throwable);
         assertEquals("hahaha", $$.cast(result, Throwable.class).getMessage());
 

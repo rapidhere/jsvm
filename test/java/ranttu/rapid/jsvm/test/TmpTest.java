@@ -15,9 +15,10 @@ import java.util.concurrent.Callable;
  */
 public class TmpTest implements Callable {
 
+    int a = 0;
     public TmpTest(Object obj) throws Throwable {
         func(() -> {
-           return obj;
+           return a;
         });
     }
 

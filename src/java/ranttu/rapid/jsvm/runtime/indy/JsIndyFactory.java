@@ -29,9 +29,9 @@ final public class JsIndyFactory {
         JsIndyType type = JsIndyType.valueOf(methodName);
 
         if (SystemProperty.UseOptimisticCallSite) {
-            callSite = new JsIndyOptimisticCallSite(type, mt);
+            callSite = new JsIndyOptimisticCallSite(lookup, type, mt);
         } else {
-            callSite = new JsIndyCallSite(type, mt);
+            callSite = new JsIndyCallSite(lookup, type, mt);
         }
 
         callSite.init();

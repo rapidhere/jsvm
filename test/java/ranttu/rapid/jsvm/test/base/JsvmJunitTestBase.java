@@ -59,10 +59,6 @@ abstract public class JsvmJunitTestBase extends Assert {
 
         Map<String, byte[]> ret = compileSource(className, source, suffix);
 
-        for (Map.Entry<String, byte[]> r : ret.entrySet()) {
-            $$.printBytecode(r.getKey(), r.getValue());
-        }
-
         Class<? extends JsModule> topClass = null;
         for (Map.Entry<String, byte[]> r : ret.entrySet()) {
             byte[] bytes = r.getValue();
