@@ -92,7 +92,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
                     JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
                     entry = ReflectionUtil.getFieldValue(module, "entry");
                 } finally {
-                    SystemProperty.UseOptimisticCallSite = false;
+                    SystemProperty.UseOptimisticCallSite = true;
                 }
             }
 
