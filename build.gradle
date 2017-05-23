@@ -16,6 +16,7 @@ dependencies {
     testCompile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.8'
     testCompile 'com.fasterxml.jackson.core:jackson-core:2.8.8'
     testCompile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+    testCompile 'org.mozilla:rhino:1.7.7.1'
 
     compile 'org.json:json:20160810'
     compile 'commons-io:commons-io:2.5'

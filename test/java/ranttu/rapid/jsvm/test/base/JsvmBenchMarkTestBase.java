@@ -1,8 +1,12 @@
 package ranttu.rapid.jsvm.test.base;
 
 import org.junit.Test;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Scriptable;
 import ranttu.rapid.jsvm.common.$$;
 import ranttu.rapid.jsvm.common.ReflectionUtil;
+import ranttu.rapid.jsvm.common.SystemProperty;
 import ranttu.rapid.jsvm.runtime.JsFunctionObject;
 import ranttu.rapid.jsvm.runtime.JsModule;
 import ranttu.rapid.jsvm.test.testrt.AnotherObject;
@@ -23,6 +27,8 @@ import java.util.List;
  * @version $id: JsvmExampleTestBase.java, v0.1 2017/5/9 dongwei.dq Exp $
  */
 abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
+    private static int RUN_TIMES = 20;
+
     @Test
     public void run() throws Exception {
         String source = getTestSource("testres/benchmark/");
@@ -35,9 +41,14 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             private JsFunctionObject entry;
 
             @Override
-            protected void preapre() {
-                JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
-                entry = ReflectionUtil.getFieldValue(module, "entry");
+            public void preapre() {
+                try {
+                    SystemProperty.UseOptimisticCallSite = true;
+                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
+                    entry = ReflectionUtil.getFieldValue(module, "entry");
+                } finally {
+                    SystemProperty.UseOptimisticCallSite = true;
+                }
             }
 
             @Override
@@ -53,7 +64,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             Invocable invoker;
 
             @Override
-            protected void preapre() throws Throwable {
+            public void preapre() throws Throwable {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
                 engine.eval(source);
                 invoker = $$.cast(engine);
@@ -64,9 +75,57 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
                 invoker.invokeFunction("entry", args);
             }
         };
+        SampleCase jsvmNoOptimisticCase = new SampleCase() {
+            {
+                title = titlePrefix + "jsvm-nop: ";
+            }
+            private JsFunctionObject entry;
+
+            @Override
+            public void preapre() throws Throwable {
+                try {
+                    SystemProperty.UseOptimisticCallSite = false;
+                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
+                    entry = ReflectionUtil.getFieldValue(module, "entry");
+                } finally {
+                    SystemProperty.UseOptimisticCallSite = false;
+                }
+            }
+
+            @Override
+            public void run(Object... args) throws Throwable {
+                entry.invoke(this, args);
+            }
+        };
+        SampleCase rhinoCase = new SampleCase() {
+            {
+                title = titlePrefix + "rhino: ";
+            }
+            private Function f;
+            private Context ctx;
+            private Scriptable scope;
+
+            @Override
+            public void preapre() throws Throwable {
+                ctx = Context.enter();
+                scope = ctx.initStandardObjects();
+                ctx.evaluateString(scope, source, "<dummy>", 1, null);
+                f = (Function) scope.get("entry", scope);
+            }
+
+            @Override
+            protected void run(Object... args) throws Throwable {
+                f.call(ctx, scope, scope, args);
+            }
+
+            @Override
+            protected void exit() {
+                Context.exit();
+            }
+        };
 
         try {
-            sample(100, jsvmCase, nashornCase);
+            sample(10, jsvmCase, nashornCase, jsvmNoOptimisticCase, rhinoCase);
         } catch (Throwable e) {
             fail(e);
         }
@@ -75,15 +134,21 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
     private void sample(int sampleCnt, SampleCase...cases0) throws Throwable {
         List<SampleCase> cases = Arrays.asList(cases0);
         for (int i = 0;i < sampleCnt;i ++) {
-            System.out.println("turn: " + (i + 1) + "/" + sampleCnt);
+            // System.out.println("turn: " + (i + 1) + "/" + sampleCnt);
 
             Collections.shuffle(cases);
             for (SampleCase sampleCase: cases) {
-                sampleCase.sample();
+                sampleCase.preapre();
+                for(int j = 0;j < RUN_TIMES;j ++) {
+                    sampleCase.sample(j);
+                }
+                sampleCase.exit();
             }
         }
 
-        cases.forEach((c) -> c.calcAndReport(sampleCnt));
+        for (SampleCase sampleCase: cases) {
+            sampleCase.report(sampleCnt);
+        }
     }
 
 
@@ -91,44 +156,57 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
         public String title;
         public List<Long> sampleTimes = new ArrayList<>();
 
-        public void sample() throws Throwable {
+        public SampleCase() {
+            for(int i = 0;i < RUN_TIMES;i ++) {
+                sampleTimes.add(0L);
+            }
+        }
+
+        public void sample(int i) throws Throwable {
             Object[] parameters = new Object[] { new SomeObject(), new AnotherObject(),
                 new YetAnotherObject(), new MathWrapper()};
 
-            preapre();
             long start = System.currentTimeMillis();
             run(parameters);
-            sampleTimes.add(System.currentTimeMillis() - start);
+            long tot = sampleTimes.get(i) + (System.currentTimeMillis() - start);
+            sampleTimes.set(i, tot);
         }
 
-        public void calcAndReport(int sampleCnt) {
-            sampleTimes.sort(null);
+        public void report(int sampleCnt) {
+            List<Double> result = new ArrayList<>();
 
-            int dropCnt = (int)(sampleCnt * 0.05);
-            if(dropCnt < 1) {
-                dropCnt = 1;
+            for(long t: sampleTimes) {
+                result.add((double)t / (double)sampleCnt);
             }
 
             long timeSum = 0;
-            long tot = sampleCnt - dropCnt * 2;
-            for(int i = dropCnt;i + dropCnt < sampleTimes.size();i ++) {
-                timeSum += sampleTimes.get(i);
+            long tot = result.size();
+            for (double sampleTime : result) {
+                timeSum += sampleTime;
             }
             double avg = (double)timeSum / (double)tot;
 
             double varTot = 0.0;
-            for(int i = dropCnt;i + dropCnt< sampleTimes.size();i ++) {
-                double tmp = ((double)sampleTimes.get(i) - avg);
+            for (double sampleTime : result) {
+                double tmp = (sampleTime - avg);
                 varTot += tmp * tmp;
             }
             double var = Math.sqrt(varTot / (double)tot);
 
-            System.out.println(String.format("%s: avg: %.4f ms; %.4fms",
-                title, avg, var));
+            System.out.println(title + " ======");
+            for(int i = 0;i < result.size();i ++) {
+                System.out.println(
+                    String.format("turn %d: %.4fms", i, result.get(i)));
+            }
+            System.out.println(String.format("avg: %.4f ms; %.4fms", avg, var));
         }
 
-        abstract protected void preapre() throws Throwable;
+        abstract public void preapre() throws Throwable;
         abstract protected void run(Object...args) throws Throwable;
+
+        protected void exit() {
+
+        }
     }
 
     // not used
