@@ -5,8 +5,8 @@ import ranttu.rapid.jsvm.test.base.JsvmBenchMarkTestBase;
 
 /**
  * @author rapidhere@gmail.com
- * @version $id: JsObjectRandomFieldAccess.java, v0.1 2017/5/9 dongwei.dq Exp $
+ * @version $id: RandomBoundedInvoke.java, v0.1 2017/5/8 dongwei.dq Exp $
  */
 @Ignore
-public class JsObjectRandomFieldAccess extends JsvmBenchMarkTestBase {
+public class RandomBoundedInvoke extends JsvmBenchMarkTestBase {
 }

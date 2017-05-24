@@ -48,7 +48,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             public void preapre() {
                 try {
                     SystemProperty.UseOptimisticCallSite = true;
-                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
+                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", prepareForJsvm(source));
                     entry = ReflectionUtil.getFieldValue(module, "entry");
                 } finally {
                     SystemProperty.UseOptimisticCallSite = true;
@@ -57,7 +57,12 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
 
             @Override
             protected void run(Object... args) {
-                entry.invoke(this, args);
+                try {
+                    SystemProperty.UseOptimisticCallSite = true;
+                    entry.invoke(this, args);
+                } finally {
+                    SystemProperty.UseOptimisticCallSite = true;
+                }
             }
         };
         SampleCase nashornCase = new SampleCase() {
@@ -70,7 +75,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             @Override
             public void preapre() throws Throwable {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                engine.eval(source);
+                engine.eval(prepareForNashorn(source));
                 invoker = $$.cast(engine);
             }
 
@@ -89,7 +94,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             public void preapre() throws Throwable {
                 try {
                     SystemProperty.UseOptimisticCallSite = false;
-                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", source);
+                    JsModule module = loadModule(getClass().getSimpleName() + "_Benchmark", prepareForJsvm(source));
                     entry = ReflectionUtil.getFieldValue(module, "entry");
                 } finally {
                     SystemProperty.UseOptimisticCallSite = true;
@@ -98,7 +103,12 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
 
             @Override
             public void run(Object... args) throws Throwable {
-                entry.invoke(this, args);
+                try {
+                    SystemProperty.UseOptimisticCallSite = false;
+                    entry.invoke(this, args);
+                } finally {
+                    SystemProperty.UseOptimisticCallSite = true;
+                }
             }
         };
         SampleCase rhinoCase = new SampleCase() {
@@ -113,7 +123,7 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             public void preapre() throws Throwable {
                 ctx = Context.enter();
                 scope = ctx.initStandardObjects();
-                ctx.evaluateString(scope, source, "<dummy>", 1, null);
+                ctx.evaluateString(scope, prepareForRhino(source), "<dummy>", 1, null);
                 f = (Function) scope.get("entry", scope);
             }
 
@@ -133,6 +143,18 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
         } catch (Throwable e) {
             fail(e);
         }
+    }
+
+    protected String prepareForJsvm(String source) {
+        return source;
+    }
+
+    protected String prepareForRhino(String source) {
+        return source;
+    }
+
+    protected String prepareForNashorn(String source) {
+        return source;
     }
 
     private void sample(int sampleCnt, SampleCase...cases0) throws Throwable {
@@ -198,11 +220,10 @@ abstract public class JsvmBenchMarkTestBase extends JsvmExampleTestBase {
             double var = Math.sqrt(varTot / (double)tot);
 
             System.out.println(title + " ======");
-            for(int i = 0;i < result.size();i ++) {
-                System.out.println(
-                    String.format("turn %d: %.4fms", i, result.get(i)));
+            for (double aResult : result) {
+                System.out.print(String.format("%.4f ", aResult));
             }
-            System.out.println(String.format("avg: %.4f ms; %.4fms", avg, var));
+            System.out.println(String.format("\navg: %.4f ms; %.4fms", avg, var));
         }
 
         abstract public void preapre() throws Throwable;

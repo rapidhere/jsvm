@@ -5,6 +5,7 @@
  */
 package ranttu.rapid.jsvm.codegen.ir;
 
+
 /**
  * the field type
  *

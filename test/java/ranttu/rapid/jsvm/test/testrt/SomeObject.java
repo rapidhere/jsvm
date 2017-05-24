@@ -22,4 +22,20 @@ public class SomeObject {
     public Object field2 = 2;
     public Object field3 = 3;
     public Object field4 = 4;
+
+    public double method1(double i) {
+        return i + 1;
+    }
+
+    public double method2(double i) {
+        return i + 2;
+    }
+
+    public double method3(double i) {
+        return i + 3;
+    }
+
+    public double method4(double i) {
+        return i + 4;
+    }
 }

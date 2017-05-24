@@ -493,10 +493,10 @@ public class RuntimeCompiling {
         }
     }
 
-    private void unwrapPrimitive(MethodNode method, Class ptype, Class wtype) {
+    private void unwrapPrimitive(MethodNode method, Class ptype, @SuppressWarnings("unused") Class wtype) {
         method
-            .check_cast($$.getInternalName(wtype))
-            .invoke_virtual($$.getInternalName(wtype), ptype.getSimpleName() + "Value",
+            .check_cast($$.getInternalName(Number.class))
+            .invoke_virtual($$.getInternalName(Number.class), ptype.getSimpleName() + "Value",
                 $$.getMethodDescriptor(ptype));
     }
 

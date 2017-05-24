@@ -23,7 +23,7 @@ final public class SystemProperty {
     public static boolean PrintByteCode = false;
 
     @Property(namespace = "jsvm.test")
-    public static boolean IgnoreBenchMark = true;
+    public static boolean IgnoreBenchMark = false;
 
     //~~~ implementations
     // private constructor
