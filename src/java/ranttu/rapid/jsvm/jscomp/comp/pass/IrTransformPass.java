@@ -635,7 +635,7 @@ public class IrTransformPass extends AstBasedCompilePass {
         in(cls).invoke(() -> {
             // add MODULE field
             clazz.field(JsModule.FIELD_MODULE_NAME)
-                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC, Opcodes.ACC_SYNTHETIC)
+                .acc(Opcodes.ACC_PUBLIC, Opcodes.ACC_FINAL, Opcodes.ACC_STATIC)
                 .desc(clazz)
                 .end()
 

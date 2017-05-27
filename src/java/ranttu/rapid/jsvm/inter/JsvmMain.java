@@ -29,6 +29,7 @@ public class JsvmMain {
 
     private String sourceFilePath;
     private String packagePath;
+    private String outputPath;
     private CommandLine cl;
 
     private JsvmMain(String[] args) {
@@ -46,6 +47,7 @@ public class JsvmMain {
 
         packagePath = cl.getOptionValue("package");
         sourceFilePath = cl.getArgs()[0];
+        outputPath = cl.getOptionValue("o");
     }
 
     private void run() throws Throwable {
@@ -78,8 +80,9 @@ public class JsvmMain {
             for (String className: result.keySet()) {
                 int i = className.lastIndexOf("/");
                 String fileName = className.substring(i + 1) + ".class";
-                System.out.println("  " + fileName);
-                new FileOutputStream(new File(fileName)).write(result.get(className));
+                String filePath = outputPath + "/" + fileName;
+                System.out.println("  " + filePath);
+                new FileOutputStream(new File(filePath)).write(result.get(className));
             }
             System.out.println("done");
         } catch (JSVMBaseException e) {
@@ -90,16 +93,8 @@ public class JsvmMain {
 
     static {
         options = new Options()
-            .addOption(
-                Option.builder()
-                    .argName("package path")
-                    .required()
-                    .hasArg()
-                    .desc("the package path")
-                    .valueSeparator()
-                    .longOpt("package")
-                .build()
-            )
-            .addOption("c", "compile", false, "do the compile job");
+            .addRequiredOption(null, "package", true, "the package path")
+            .addOption("c", "compile", false, "do the compile job")
+            .addOption("o", "output", true, "the output directory");
     }
 }
