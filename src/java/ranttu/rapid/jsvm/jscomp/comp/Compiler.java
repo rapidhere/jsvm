@@ -27,21 +27,22 @@ public class Compiler {
         this.ast = ast;
     }
 
-    /**
-     * compile and output the bytes
-     * @param className the name of the compiled class
-     */
+
     public Map<String, byte[]> compile(@Nonnull String className) throws IOException {
         return compile(className, "<dummy>");
     }
 
-    /**
-     * compile and output the bytes
-     * @param className the name of the compiled class
-     * @param sourceFileName the name of the source file
-     */
+    public Map<String, byte[]> compileWithPackage(@Nonnull String sourceFileName, @Nonnull String basePackage)
+        throws IOException {
+        int suffix = sourceFileName.lastIndexOf(".js");
+        sourceFileName = sourceFileName.substring(0, suffix);
+        sourceFileName = sourceFileName.substring(0, 1).toUpperCase() + sourceFileName.substring(1);
+        String className = basePackage.replace('.', '/') + '/' + sourceFileName;
+        return compile(className, "<dummy>");
+    }
+
     public Map<String, byte[]> compile(@Nonnull String className, @Nonnull String sourceFileName)
-                                                                                                 throws IOException {
+        throws IOException {
         // create new context
         context = new CompilingContext();
 

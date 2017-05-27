@@ -22,6 +22,7 @@ dependencies {
     compile 'commons-io:commons-io:2.5'
     compile 'com.google.guava:guava:20.0'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'commons-cli:commons-cli:1.4'
 }
 
 // ~~~ java source configuration
@@ -82,6 +83,10 @@ sourceSets {
 // artifacts
 jar {
     manifest {
-        attributes('CompileMain-Class': 'ranttu.rapid.jsvm.CompileMain')
+        attributes "Main-Class": "ranttu.rapid.jsvm.inter.JsvmMain"
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
