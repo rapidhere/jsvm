@@ -1,4 +1,7 @@
-package ranttu.rapid.jsvm.runtime.async;
+package ranttu.rapid.jsvm.test.testrt;
+
+import ranttu.rapid.jsvm.runtime.async.Promise;
+import ranttu.rapid.jsvm.runtime.async.PromiseResultHandler;
 
 import java.util.concurrent.*;
 
@@ -17,23 +20,14 @@ public class JsExecutorService {
 
     //~~~ singleton helpers
 
-    /**
-     * get the executor
-     */
     public static JsExecutorService getExecutor() {
         return jsExecutorService;
     }
 
-    /**
-     * submit a task with accept callback and error callback
-     */
     public static void submit(Callable task, PromiseResultHandler accept, PromiseResultHandler error) {
         getExecutor().submitTask(task, accept, error);
     }
 
-    /**
-     * submit a task and get a Promise object for the task
-     */
     public static Promise submit(Callable task) {
         return getExecutor().submitTask(task);
     }

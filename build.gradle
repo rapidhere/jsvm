@@ -83,7 +83,7 @@ sourceSets {
 // artifacts
 jar {
     manifest {
-        attributes "Main-Class": "ranttu.rapid.jsvm.inter.JsvmMain"
+        attributes "Main-Class": "ranttu.rapid.JsvmMain", "Class-Path": "./"
     }
 
     from {

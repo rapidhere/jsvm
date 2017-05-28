@@ -1,10 +1,12 @@
-package ranttu.rapid.jsvm.inter;
+package ranttu.rapid;
 
 import org.apache.commons.cli.*;
+import ranttu.rapid.jsvm.common.SystemProperty;
 import ranttu.rapid.jsvm.exp.JSVMBaseException;
 import ranttu.rapid.jsvm.jscomp.ast.AbstractSyntaxTree;
 import ranttu.rapid.jsvm.jscomp.comp.Compiler;
 import ranttu.rapid.jsvm.jscomp.parser.AcornJSParser;
+import ranttu.rapid.jsvmnode.MainLoop;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,9 +29,7 @@ public class JsvmMain {
     private static final Options options;
     private static final CommandLineParser parser = new DefaultParser();
 
-    private String sourceFilePath;
-    private String packagePath;
-    private String outputPath;
+    private String source;
     private CommandLine cl;
 
     private JsvmMain(String[] args) {
@@ -41,33 +41,45 @@ public class JsvmMain {
             cl = parser.parse(options, arguments);
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "jsvm", options );
+            formatter.printHelp("jsvm", options);
+            e.printStackTrace();
             System.exit(1);
         }
 
-        packagePath = cl.getOptionValue("package");
-        sourceFilePath = cl.getArgs()[0];
-        outputPath = cl.getOptionValue("o");
+
+        source = cl.getArgs()[0];
     }
 
     private void run() throws Throwable {
         if (cl.hasOption("c")) {
             compile();
         } else {
-            System.err.println("don't know what to do");
-            System.exit(1);
+            // run
+            runNode();
         }
+    }
+
+    private void runNode() {
+        SystemProperty.UseVAC = Boolean.valueOf(
+            cl.getOptionValue("vac", "true"));
+        SystemProperty.UseOptimisticCallSite = Boolean.valueOf(
+            cl.getOptionValue("opcs", "true"));
+
+        MainLoop.get().start(source);
     }
 
     private void compile() throws Throwable {
         try {
-            System.out.println("process source: " + sourceFilePath);
+            String outputPath = cl.getOptionValue("o");
+            String packagePath = cl.getOptionValue("package");
+
+            System.out.println("process source: " + source);
             System.out.println("package name: " + packagePath);
             System.out.println("==================================");
             System.out.println();
 
             ranttu.rapid.jsvm.jscomp.parser.Parser parser = new AcornJSParser();
-            File f = new File(sourceFilePath);
+            File f = new File(source);
 
             System.out.println("parsing ...");
             AbstractSyntaxTree ast = parser.parse(f);
@@ -93,8 +105,18 @@ public class JsvmMain {
 
     static {
         options = new Options()
-            .addRequiredOption(null, "package", true, "the package path")
-            .addOption("c", "compile", false, "do the compile job")
-            .addOption("o", "output", true, "the output directory");
+            // compile options
+            .addOption(null, "package", true,
+                "compile option: the package path, use with -c")
+            .addOption("c", "compile", false,
+                "do the compile job")
+            .addOption("o", "output", true,
+                "compile option: the output directory, use with -c")
+
+            // run options
+            .addOption(null, "vac", true,
+                "use VM Anonymous Class or not, default is true")
+            .addOption(null, "opcs", true,
+                "use Optimistic Call Site or not, default is true");
     }
 }
